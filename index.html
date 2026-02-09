@@ -1,14 +1,239 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>띡! THICK - Smart Scanner</title>
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <style>
+        :root {
+            --neon-green: #39FF14;
+            --deep-black: #0B0B0C;
+            --soft-gray: #F2F2F7;
+            --loading-red: #FF3B30;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; margin: 0; background: var(--deep-black); color: white; overflow: hidden; }
+
+        /* [Header] 브랜드 영역 */
+        header { padding: 20px; display: flex; align-items: center; gap: 12px; }
+        .logo-box { width: 35px; height: 35px; background: var(--neon-green); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: black; font-weight: 900; font-size: 20px; }
+        .brand-text { color: var(--neon-green); font-weight: 900; font-size: 24px; letter-spacing: -1px; }
+
+        /* [Scanner] 카메라 영역 */
+        #scanner-container { position: relative; width: 100%; height: 200px; background: #000; overflow: hidden; }
+        #video { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .scan-line { 
+            position: absolute; top: 50%; left: 10%; width: 80%; height: 2px; 
+            background: var(--neon-green); 
+            box-shadow: 0 0 15px var(--neon-green); 
+            transition: background 0.3s ease;
+            animation: scan-move 2s infinite ease-in-out; 
+        }
+        @keyframes scan-move { 0%, 100% { top: 30%; } 50% { top: 70%; } }
+
+        /* [Main] 장바구니 리스트 */
+        main { 
+            background: var(--soft-gray); 
+            height: calc(100vh - 300px); 
+            border-top-left-radius: 35px; border-top-right-radius: 35px; 
+            padding: 30px 20px; color: #1c1c1e; overflow-y: auto;
+            box-shadow: inset 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .list-header h2 { font-size: 20px; font-weight: 800; margin: 0; }
+        .btn-reset { background: white; border: 1px solid #e5e5ea; padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #8e8e93; font-weight: 600; cursor: pointer; }
+
+        /* [Card] 상품 카드 디자인 */
+        .cart-item {
+            background: white; border-radius: 24px; padding: 20px; margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            animation: item-in 0.4s ease-out;
+        }
+        @keyframes item-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .item-info .item-name { font-size: 17px; font-weight: 800; color: #111; display: block; }
+        .item-info .item-sub { font-size: 12px; color: #aeaeb2; display: block; margin: 2px 0; }
+        .item-info .item-barcode { font-size: 11px; color: #d1d1d6; }
+
+        .item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .qty-box { display: flex; align-items: center; background: #f2f2f7; padding: 4px; border-radius: 12px; gap: 10px; }
+        .qty-box button { width: 28px; height: 28px; border: none; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-weight: bold; cursor: pointer; }
+        .qty-box span { font-weight: 700; min-width: 15px; text-align: center; }
+        .item-price { font-size: 17px; font-weight: 900; }
+
+        /* [Footer] 합계 영역 */
+        footer { 
+            position: fixed; bottom: 0; width: 100%; height: 100px;
+            background: white; border-top: 1px solid #f2f2f7;
+            padding: 0 25px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .total-label { color: #8e8e93; font-size: 13px; font-weight: 600; }
+        .total-val { font-size: 28px; font-weight: 900; color: #FF3B30; }
+        .total-val span { font-size: 16px; margin-left: 2px; }
+
+        .btn-check { width: 55px; height: 55px; background: var(--deep-black); border-radius: 18px; border: none; color: var(--neon-green); font-size: 22px; cursor: pointer; }
+    </style>
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+
+    <header>
+        <div class="logo-box">|||</div>
+        <div class="brand-text">띡! THICK</div>
+    </header>
+
+    <div id="scanner-container">
+        <video id="video"></video>
+        <div class="scan-line"></div>
+    </div>
+
+    <main>
+        <div class="list-header">
+            <h2>장바구니 목록</h2>
+            <button class="btn-reset" onclick="resetCart()">비우기</button>
+        </div>
+        <div id="cart-list">
+            <div style="text-align: center; padding: 50px 0; color: #aeaeb2;">
+                <p>상품 바코드를 스캔하면<br>자동으로 계산됩니다.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div>
+            <span class="total-label">총 합계 금액</span>
+            <div class="total-val"><span id="final-total">0</span><span>원</span></div>
+        </div>
+        <button class="btn-check">✔</button>
+    </footer>
+
+    <script>
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        let cart = [];
+        let isProcessing = false;
+
+        // 1. 카메라 시작
+        codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
+            if (result && !isProcessing) {
+                isProcessing = true;
+                const code = result.getText();
+                vibrate(70);
+                handleScan(code);
+                
+                // 연속 스캔 방지 딜레이
+                setTimeout(() => { isProcessing = false; }, 2500);
+            }
+        });
+
+        // 2. 실제 데이터 통신 로직
+        async function fetchProductFromAPI(barcode) {
+            const API_KEY = 'YOUR_SERVICE_KEY'; // 발급받은 키를 여기에 입력
+            const API_URL = `https://apis.data.go.kr/B550814/gtinService/getGtinInfo?serviceKey=${API_KEY}&gtin=${barcode}&_type=json`;
+
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                if (data.response?.body?.items?.item) {
+                    const item = data.response.body.items.item[0];
+                    return {
+                        name: item.itemName,
+                        sub: item.entName,
+                        price: 0 // 공공 API는 가격 정보를 제공하지 않으므로 수동 입력 유도
+                    };
+                }
+            } catch (e) {
+                console.error("API 연동 에러:", e);
+                return null;
+            }
+            return null;
+        }
+
+        // 3. 스캔 핸들러 (스마트 로직)
+        async function handleScan(code) {
+            showLoading(true);
+
+            // 1단계: 장바구니 중복 확인
+            let existing = cart.find(i => i.code === code);
+            if (existing) {
+                existing.qty++;
+                render();
+            } else {
+                // 2단계: 외부 데이터 호출
+                let fetchedData = await fetchProductFromAPI(code);
+                
+                if (!fetchedData) {
+                    // 3단계: API에 없는 경우 사용자 직접 입력
+                    const manualName = prompt("처음 보는 상품이네요! 이름을 알려주세요.", "기타 상품");
+                    if (!manualName) { showLoading(false); return; }
+                    const manualPrice = parseInt(prompt("가격을 입력해주세요.", "0")) || 0;
+                    fetchedData = { name: manualName, sub: "직접 입력", price: manualPrice };
+                }
+
+                // 가격이 0원일 경우 (API에서 이름만 가져온 경우)
+                if (fetchedData.price === 0) {
+                    fetchedData.price = parseInt(prompt(`[${fetchedData.name}]의 가격은 얼마인가요?`, "0")) || 0;
+                }
+
+                cart.push({ ...fetchedData, code, qty: 1 });
+                render();
+            }
+            
+            showLoading(false);
+        }
+
+        // 4. UI 제어 및 렌더링
+        function showLoading(isLoading) {
+            const scanLine = document.querySelector('.scan-line');
+            scanLine.style.background = isLoading ? 'var(--loading-red)' : 'var(--neon-green)';
+            scanLine.style.boxShadow = isLoading ? '0 0 15px var(--loading-red)' : '0 0 15px var(--neon-green)';
+        }
+
+        function render() {
+            const listEl = document.getElementById('cart-list');
+            listEl.innerHTML = '';
+            let total = 0;
+
+            if (cart.length === 0) {
+                listEl.innerHTML = `<div style="text-align: center; padding: 50px 0; color: #aeaeb2;"><p>장바구니가 비어있습니다.</p></div>`;
+            }
+
+            cart.forEach(item => {
+                total += (item.price * item.qty);
+                listEl.innerHTML += `
+                    <div class="cart-item">
+                        <div class="item-info">
+                            <span class="item-name">${item.name}</span>
+                            <span class="item-sub">${item.sub}</span>
+                            <span class="item-barcode"># ${item.code}</span>
+                        </div>
+                        <div class="item-right">
+                            <div class="qty-box">
+                                <button onclick="updateQty('${item.code}', -1)">-</button>
+                                <span>${item.qty}</span>
+                                <button onclick="updateQty('${item.code}', 1)">+</button>
+                            </div>
+                            <div class="item-price">${(item.price * item.qty).toLocaleString()}원</div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('final-total').innerText = total.toLocaleString();
+        }
+
+        function updateQty(code, n) {
+            const item = cart.find(i => i.code === code);
+            if (item) {
+                item.qty += n;
+                if (item.qty <= 0) cart = cart.filter(i => i.code !== code);
+                render();
+            }
+        }
+
+        function resetCart() { if(confirm("장바구니를 모두 비울까요?")) { cart = []; render(); } }
+        function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
+    </script>
 </body>
 </html>
