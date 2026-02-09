@@ -3,25 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>띡! THICK - Naver Smart Scanner</title>
+    <title>띡! THICK - Infinite Scanner</title>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <style>
         :root {
             --neon-blue: #007AFF;
             --deep-black: #0B0B0C;
             --soft-gray: #F2F2F7;
-            --loading-color: #5856D6;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; margin: 0; background: var(--deep-black); color: white; overflow: hidden; }
 
-        /* [Header] 브랜드 영역 */
         header { padding: 20px; display: flex; align-items: center; gap: 12px; }
         .logo-box { width: 35px; height: 35px; background: var(--neon-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 20px; }
         .brand-text { color: white; font-weight: 900; font-size: 24px; letter-spacing: -1px; }
 
-        /* [Scanner] 카메라 영역 */
         #scanner-container { position: relative; width: 100%; height: 220px; background: #000; overflow: hidden; }
         #video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
         .scan-line { 
@@ -29,52 +26,33 @@
             background: var(--neon-blue); 
             box-shadow: 0 0 15px var(--neon-blue); 
             animation: scan-move 2s infinite ease-in-out; 
-            z-index: 10;
         }
         @keyframes scan-move { 0%, 100% { top: 30%; } 50% { top: 70%; } }
 
-        /* [Main] 장바구니 리스트 */
         main { 
-            background: var(--soft-gray); 
-            height: calc(100vh - 320px); 
+            background: var(--soft-gray); height: calc(100vh - 320px); 
             border-top-left-radius: 35px; border-top-right-radius: 35px; 
             padding: 25px 20px; color: #1c1c1e; overflow-y: auto;
-            box-shadow: inset 0 10px 30px rgba(0,0,0,0.1);
         }
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .list-header h2 { font-size: 20px; font-weight: 800; margin: 0; }
-        .btn-reset { background: white; border: 1px solid #e5e5ea; padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #8e8e93; font-weight: 600; cursor: pointer; }
 
-        /* [Card] 상품 카드 디자인 */
         .cart-item {
-            background: white; border-radius: 24px; padding: 18px; margin-bottom: 12px;
+            background: white; border-radius: 20px; padding: 15px; margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
-            animation: item-in 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-        @keyframes item-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .item-info .item-name { font-weight: 800; display: block; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .item-info .item-sub { font-size: 11px; color: #8e8e93; }
 
-        .item-info { flex: 1; }
-        .item-name { font-size: 16px; font-weight: 800; color: #111; display: block; max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .item-sub { font-size: 12px; color: #aeaeb2; display: block; margin-top: 2px; }
-        .item-barcode { font-size: 10px; color: #d1d1d6; margin-top: 4px; }
+        .qty-box { display: flex; align-items: center; background: #f2f2f7; padding: 4px; border-radius: 10px; gap: 8px; }
+        .qty-box button { width: 24px; height: 24px; border: none; background: white; border-radius: 6px; font-weight: bold; }
 
-        .item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-        .qty-box { display: flex; align-items: center; background: #f2f2f7; padding: 4px; border-radius: 12px; gap: 8px; }
-        .qty-box button { width: 26px; height: 26px; border: none; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-weight: bold; cursor: pointer; }
-        .qty-box span { font-weight: 700; min-width: 15px; text-align: center; font-size: 14px; }
-        .item-price { font-size: 17px; font-weight: 900; color: #1c1c1e; }
-
-        /* [Footer] 합계 영역 */
         footer { 
-            position: fixed; bottom: 0; width: 100%; height: 100px;
-            background: white; border-top: 1px solid #f2f2f7;
-            padding: 0 25px; display: flex; align-items: center; justify-content: space-between;
+            position: fixed; bottom: 0; width: 100%; height: 100px; background: white; 
+            padding: 0 25px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f2f2f7;
         }
-        .total-label { color: #8e8e93; font-size: 13px; font-weight: 600; display: block; }
         .total-val { font-size: 28px; font-weight: 900; color: #FF3B30; }
-        .total-val span { font-size: 16px; margin-left: 2px; }
-        .btn-check { width: 55px; height: 55px; background: var(--deep-black); border-radius: 18px; border: none; color: white; font-size: 22px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -92,118 +70,95 @@
     <main id="main-scroll">
         <div class="list-header">
             <h2>장바구니 목록</h2>
-            <button class="btn-reset" onclick="resetCart()">비우기</button>
+            <button style="border:none; background:none; color:#8e8e93;" onclick="resetCart()">비우기</button>
         </div>
-        <div id="cart-list">
-            <div id="empty-msg" style="text-align: center; padding: 60px 0; color: #aeaeb2;">
-                <p>바코드를 스캔하여<br>상품 정보를 가져오세요!</p>
-            </div>
-        </div>
+        <div id="cart-list"></div>
     </main>
 
     <footer>
-        <div>
-            <span class="total-label">총 합계 금액</span>
-            <div class="total-val"><span id="final-total">0</span><span>원</span></div>
-        </div>
-        <button class="btn-check" onclick="alert('결제 기능은 준비 중입니다!')">✔</button>
+        <div><span style="font-size:12px; color:#8e8e93;">총 합계</span><div class="total-val"><span id="final-total">0</span>원</div></div>
+        <button style="width:50px; height:50px; background:#000; color:#fff; border-radius:15px; border:none;">✔</button>
     </footer>
 
     <script>
-        // 1. 발급받은 네이버 API 키 입력
-        const NAVER_CLIENT_ID = 'z1nRSTNl3JbIvjA2sPYT'; 
-        const NAVER_CLIENT_SECRET = 'jf7SfkKHzE';
+        const NAVER_CLIENT_ID = 'YOUR_CLIENT_ID'; 
+        const NAVER_CLIENT_SECRET = 'YOUR_CLIENT_SECRET';
 
         const codeReader = new ZXing.BrowserMultiFormatReader();
         let cart = [];
-        let isProcessing = false; // 중복 스캔 방지용 변수
 
-        // 2. 스캐너 초기화 및 시작
-        function initScanner() {
+        // 1. [핵심] 스캐너 시작 함수 (독립적으로 실행)
+        function startScanning() {
             codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
-                if (result && !isProcessing) {
-                    isProcessing = true; // 스캔 즉시 잠금
-                    const barcode = result.getText();
-                    handleBarcode(barcode);
+                if (result) {
+                    console.log("스캔 성공:", result.getText());
+                    
+                    // 즉시 스캔 중단 (한 번에 여러 번 찍히는 것 방지)
+                    codeReader.reset(); 
+                    
+                    // 데이터 처리 실행
+                    handleBarcode(result.getText());
 
-                    // ⭐ [연속 스캔 비법] 1.5초 후 잠금 해제하여 다시 스캔 가능하게 함
+                    // 1.5초 뒤에 스캐너를 완전히 새로 다시 시작
                     setTimeout(() => {
-                        isProcessing = false;
-                        console.log("Scanner Ready...");
+                        console.log("스캐너 재시작...");
+                        startScanning(); 
                     }, 1500); 
                 }
             });
         }
 
-        initScanner();
+        // 초기 실행
+        startScanning();
 
-        // 3. 바코드 핸들링 (중복 처리 및 API 연동)
         async function handleBarcode(code) {
             vibrate(70);
-            updateUIState(true);
-
-            // 이미 담긴 상품인지 확인
-            let product = cart.find(i => i.code === code);
             
+            let product = cart.find(i => i.code === code);
             if (product) {
                 product.qty++;
             } else {
-                // 처음 담는 상품이면 네이버 API 호출
                 const info = await fetchNaverData(code);
                 if (info) {
                     cart.push({ ...info, code, qty: 1 });
                 } else {
-                    // API에서 못 찾을 경우 예외 처리
-                    const manualName = prompt("상품명을 찾을 수 없습니다. 직접 입력하시겠습니까?", "새 상품");
+                    const manualName = prompt("상품명을 찾지 못했습니다.", "직접 입력 상품");
                     if (manualName) {
-                        const manualPrice = parseInt(prompt("가격을 입력해주세요.", "0")) || 0;
-                        cart.push({ name: manualName, price: manualPrice, mall: '직접 입력', code, qty: 1 });
+                        const manualPrice = parseInt(prompt("가격을 입력하세요.", "0")) || 0;
+                        cart.push({ name: manualName, price: manualPrice, mall: '수동', code, qty: 1 });
                     }
                 }
             }
             render();
-            updateUIState(false);
         }
 
-        // 4. 네이버 쇼핑 API 호출 (프록시 서버 사용)
         async function fetchNaverData(barcode) {
-            // CORS 우회를 위해 프록시 서버를 주소 앞에 붙입니다.
             const proxy = 'https://cors-anywhere.herokuapp.com/'; 
-            const apiTarget = `https://openapi.naver.com/v1/search/shop.json?query=${barcode}&display=1`;
+            const target = `https://openapi.naver.com/v1/search/shop.json?query=${barcode}&display=1`;
 
             try {
-                const response = await fetch(proxy + apiTarget, {
+                const response = await fetch(proxy + target, {
                     headers: {
                         'X-Naver-Client-Id': NAVER_CLIENT_ID,
                         'X-Naver-Client-Secret': NAVER_CLIENT_SECRET
                     }
                 });
                 const data = await response.json();
-                
                 if (data.items && data.items.length > 0) {
-                    const item = data.items[0];
                     return {
-                        name: item.title.replace(/<[^>]*>?/gm, ''), // HTML 태그 제거
-                        price: parseInt(item.lprice) || 0,
-                        mall: item.mallName
+                        name: data.items[0].title.replace(/<[^>]*>?/gm, ''),
+                        price: parseInt(data.items[0].lprice) || 0,
+                        mall: data.items[0].mallName
                     };
                 }
-            } catch (e) {
-                console.error("Naver API Error:", e);
-            }
+            } catch (e) { console.error(e); }
             return null;
         }
 
-        // 5. 화면 렌더링
         function render() {
             const listEl = document.getElementById('cart-list');
-            const emptyMsg = document.getElementById('empty-msg');
             listEl.innerHTML = '';
             let total = 0;
-
-            if (cart.length > 0) {
-                emptyMsg.style.display = 'none';
-            }
 
             cart.forEach(item => {
                 total += (item.price * item.qty);
@@ -212,26 +167,19 @@
                         <div class="item-info">
                             <span class="item-name">${item.name}</span>
                             <span class="item-sub">${item.mall}</span>
-                            <span class="item-barcode"># ${item.code}</span>
                         </div>
-                        <div class="item-right">
-                            <div class="qty-box">
-                                <button onclick="changeQty('${item.code}', -1)">-</button>
-                                <span>${item.qty}</span>
-                                <button onclick="changeQty('${item.code}', 1)">+</button>
-                            </div>
-                            <div class="item-price">${(item.price * item.qty).toLocaleString()}원</div>
+                        <div class="qty-box">
+                            <button onclick="changeQty('${item.code}', -1)">-</button>
+                            <span>${item.qty}</span>
+                            <button onclick="changeQty('${item.code}', 1)">+</button>
+                            <span style="font-weight:900; margin-left:10px;">${(item.price * item.qty).toLocaleString()}원</span>
                         </div>
                     </div>`;
             });
             document.getElementById('final-total').innerText = total.toLocaleString();
-            
-            // 새 상품 추가 시 아래로 스크롤
-            const main = document.getElementById('main-scroll');
-            main.scrollTop = main.scrollHeight;
+            document.getElementById('main-scroll').scrollTop = 99999;
         }
 
-        // 수량 조절 함수
         function changeQty(code, n) {
             const item = cart.find(i => i.code === code);
             if (item) {
@@ -241,21 +189,7 @@
             }
         }
 
-        // UI 상태 업데이트 (로딩 중 시각화)
-        function updateUIState(isLoading) {
-            const line = document.querySelector('.scan-line');
-            line.style.background = isLoading ? 'var(--loading-color)' : 'var(--neon-blue)';
-            line.style.boxShadow = isLoading ? '0 0 15px var(--loading-color)' : '0 0 15px var(--neon-blue)';
-        }
-
-        function resetCart() { 
-            if(confirm("장바구니를 비울까요?")) {
-                cart = []; 
-                render(); 
-                document.getElementById('empty-msg').style.display = 'block'; 
-            }
-        }
-
+        function resetCart() { if(confirm("비울까요?")) { cart = []; render(); } }
         function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
     </script>
 </body>
