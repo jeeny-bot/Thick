@@ -4,16 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Thick Scanner - Pixel Perfect Edition</title>
-    <!-- Google Fonts: Noto Sans KR for precise match -->
+    <title>띡띡! Thick - Smart Scanner Pro</title>
+    <!-- Google Fonts: Noto Sans KR -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
         rel="stylesheet">
-    <!-- Html5-Qrcode Engine -->
+    <!-- Html5-Qrcode Library (Latest) -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
+        /* 
+         * [ULTIMATE INTEGRATED STYLESHEET] 
+         * 이미지 1:1 매칭 정밀 디자인
+         */
         :root {
             --orange-main: #e67e22;
-            /* 이미지 원본 오렌지 색상 */
             --black-card: #000000;
             --white: #ffffff;
             --bg-gray: #f2f2f7;
@@ -48,7 +51,7 @@
             gap: 16px;
         }
 
-        /* --- TOP SECTION: Scanner Card (Black) --- */
+        /* --- 상단: 스캐너 카드 (이미지 반영) --- */
         .scanner-card {
             background-color: var(--black-card);
             border-radius: var(--card-radius);
@@ -84,7 +87,7 @@
         .scanner-viewport {
             flex: 1;
             background: #0d0d0d;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
             position: relative;
             display: flex;
@@ -107,13 +110,69 @@
         /* 이미지 상의 리얼 화이트 테두리 */
         .viewport-border-overlay {
             position: absolute;
-            top: 12px;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             pointer-events: none;
             z-index: 10;
+        }
+
+        /* ㄴ자 조준선 (이미지 반영) */
+        .camera-reticle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .reticle-box {
+            width: 65%;
+            height: 45%;
+            position: relative;
+        }
+
+        .reticle-box::before,
+        .reticle-box::after,
+        .reticle-box span::before,
+        .reticle-box span::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-color: #fff;
+            border-style: solid;
+        }
+
+        .reticle-box::before {
+            top: -4px;
+            left: -4px;
+            border-width: 5px 0 0 5px;
+        }
+
+        .reticle-box::after {
+            top: -4px;
+            right: -4px;
+            border-width: 5px 5px 0 0;
+        }
+
+        .reticle-box span::before {
+            bottom: -4px;
+            left: -4px;
+            border-width: 0 0 5px 5px;
+        }
+
+        .reticle-box span::after {
+            bottom: -4px;
+            right: -4px;
+            border-width: 0 5px 5px 0;
         }
 
         .scanner-tip-text {
@@ -125,7 +184,7 @@
             letter-spacing: -0.5px;
         }
 
-        /* --- BOTTOM SECTION: Cart Card (Orange) --- */
+        /* --- 하단: 장바구니 카드 (이미지 반영) --- */
         .cart-card {
             background-color: var(--orange-main);
             border-radius: var(--card-radius);
@@ -138,33 +197,33 @@
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
         }
 
-        .cart-count-header {
+        .cart-header-row {
             font-size: 1.5rem;
             font-weight: 500;
             margin-bottom: 16px;
             padding-left: 8px;
         }
 
-        .cart-items-scroll {
+        .cart-items-list {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             overflow-y: auto;
-            padding-bottom: 4px;
+            padding-bottom: 5px;
         }
 
-        /* 아이템 한 줄 레이아웃 (이미지 100% 재현) */
-        .item-row-entry {
+        /* 아이템 5열 구조 (이미지 100% 매칭) */
+        .item-row {
             display: flex;
             gap: 10px;
-            min-height: 52px;
+            min-height: 56px;
         }
 
-        .item-main-details {
+        .item-info-card {
             background-color: var(--white);
             border-radius: var(--item-radius);
-            padding: 0 16px;
+            padding: 0 18px;
             display: flex;
             align-items: center;
             color: #000;
@@ -172,90 +231,91 @@
             justify-content: space-between;
         }
 
-        .item-name-col {
+        .item-name-label {
             font-weight: 700;
             font-size: 1.15rem;
-            flex: 1;
+            flex: 1.2;
+            word-break: keep-all;
         }
 
-        .item-price-col {
-            font-weight: 700;
-            font-size: 1.15rem;
+        .item-price-label {
+            font-weight: 900;
+            font-size: 1.2rem;
+            flex: 1;
             text-align: center;
-            flex: 1;
         }
 
-        .item-qty-col {
+        .item-qty-label {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-weight: 500;
-            font-size: 1.15rem;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 1.2rem;
             justify-content: flex-end;
             flex: 1;
+            color: #444;
         }
 
-        .qty-action-btn {
+        .qty-control-btn {
             background: none;
             border: none;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 900;
             cursor: pointer;
             color: #000;
-            padding: 0 4px;
+            padding: 0 6px;
         }
 
-        .item-link-entry {
+        .item-compare-link {
             background-color: var(--white);
             border-radius: var(--item-radius);
-            width: 120px;
+            min-width: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
             color: #000;
-            font-weight: 700;
+            font-weight: 900;
             font-size: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             padding: 0 10px;
-            white-space: nowrap;
         }
 
-        /* --- FOOTER SUMMARY: Black Bar (이미지 100% 재현) --- */
-        .summary-bar-black {
+        /* --- 하단 합계 블랙 바 (이미지 반영) --- */
+        .summary-footer {
             background-color: var(--black-card);
-            border-radius: 12px;
-            padding: 10px 16px;
+            border-radius: 15px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: 12px;
+            margin-top: 15px;
         }
 
-        .summary-label {
+        .summary-title {
             font-weight: 900;
-            font-size: 1.15rem;
+            font-size: 1.2rem;
             color: #fff;
         }
 
-        .summary-total-val {
+        .summary-value {
             flex: 1;
             text-align: right;
-            margin-right: 20px;
+            margin-right: 25px;
             font-weight: 900;
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             color: #fff;
         }
 
-        .finish-buy-btn {
+        .btn-checkout {
             background-color: var(--white);
             color: #000;
             border: none;
             border-radius: 10px;
-            padding: 10px 22px;
+            padding: 10px 24px;
             font-weight: 900;
             font-size: 1.1rem;
             cursor: pointer;
-            letter-spacing: -0.5px;
         }
 
         /* Utils */
@@ -267,26 +327,35 @@
             display: none;
         }
 
-        .toast-msg {
+        .toast-notification {
             position: fixed;
-            bottom: 40px;
+            bottom: 50px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             color: #fff;
-            padding: 12px 32px;
-            border-radius: 40px;
+            padding: 14px 40px;
+            border-radius: 50px;
             font-weight: 900;
             z-index: 10000;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
             white-space: nowrap;
+        }
+
+        /* 엠티 스테이트 보정 */
+        .empty-cart-msg {
+            text-align: center;
+            margin-top: 40%;
+            opacity: 0.8;
+            font-weight: 700;
+            color: #fff;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <!-- TOP: Black Scanner Card -->
+        <!-- TOP: Black Section (Scanner) -->
         <section class="scanner-card">
             <header class="scanner-header">
                 <div class="logo-box">III</div>
@@ -294,32 +363,188 @@
             </header>
             <div class="scanner-viewport">
                 <div id="reader"></div>
+                <!-- 픽셀 퍼펙트 오버레이 -->
                 <div class="viewport-border-overlay"></div>
+                <div class="camera-reticle">
+                    <div class="reticle-box"><span></span></div>
+                </div>
             </div>
             <p class="scanner-tip-text">상품을 스캔해주세요</p>
         </section>
 
-        <!-- BOTTOM: Orange Cart Card -->
+        <!-- BOTTOM: Orange Section (Cart) -->
         <section class="cart-card">
-            <h3 class="cart-count-header"><span id="cart-item-count">0</span> cart item</h3>
+            <div class="cart-header-row"><span id="cart-item-count">0</span> cart item</div>
 
-            <div id="cart-list" class="cart-items-scroll">
-                <!-- Items will be injected here -->
+            <div id="cart-list" class="cart-items-list">
+                <!-- 리스트 동적 삽입 -->
+                <div class="empty-cart-msg">바코드를 비치된 스캐너에 비춰주세요.</div>
             </div>
 
-            <!-- Total Summary Black Bar -->
-            <div class="summary-bar-black">
-                <span class="summary-label">금액 합계</span>
-                <span class="summary-total-val"><span id="total-val">0</span>원</span>
-                <button class="finish-buy-btn" onclick="location.reload()">구매 종료</button>
+            <!-- 하단 합계 블랙 바 -->
+            <div class="summary-footer">
+                <span class="summary-title">금액 합계</span>
+                <span class="summary-value"><span id="total-val">0</span>원</span>
+                <button class="btn-checkout" onclick="location.reload()">구매 종료</button>
             </div>
         </section>
     </div>
 
-    <!-- Toast UI -->
-    <div id="toast" class="toast-msg hidden"></div>
+    <!-- 토스트 UI -->
+    <div id="toast" class="toast-notification hidden"></div>
 
-    <script src="app.js"></script>
+    <script>
+        /**
+         * [ULTIMATE INTEGRATED SCRIPT]
+         * 파일 하나로 모든 로직 완결
+         */
+
+        // 1. 샘플 데이터
+        const PRODUCT_DB = {
+            "8801048101037": { name: "신라면 (5개입)", price: 4500 },
+            "8801056154018": { name: "칠성사이다 500ml", price: 1800 },
+            "8801043014783": { name: "햇반 210g", price: 1500 },
+            "88023014": { name: "미등록 제품", price: 12000 }
+        };
+
+        // 2. 상태 관리
+        let cart = [];
+        let html5QrCode = null;
+
+        // 3. 스캐너 로직 (안정성 극대화)
+        async function initScanner() {
+            try {
+                if (html5QrCode) {
+                    try { await html5QrCode.stop(); } catch (e) { }
+                }
+
+                html5QrCode = new Html5Qrcode("reader");
+
+                const config = {
+                    fps: 24,
+                    qrbox: { width: 250, height: 150 },
+                    aspectRatio: 1.0,
+                    experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+                };
+
+                // 스캐너 시작 - FacingMode 강제 설정
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    (decodedText) => {
+                        onScanSuccess(decodedText);
+                    },
+                    (error) => { /* 스캔 시도 중 오류 무시 */ }
+                ).catch(err => {
+                    console.error("Scanner startup error:", err);
+                    showToast("카메라 권한을 확인해주세요.");
+                });
+
+            } catch (err) {
+                console.error("Major Scanner Error:", err);
+                showToast("⚠️ 스캐너 로딩 실패");
+            }
+        }
+
+        function onScanSuccess(barcode) {
+            // 중복 스캔 시퀀스 락 (1.2초)
+            const now = Date.now();
+            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1200)) {
+                return;
+            }
+
+            if (navigator.vibrate) navigator.vibrate(80);
+            addToCart(barcode);
+            showToast("SUCCESS SCAN!");
+        }
+
+        // 4. 장바구니 로직
+        function addToCart(barcode) {
+            const existing = cart.find(item => item.barcode === barcode);
+            if (existing) {
+                existing.qty += 1;
+                existing.updatedAt = Date.now();
+            } else {
+                const product = PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 8000 };
+                cart.unshift({
+                    id: Date.now(),
+                    updatedAt: Date.now(),
+                    barcode: barcode,
+                    name: product.name,
+                    price: product.price,
+                    qty: 1
+                });
+            }
+            render();
+        }
+
+        function updateQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                item.updatedAt = Date.now();
+                if (item.qty < 1) {
+                    cart = cart.filter(i => i.id !== id);
+                }
+            }
+            render();
+        }
+
+        // 5. 렌더링 (이미지 1:1 정밀 5열)
+        function render() {
+            const listEl = document.getElementById('cart-list');
+            const countEl = document.getElementById('cart-item-count');
+            const totalValEl = document.getElementById('total-val');
+
+            if (!listEl) return;
+
+            if (cart.length === 0) {
+                listEl.innerHTML = '<div class="empty-cart-msg">바코드를 비치된 스캐너에 비춰주세요.</div>';
+                countEl.innerText = "0";
+                totalValEl.innerText = "0";
+                return;
+            }
+
+            listEl.innerHTML = cart.map(item => `
+                <div class="item-row">
+                    <!-- 메인 정보 카드 -->
+                    <div class="item-info-card">
+                        <span class="item-name-label">${item.name}</span>
+                        <span class="item-price-label">${(item.price * item.qty).toLocaleString()}원</span>
+                        <div class="item-qty-label">
+                            <button class="qty-control-btn" onclick="updateQty(${item.id}, -1)">-</button>
+                            /
+                            <button class="qty-control-btn" onclick="updateQty(${item.id}, 1)">+</button>
+                        </div>
+                    </div>
+                    <!-- 가격비교 별도 박스 -->
+                    <a href="https://search.shopping.naver.com/search/all?query=${encodeURIComponent(item.name)}" 
+                       target="_blank" class="item-compare-link">
+                        가격비교 링크
+                    </a>
+                </div>
+            `).join('');
+
+            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            totalValEl.innerText = total.toLocaleString();
+            countEl.innerText = cart.length;
+        }
+
+        // 6. 기타 유틸
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+        }
+
+        // 앱 기동
+        window.addEventListener('load', () => {
+            initScanner();
+            render();
+        });
+    </script>
 </body>
 
 </html>
