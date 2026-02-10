@@ -510,7 +510,10 @@
                     <!-- 메인 정보 카드 -->
                     <div class="item-info-card">
                         <span class="item-name-label">${item.name}</span>
-                        <span class="item-price-label">${(item.price * item.qty).toLocaleString()}원</span>
+                        <span class="item-price-label">
+                            ${(item.price * item.qty).toLocaleString()}원
+                            <span class="qty-num">${item.qty}</span>
+                        </span>
                         <div class="item-qty-label">
                             <button class="qty-control-btn" onclick="updateQty(${item.id}, -1)">-</button>
                             /
