@@ -420,31 +420,35 @@
 
                 html5QrCode = new Html5Qrcode("reader");
 
-                // 고성능 스캔 설정
+                // [민감도 극대화 튜닝]
                 const config = {
-                    fps: 30, // 프레임속도 향상
+                    fps: 60, // 초당 프레임 상향 (기기 최대치 유도)
                     qrbox: function (viewfinderWidth, viewfinderHeight) {
-                        // 뷰파인더 크기에 맞게 최적 분석 영역 계산 (이미지 레티클과 매칭)
-                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-                        const boxWidth = viewfinderWidth * 0.7;
-                        const boxHeight = viewfinderHeight * 0.45;
-                        return { width: boxWidth, height: boxHeight };
+                        // 분석 영역을 가로로 길게 하여 바코드 인식 영역 확대
+                        return { width: viewfinderWidth * 0.8, height: viewfinderHeight * 0.5 };
                     },
                     aspectRatio: 1.0,
-                    disableFlip: true, // 1D 바코드 인식 품질 향상
+                    disableFlip: true,
+                    // 비디오 품질 강제 설정 (선명도 확보)
+                    videoConstraints: {
+                        facingMode: "environment",
+                        width: { min: 640, ideal: 1280, max: 1920 },
+                        height: { min: 480, ideal: 720, max: 1080 },
+                        frameRate: { ideal: 60, max: 60 }
+                    },
                     experimentalFeatures: {
-                        useBarCodeDetectorIfSupported: true // 네이티브 API 최우선 사용
+                        useBarCodeDetectorIfSupported: true // 최첨단 네이티브 가속 활성화
                     }
                 };
 
-                // 스캐너 시작 - 고해상도 캠 고정 및 포맷 집중
+                // 스캐너 실행 (1D 바코드 포맷에 연산 집중)
                 await html5QrCode.start(
                     { facingMode: "environment" },
                     config,
                     (decodedText) => onScanSuccess(decodedText)
                 ).catch(err => {
                     console.error("Scanner startup error:", err);
-                    showToast("카메라 접근을 허용해 주세요.");
+                    showToast("카메라 권한을 허용해 주세요.");
                 });
 
             } catch (err) {
