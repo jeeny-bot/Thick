@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Thick Scanner - Enterprise Edition</title>
+    <title>Thick Scanner - Pixel Perfect Edition</title>
     <!-- Google Fonts: Noto Sans KR for precise match -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
         rel="stylesheet">
@@ -13,10 +13,11 @@
     <style>
         :root {
             --orange-main: #e67e22;
+            /* 이미지 원본 오렌지 색상 */
             --black-card: #000000;
             --white: #ffffff;
-            --bg-gray: #f5f6f7;
-            --card-radius: 40px;
+            --bg-gray: #f2f2f7;
+            --card-radius: 44px;
             --item-radius: 12px;
         }
 
@@ -43,19 +44,19 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            padding: 15px;
-            gap: 15px;
+            padding: 16px;
+            gap: 16px;
         }
 
-        /* --- 상단 스캐너 카드 (이미지 반영) --- */
+        /* --- TOP SECTION: Scanner Card (Black) --- */
         .scanner-card {
             background-color: var(--black-card);
             border-radius: var(--card-radius);
-            padding: 25px;
+            padding: 24px;
             color: var(--white);
             display: flex;
             flex-direction: column;
-            height: 45%;
+            height: 42%;
             min-height: 280px;
             position: relative;
         }
@@ -63,32 +64,33 @@
         .scanner-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .logo-box {
-            border: 2px solid #fff;
-            padding: 2px 8px;
+            border: 2px solid #555;
+            padding: 2px 10px;
             font-weight: 900;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
         }
 
         .logo-text {
-            font-size: 1.4rem;
-            font-weight: 700;
+            font-size: 1.5rem;
+            font-weight: 500;
         }
 
         .scanner-viewport {
             flex: 1;
-            background: #111;
-            border-radius: 15px;
+            background: #0d0d0d;
+            border-radius: 8px;
             overflow: hidden;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid #333;
+            border: 1px solid #222;
         }
 
         #reader {
@@ -102,217 +104,158 @@
             object-fit: cover !important;
         }
 
-        /* 이미지 상의 리얼 레티클 (조준선) */
-        .viewport-overlay {
+        /* 이미지 상의 리얼 화이트 테두리 */
+        .viewport-border-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
             pointer-events: none;
             z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        .reticle {
-            width: 60%;
-            height: 40%;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            position: relative;
-        }
-
-        .reticle::before,
-        .reticle::after,
-        .reticle span::before,
-        .reticle span::after {
-            content: '';
-            position: absolute;
-            width: 25px;
-            height: 25px;
-            border-color: #fff;
-            border-style: solid;
-        }
-
-        .reticle::before {
-            top: -4px;
-            left: -4px;
-            border-width: 5px 0 0 5px;
-        }
-
-        .reticle::after {
-            top: -4px;
-            right: -4px;
-            border-width: 5px 5px 0 0;
-        }
-
-        .reticle span::before {
-            bottom: -4px;
-            left: -4px;
-            border-width: 0 0 5px 5px;
-        }
-
-        .reticle span::after {
-            bottom: -4px;
-            right: -4px;
-            border-width: 0 5px 5px 0;
-        }
-
-        .scanner-tip {
+        .scanner-tip-text {
             text-align: center;
-            margin-top: 20px;
-            font-size: 0.95rem;
+            margin-top: 18px;
+            font-size: 1rem;
             font-weight: 500;
-            opacity: 0.9;
+            opacity: 0.95;
+            letter-spacing: -0.5px;
         }
 
-        /* --- 하단 장바구니 카드 (이미지 반영) --- */
+        /* --- BOTTOM SECTION: Cart Card (Orange) --- */
         .cart-card {
             background-color: var(--orange-main);
             border-radius: var(--card-radius);
-            padding: 25px;
+            padding: 24px;
             color: var(--white);
             display: flex;
             flex-direction: column;
             flex: 1;
             overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
         }
 
-        .cart-header-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            padding-left: 5px;
+        .cart-count-header {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            padding-left: 8px;
         }
 
-        .cart-list {
+        .cart-items-scroll {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             overflow-y: auto;
-            padding-bottom: 5px;
+            padding-bottom: 4px;
         }
 
-        /* 5열 디자인 재현 */
-        .item-row {
+        /* 아이템 한 줄 레이아웃 (이미지 100% 재현) */
+        .item-row-entry {
             display: flex;
             gap: 10px;
-            align-items: stretch;
+            min-height: 52px;
         }
 
-        .item-main-box {
+        .item-main-details {
             background-color: var(--white);
             border-radius: var(--item-radius);
-            padding: 12px 15px;
+            padding: 0 16px;
             display: flex;
             align-items: center;
             color: #000;
             flex: 1;
-            gap: 10px;
+            justify-content: space-between;
         }
 
-        .col-name {
-            flex: 1.5;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .name-text {
-            font-weight: 900;
-            font-size: 1.05rem;
-            line-height: 1.2;
-        }
-
-        .col-price {
-            flex: 1;
-            text-align: left;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            font-weight: 900;
-            /* 이미지와 동일한 굵은 폰트 */
-            font-size: 1.1rem;
-            line-height: 1.1;
-        }
-
-        .col-price span {
-            font-size: 0.9rem;
+        .item-name-col {
             font-weight: 700;
+            font-size: 1.15rem;
+            flex: 1;
         }
 
-        .col-qty {
+        .item-price-col {
+            font-weight: 700;
+            font-size: 1.15rem;
+            text-align: center;
             flex: 1;
+        }
+
+        .item-qty-col {
             display: flex;
             align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            font-size: 1.15rem;
             justify-content: flex-end;
-            gap: 5px;
-            font-weight: 900;
-            font-size: 1.2rem;
-            color: #333;
+            flex: 1;
         }
 
-        .qty-btn {
+        .qty-action-btn {
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 900;
             cursor: pointer;
-            padding: 0 5px;
             color: #000;
+            padding: 0 4px;
         }
 
-        .item-link-box {
+        .item-link-entry {
             background-color: var(--white);
             border-radius: var(--item-radius);
-            width: 105px;
+            width: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
             color: #000;
-            font-weight: 900;
-            font-size: 0.95rem;
-            text-align: center;
-            padding: 5px;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 0 10px;
+            white-space: nowrap;
         }
 
-        /* --- 하단 합계 블랙 바 (이미지 반영) --- */
-        .footer-summary {
+        /* --- FOOTER SUMMARY: Black Bar (이미지 100% 재현) --- */
+        .summary-bar-black {
             background-color: var(--black-card);
             border-radius: 12px;
-            padding: 12px 20px;
+            padding: 10px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: 15px;
+            margin-top: 12px;
         }
 
-        .total-label {
+        .summary-label {
             font-weight: 900;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             color: #fff;
         }
 
-        .total-val-text {
+        .summary-total-val {
             flex: 1;
             text-align: right;
             margin-right: 20px;
             font-weight: 900;
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             color: #fff;
         }
 
-        .btn-finish-white {
+        .finish-buy-btn {
             background-color: var(--white);
             color: #000;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 10px 22px;
             font-weight: 900;
             font-size: 1.1rem;
             cursor: pointer;
+            letter-spacing: -0.5px;
         }
 
         /* Utils */
@@ -324,25 +267,26 @@
             display: none;
         }
 
-        .toast {
+        .toast-msg {
             position: fixed;
-            bottom: 50px;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.85);
             color: #fff;
-            padding: 12px 35px;
+            padding: 12px 32px;
             border-radius: 40px;
             font-weight: 900;
             z-index: 10000;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            white-space: nowrap;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <!-- 상단: 스캐너 카드 (이미지 디자인 준수) -->
+        <!-- TOP: Black Scanner Card -->
         <section class="scanner-card">
             <header class="scanner-header">
                 <div class="logo-box">III</div>
@@ -350,33 +294,30 @@
             </header>
             <div class="scanner-viewport">
                 <div id="reader"></div>
-                <!-- 커스텀 레티클 (조준선) -->
-                <div class="viewport-overlay">
-                    <div class="reticle"><span></span></div>
-                </div>
+                <div class="viewport-border-overlay"></div>
             </div>
-            <p class="scanner-tip">상품을 스캔해주세요</p>
+            <p class="scanner-tip-text">상품을 스캔해주세요</p>
         </section>
 
-        <!-- 하단: 장바구니 카드 (이미지 디자인 준수) -->
+        <!-- BOTTOM: Orange Cart Card -->
         <section class="cart-card">
-            <h3 class="cart-header-title"><span id="cart-item-count">0</span> cart item</h3>
+            <h3 class="cart-count-header"><span id="cart-item-count">0</span> cart item</h3>
 
-            <div id="cart-list" class="cart-list">
-                <!-- 아이템 리스트 동적 삽입 -->
+            <div id="cart-list" class="cart-items-scroll">
+                <!-- Items will be injected here -->
             </div>
 
-            <!-- 하단 합계 블랙 바 (이미지 디자인 준수) -->
-            <div class="footer-summary">
-                <span class="total-label">금액 합계</span>
-                <span class="total-val-text"><span id="total-val">0</span>원</span>
-                <button class="btn-finish-white" onclick="location.reload()">구매 종료</button>
+            <!-- Total Summary Black Bar -->
+            <div class="summary-bar-black">
+                <span class="summary-label">금액 합계</span>
+                <span class="summary-total-val"><span id="total-val">0</span>원</span>
+                <button class="finish-buy-btn" onclick="location.reload()">구매 종료</button>
             </div>
         </section>
     </div>
 
-    <!-- 토스트 알림 -->
-    <div id="toast" class="toast hidden"></div>
+    <!-- Toast UI -->
+    <div id="toast" class="toast-msg hidden"></div>
 
     <script src="app.js"></script>
 </body>
