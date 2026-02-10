@@ -81,10 +81,12 @@ function render() {
 
     // 이미지의 2열 구조(아이템 박스 + 링크 박스) 구현
     listEl.innerHTML = cart.map(item => `
-        <div style="display: flex; gap: 10px;">
+        <div class="cart-item-row">
             <div class="cart-item">
                 <div class="item-info-main">
-                    <span class="item-name">${item.name}</span>
+                    <div class="item-name-box">
+                        <span class="item-name">${item.name}</span>
+                    </div>
                     <span class="item-price">${(item.price * item.qty).toLocaleString()}원</span>
                 </div>
                 <div class="item-qty-controls">
