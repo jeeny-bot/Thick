@@ -318,37 +318,99 @@
             cursor: pointer;
         }
 
-        /* Utils */
-        .hidden {
-            display: none !important;
-        }
-
-        ::-webkit-scrollbar {
-            display: none;
-        }
-
-        .toast-notification {
+        /* 모달 스타일 */
+        .modal-overlay {
             position: fixed;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: #fff;
-            padding: 14px 40px;
-            border-radius: 50px;
-            font-weight: 900;
-            z-index: 10000;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-            white-space: nowrap;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
         }
 
-        /* 엠티 스테이트 보정 */
-        .empty-cart-msg {
+        .modal-card {
+            background: var(--white);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 30px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            color: #000;
+            font-size: 1.4rem;
+            font-weight: 900;
             text-align: center;
-            margin-top: 40%;
-            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .modal-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-label {
+            color: #666;
+            font-size: 0.9rem;
             font-weight: 700;
+            margin-left: 5px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #eee;
+            font-size: 1.1rem;
+            font-weight: 700;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .modal-input:focus {
+            border-color: var(--orange-main);
+        }
+
+        .modal-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background: var(--orange-main);
             color: #fff;
+        }
+
+        .btn-cancel {
+            background: #eee;
+            color: #666;
+        }
+
+        .qty-num {
+            font-size: 0.9rem;
+            color: var(--orange-main);
+            margin-left: 5px;
+            font-weight: 800;
         }
     </style>
 </head>
@@ -390,6 +452,29 @@
         </section>
     </div>
 
+    <!-- 수동 등록 모달 -->
+    <div id="manual-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h2 class="modal-title">미등록 상품 등록</h2>
+            <div class="modal-input-group">
+                <span class="modal-label">바코드 숫자</span>
+                <input type="text" id="manual-barcode" class="modal-input" readonly>
+            </div>
+            <div class="modal-input-group">
+                <span class="modal-label">상품명</span>
+                <input type="text" id="manual-name" class="modal-input" placeholder="상품명을 입력하세요">
+            </div>
+            <div class="modal-input-group">
+                <span class="modal-label">가격 (원)</span>
+                <input type="number" id="manual-price" class="modal-input" placeholder="가격을 입력하세요">
+            </div>
+            <div class="modal-btn-group">
+                <button class="modal-btn btn-cancel" onclick="closeManualModal()">취소</button>
+                <button class="modal-btn btn-save" onclick="saveManualEntry()">장바구니 담기</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 토스트 UI -->
     <div id="toast" class="toast-notification hidden"></div>
 
@@ -410,6 +495,7 @@
         // 2. 상태 관리
         let cart = [];
         let html5QrCode = null;
+        let isModalOpen = false;
 
         // 3. 스캐너 로직 (13자리 바코드 인식 특화 튜닝)
         async function initScanner() {
@@ -418,7 +504,6 @@
                     try { await html5QrCode.stop(); } catch (e) { }
                 }
 
-                // 13자리(EAN-13) 및 주요 1D 바코드 포맷 명시적 지정
                 const formatsToSupport = [
                     Html5QrcodeSupportedFormats.EAN_13,
                     Html5QrcodeSupportedFormats.EAN_8,
@@ -430,9 +515,8 @@
                 html5QrCode = new Html5Qrcode("reader", { formatsToSupport: formatsToSupport });
 
                 const config = {
-                    fps: 40, // 안정적인 처리를 위한 고속 프레임
+                    fps: 40,
                     qrbox: function (viewfinderWidth, viewfinderHeight) {
-                        // 13자리 바코드의 긴 가로 길이를 고려하여 가로폭을 더 확장 (85%)
                         return { width: viewfinderWidth * 0.85, height: viewfinderHeight * 0.5 };
                     },
                     aspectRatio: 1.0,
@@ -441,7 +525,6 @@
                         facingMode: "environment",
                         width: { ideal: 1280 },
                         height: { ideal: 720 },
-                        // 모바일 브라우저에 따라 focusMode 지원 여부가 다를 수 있음
                         advanced: [{ focusMode: "continuous" }, { whiteBalanceMode: "continuous" }]
                     },
                     experimentalFeatures: {
@@ -465,25 +548,32 @@
         }
 
         function onScanSuccess(barcode) {
-            // 중복 스캔 시퀀스 락 (1.2초)
+            if (isModalOpen) return; // 모달 열려있을 땐 스캔 무시
+
             const now = Date.now();
             if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1200)) {
                 return;
             }
 
             if (navigator.vibrate) navigator.vibrate(80);
-            addToCart(barcode);
-            showToast("SUCCESS SCAN!");
+
+            // 등록된 상품인지 확인
+            if (PRODUCT_DB[barcode]) {
+                addToCart(barcode);
+                showToast("SUCCESS SCAN!");
+            } else {
+                openManualModal(barcode);
+            }
         }
 
         // 4. 장바구니 로직
-        function addToCart(barcode) {
+        function addToCart(barcode, manualInfo = null) {
             const existing = cart.find(item => item.barcode === barcode);
             if (existing) {
                 existing.qty += 1;
                 existing.updatedAt = Date.now();
             } else {
-                const product = PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 8000 };
+                const product = manualInfo || PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 0 };
                 cart.unshift({
                     id: Date.now(),
                     updatedAt: Date.now(),
@@ -494,6 +584,30 @@
                 });
             }
             render();
+        }
+
+        // 수동 등록 모달 제어
+        function openManualModal(barcode) {
+            isModalOpen = true;
+            document.getElementById('manual-barcode').value = barcode;
+            document.getElementById('manual-name').value = "";
+            document.getElementById('manual-price').value = "";
+            document.getElementById('manual-modal').classList.remove('hidden');
+        }
+
+        function closeManualModal() {
+            isModalOpen = false;
+            document.getElementById('manual-modal').classList.add('hidden');
+        }
+
+        function saveManualEntry() {
+            const barcode = document.getElementById('manual-barcode').value;
+            const name = document.getElementById('manual-name').value || "수동 입력 제품";
+            const price = parseInt(document.getElementById('manual-price').value) || 0;
+
+            addToCart(barcode, { name, price });
+            closeManualModal();
+            showToast("상품 등록 완료!");
         }
 
         function updateQty(id, delta) {
