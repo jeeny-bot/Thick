@@ -464,12 +464,6 @@
             }
         }
 
-            } catch (err) {
-            console.error("Major Scanner Error:", err);
-            showToast("⚠️ 스캐너 엔진 오류");
-        }
-        }
-
         function onScanSuccess(barcode) {
             // 중복 스캔 시퀀스 락 (1.2초)
             const now = Date.now();
