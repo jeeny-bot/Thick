@@ -52,11 +52,12 @@
         .scanner-card {
             background-color: var(--black-card);
             border-radius: var(--card-radius);
-            padding: 25px;
+            padding: 20px 25px;
             color: var(--white-text);
             display: flex;
             flex-direction: column;
-            min-height: 350px;
+            min-height: 250px;
+            /* 기존 350px에서 축소 */
             position: relative;
         }
 
@@ -64,18 +65,18 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .logo-box {
             border: 2px solid #555;
             padding: 2px 8px;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
         .logo-text {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             font-weight: 500;
         }
 
@@ -89,6 +90,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 150px;
+            /* 스캐너 높이 명시적 축소 */
         }
 
         #reader {
@@ -99,19 +102,19 @@
         /* 스캐너용 화이트 보더 레이아웃 (이미지 반영) */
         .viewport-border {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
-            bottom: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             pointer-events: none;
             z-index: 5;
         }
 
         .scanner-tip {
             text-align: center;
-            margin-top: 20px;
-            font-size: 0.95rem;
+            margin-top: 15px;
+            font-size: 0.9rem;
             opacity: 0.9;
         }
 
@@ -126,6 +129,8 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            flex: 1;
+            /* 가용 공간 모두 차지하도록 확대 */
         }
 
         .cart-header-title {
@@ -139,8 +144,9 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: 400px;
             overflow-y: auto;
+            flex: 1;
+            /* 리스트 영역을 최대한 확보 */
         }
 
         /* 장바구니 리스트 아이템 디자인 (이미지 반영) */
