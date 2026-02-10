@@ -3,14 +3,14 @@
 
 <head>
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-TZ5LFV948V"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TZ5LFV948V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-  gtag('config', 'G-TZ5LFV948V');
-</script>
+        gtag('config', 'G-TZ5LFV948V');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>띡! Thick - Smart Scanner Pro</title>
@@ -539,64 +539,53 @@
         let html5QrCode = null;
         let isModalOpen = false;
 
-        // 3. 스캐너 로직 (13자리 바코드 인식 특화 튜닝)
+        // 3. 스캐너 로직 (권한 획득 성공률 극대화 및 안정성 튜닝)
         async function initScanner() {
             try {
+                // 기존 인스턴스 정리
                 if (html5QrCode) {
                     try { await html5QrCode.stop(); } catch (e) { }
                 }
 
-                // 스캐너 엔진 설정 (모바일 호환성 및 EAN-13 인식률 극대화)
-                html5QrCode = new Html5Qrcode("reader", {
-                    formatsToSupport: [
-                        Html5QrcodeSupportedFormats.EAN_13,
-                        Html5QrcodeSupportedFormats.EAN_8,
-                        Html5QrcodeSupportedFormats.UPC_A,
-                        Html5QrcodeSupportedFormats.UPC_E,
-                        Html5QrcodeSupportedFormats.CODE_128,
-                        Html5QrcodeSupportedFormats.ITF
-                    ],
-                    verbose: false
-                });
+                // 스캐너 생성 (최소 사양으로 시작하여 권한 유도)
+                html5QrCode = new Html5Qrcode("reader");
 
                 const config = {
-                    fps: 30, // 60fps는 모바일에서 과부하로 인식이 안 될 수 있음 (30이 안정적)
+                    fps: 20, // iOS 및 모바일 안정성을 위해 20fps 권장
                     qrbox: (viewfinderWidth, viewfinderHeight) => {
-                        // 13자리 바코드는 가로로 길기 때문에 가로를 90% 이상 확보해야 함
-                        return {
-                            width: viewfinderWidth * 0.9,
-                            height: viewfinderHeight * 0.45
-                        };
+                        // 가로 바코드 인식을 위해 넓은 가로 영역 확보
+                        const width = viewfinderWidth * 0.9;
+                        const height = viewfinderHeight * 0.45;
+                        return { width, height };
                     },
                     aspectRatio: 1.0,
                     disableFlip: true,
-                    // 모바일 호환성을 위해 제약 조건을 단순화 (facingMode 최우선)
                     experimentalFeatures: {
-                        useBarCodeDetectorIfSupported: true
+                        useBarCodeDetectorIfSupported: true // 가능할 경우 하드웨어 가속
                     }
                 };
 
-                // 모바일 후면 카메라 강제 및 설정 실행
+                // [iOS/Android 표준] facingMode를 사용하여 즉시 권한 요청 및 시작
                 await html5QrCode.start(
-                    { facingMode: { exact: "environment" } }, // exact 사용으로 후면 카메라 강제
+                    { facingMode: "environment" }, // 후면 카메라 자동 선택
                     config,
                     (decodedText) => onScanSuccess(decodedText)
                 ).catch(err => {
-                    console.error("1st attempt failed, trying standard environment mode", err);
-                    // exact 실패 시 일반 environment 모드로 재시도
+                    console.warn("Camera start failed, retrying with simple config...", err);
+                    // 실패 시 아주 단순한 설정으로 재시도
                     return html5QrCode.start(
                         { facingMode: "environment" },
-                        config,
+                        { fps: 10, qrbox: { width: 250, height: 150 } },
                         (decodedText) => onScanSuccess(decodedText)
                     );
-                }).catch(err => {
-                    console.error("Total Scanner Startup Error:", err);
-                    showToast("카메라 권한을 확인해 주세요.");
                 });
 
             } catch (err) {
-                console.error("Major Scanner Error:", err);
-                showToast("⚠️ 스캐너 엔진 초기화 실패");
+                console.error("Critical Scanner Error:", err);
+                showToast("카메라 권한을 허용하신 후 새로고침해 주세요.");
+
+                // 권한 거부 시 대비: 화면 클릭 시 재시도하도록 안내 가능
+                document.querySelector('.scanner-viewport').onclick = () => location.reload();
             }
         }
 
