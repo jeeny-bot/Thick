@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Thick Scanner - Orange Pro</title>
-    <!-- Google Fonts -->
+    <title>Thick Scanner - Enterprise Edition</title>
+    <!-- Google Fonts: Noto Sans KR for precise match -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
         rel="stylesheet">
     <!-- Html5-Qrcode Engine -->
@@ -16,7 +16,7 @@
             --black-card: #000000;
             --white: #ffffff;
             --bg-gray: #f5f6f7;
-            --card-radius: 35px;
+            --card-radius: 40px;
             --item-radius: 12px;
         }
 
@@ -35,7 +35,6 @@
             display: flex;
             justify-content: center;
             overflow: hidden;
-            /* 전체 페이지 스크롤 방지 */
         }
 
         .container {
@@ -48,17 +47,16 @@
             gap: 15px;
         }
 
-        /* --- 상단 스캐너 카드 --- */
+        /* --- 상단 스캐너 카드 (이미지 반영) --- */
         .scanner-card {
             background-color: var(--black-card);
             border-radius: var(--card-radius);
-            padding: 20px;
+            padding: 25px;
             color: var(--white);
             display: flex;
             flex-direction: column;
-            height: 40%;
-            /* 화면 높이의 40% */
-            min-height: 250px;
+            height: 45%;
+            min-height: 280px;
             position: relative;
         }
 
@@ -66,18 +64,18 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .logo-box {
-            border: 2px solid #555;
+            border: 2px solid #fff;
             padding: 2px 8px;
             font-weight: 900;
             font-size: 1.1rem;
         }
 
         .logo-text {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: 700;
         }
 
@@ -90,6 +88,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 1px solid #333;
         }
 
         #reader {
@@ -101,47 +100,89 @@
             width: 100% !important;
             height: 100% !important;
             object-fit: cover !important;
-            /* 비디오가 꽉 차게 */
         }
 
-        /* 이미지 상의 안내 보더 */
-        .viewport-border {
+        /* 이미지 상의 리얼 레티클 (조준선) */
+        .viewport-overlay {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
-            bottom: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             pointer-events: none;
-            z-index: 5;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reticle {
+            width: 60%;
+            height: 40%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .reticle::before,
+        .reticle::after,
+        .reticle span::before,
+        .reticle span::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-color: #fff;
+            border-style: solid;
+        }
+
+        .reticle::before {
+            top: -4px;
+            left: -4px;
+            border-width: 5px 0 0 5px;
+        }
+
+        .reticle::after {
+            top: -4px;
+            right: -4px;
+            border-width: 5px 5px 0 0;
+        }
+
+        .reticle span::before {
+            bottom: -4px;
+            left: -4px;
+            border-width: 0 0 5px 5px;
+        }
+
+        .reticle span::after {
+            bottom: -4px;
+            right: -4px;
+            border-width: 0 5px 5px 0;
         }
 
         .scanner-tip {
             text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
+            margin-top: 20px;
+            font-size: 0.95rem;
             font-weight: 500;
-            letter-spacing: -0.5px;
+            opacity: 0.9;
         }
 
-        /* --- 하단 장바구니 카드 --- */
+        /* --- 하단 장바구니 카드 (이미지 반영) --- */
         .cart-card {
             background-color: var(--orange-main);
             border-radius: var(--card-radius);
-            padding: 20px;
+            padding: 25px;
             color: var(--white);
             display: flex;
             flex-direction: column;
             flex: 1;
-            /* 남은 공간 모두 차지 */
             overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         }
 
         .cart-header-title {
             font-size: 1.4rem;
-            font-weight: 800;
-            margin-bottom: 15px;
+            font-weight: 700;
+            margin-bottom: 20px;
             padding-left: 5px;
         }
 
@@ -149,116 +190,128 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             overflow-y: auto;
-            padding-bottom: 10px;
+            padding-bottom: 5px;
         }
 
-        /* 장바구니 리스트 아이템 */
-        .cart-item-row {
+        /* 5열 디자인 재현 */
+        .item-row {
             display: flex;
             gap: 10px;
-            min-height: 60px;
+            align-items: stretch;
         }
 
-        .cart-item {
+        .item-main-box {
             background-color: var(--white);
             border-radius: var(--item-radius);
-            padding: 10px 15px;
+            padding: 12px 15px;
             display: flex;
             align-items: center;
-            color: #333;
+            color: #000;
             flex: 1;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            gap: 10px;
         }
 
-        .item-info {
-            flex: 1;
+        .col-name {
+            flex: 1.5;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-right: 15px;
-            gap: 5px;
+            flex-direction: column;
         }
 
-        .item-name {
-            font-weight: 800;
-            font-size: 1rem;
-            word-break: break-all;
-        }
-
-        .item-price {
-            font-weight: 700;
+        .name-text {
+            font-weight: 900;
             font-size: 1.05rem;
-            white-space: nowrap;
+            line-height: 1.2;
         }
 
-        .item-qty-controls {
+        .col-price {
+            flex: 1;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-weight: 900;
+            /* 이미지와 동일한 굵은 폰트 */
+            font-size: 1.1rem;
+            line-height: 1.1;
+        }
+
+        .col-price span {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .col-qty {
+            flex: 1;
             display: flex;
             align-items: center;
+            justify-content: flex-end;
             gap: 5px;
-            padding: 2px 8px;
-            border-radius: 8px;
+            font-weight: 900;
+            font-size: 1.2rem;
+            color: #333;
         }
 
         .qty-btn {
             background: none;
             border: none;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 900;
             cursor: pointer;
-            color: #000;
             padding: 0 5px;
+            color: #000;
         }
 
         .item-link-box {
             background-color: var(--white);
             border-radius: var(--item-radius);
-            padding: 0 15px;
-            font-weight: 800;
-            font-size: 0.95rem;
-            color: #000;
-            white-space: nowrap;
+            width: 105px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            min-width: 110px;
+            color: #000;
+            font-weight: 900;
+            font-size: 0.95rem;
+            text-align: center;
+            padding: 5px;
         }
 
-        /* --- 하단 합계 블랙 바 --- */
+        /* --- 하단 합계 블랙 바 (이미지 반영) --- */
         .footer-summary {
             background-color: var(--black-card);
             border-radius: 12px;
-            padding: 12px 18px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         .total-label {
-            font-weight: 700;
+            font-weight: 900;
             font-size: 1.1rem;
+            color: #fff;
         }
 
-        .total-amount {
+        .total-val-text {
             flex: 1;
             text-align: right;
-            margin-right: 15px;
+            margin-right: 20px;
             font-weight: 900;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            color: #fff;
         }
 
-        .btn-finish {
+        .btn-finish-white {
             background-color: var(--white);
             color: #000;
             border: none;
             border-radius: 8px;
-            padding: 8px 18px;
+            padding: 10px 22px;
             font-weight: 900;
-            font-size: 1rem;
+            font-size: 1.1rem;
             cursor: pointer;
         }
 
@@ -273,24 +326,23 @@
 
         .toast {
             position: fixed;
-            bottom: 40px;
+            bottom: 50px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.9);
-            color: white;
+            color: #fff;
             padding: 12px 35px;
             border-radius: 40px;
-            font-weight: 800;
+            font-weight: 900;
             z-index: 10000;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            white-space: nowrap;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <!-- 상단: 스캐너 카드 -->
+        <!-- 상단: 스캐너 카드 (이미지 디자인 준수) -->
         <section class="scanner-card">
             <header class="scanner-header">
                 <div class="logo-box">III</div>
@@ -298,22 +350,27 @@
             </header>
             <div class="scanner-viewport">
                 <div id="reader"></div>
-                <div class="viewport-border"></div>
+                <!-- 커스텀 레티클 (조준선) -->
+                <div class="viewport-overlay">
+                    <div class="reticle"><span></span></div>
+                </div>
             </div>
             <p class="scanner-tip">상품을 스캔해주세요</p>
         </section>
 
-        <!-- 하단: 장바구니 카드 -->
+        <!-- 하단: 장바구니 카드 (이미지 디자인 준수) -->
         <section class="cart-card">
             <h3 class="cart-header-title"><span id="cart-item-count">0</span> cart item</h3>
+
             <div id="cart-list" class="cart-list">
                 <!-- 아이템 리스트 동적 삽입 -->
             </div>
-            <!-- 하단 합계 바 -->
+
+            <!-- 하단 합계 블랙 바 (이미지 디자인 준수) -->
             <div class="footer-summary">
                 <span class="total-label">금액 합계</span>
-                <span class="total-amount"><span id="total-val">0</span>원</span>
-                <button class="btn-finish" onclick="location.reload()">구매 종료</button>
+                <span class="total-val-text"><span id="total-val">0</span>원</span>
+                <button class="btn-finish-white" onclick="location.reload()">구매 종료</button>
             </div>
         </section>
     </div>
