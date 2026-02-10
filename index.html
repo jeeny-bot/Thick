@@ -2,6 +2,15 @@
 <html lang="ko">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TZ5LFV948V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-TZ5LFV948V');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>띡! Thick - Smart Scanner Pro</title>
@@ -530,14 +539,14 @@
         let html5QrCode = null;
         let isModalOpen = false;
 
-        // 3. 스캐너 로직 (13자리 바코드 인식 특화 튜닝)
+        // 3. 스캐너 로직 (iOS 호환성 및 인식률 정밀 튜닝)
         async function initScanner() {
             try {
                 if (html5QrCode) {
                     try { await html5QrCode.stop(); } catch (e) { }
                 }
 
-                // 스캐너 엔진 설정 (모바일 호환성 및 EAN-13 인식률 극대화)
+                // 스캐너 인스턴스 생성
                 html5QrCode = new Html5Qrcode("reader", {
                     formatsToSupport: [
                         Html5QrcodeSupportedFormats.EAN_13,
@@ -546,48 +555,51 @@
                         Html5QrcodeSupportedFormats.UPC_E,
                         Html5QrcodeSupportedFormats.CODE_128,
                         Html5QrcodeSupportedFormats.ITF
-                    ],
-                    verbose: false
+                    ]
                 });
 
                 const config = {
-                    fps: 30, // 60fps는 모바일에서 과부하로 인식이 안 될 수 있음 (30이 안정적)
+                    fps: 25, // iOS 부하 감소를 위해 안정적인 25fps 설정
                     qrbox: (viewfinderWidth, viewfinderHeight) => {
-                        // 13자리 바코드는 가로로 길기 때문에 가로를 90% 이상 확보해야 함
-                        return {
-                            width: viewfinderWidth * 0.9,
-                            height: viewfinderHeight * 0.45
-                        };
+                        // 13자리 바코드를 위한 넓은 가로 영역 확보
+                        const width = viewfinderWidth * 0.9;
+                        const height = viewfinderHeight * 0.4;
+                        return { width, height };
                     },
                     aspectRatio: 1.0,
                     disableFlip: true,
-                    // 모바일 호환성을 위해 제약 조건을 단순화 (facingMode 최우선)
                     experimentalFeatures: {
                         useBarCodeDetectorIfSupported: true
                     }
                 };
 
-                // 모바일 후면 카메라 강제 및 설정 실행
-                await html5QrCode.start(
-                    { facingMode: { exact: "environment" } }, // exact 사용으로 후면 카메라 강제
-                    config,
-                    (decodedText) => onScanSuccess(decodedText)
-                ).catch(err => {
-                    console.error("1st attempt failed, trying standard environment mode", err);
-                    // exact 실패 시 일반 environment 모드로 재시도
-                    return html5QrCode.start(
+                // [iOS 핵심] 카메라 목록을 직접 조회하여 후면 카메라 선택
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length > 0) {
+                    // 'back', 'rear', 'environment' 등의 키워드가 포함된 카메라 찾기
+                    let backCamera = devices.find(device =>
+                        device.label.toLowerCase().includes('back') ||
+                        device.label.toLowerCase().includes('rear') ||
+                        device.label.toLowerCase().includes('environment')
+                    ) || devices[devices.length - 1]; // 없으면 마지막 카메라(보통 후면)
+
+                    await html5QrCode.start(
+                        backCamera.id,
+                        config,
+                        (decodedText) => onScanSuccess(decodedText)
+                    );
+                } else {
+                    // 목록 조회 실패 시 표준 방식으로 재시도
+                    await html5QrCode.start(
                         { facingMode: "environment" },
                         config,
                         (decodedText) => onScanSuccess(decodedText)
                     );
-                }).catch(err => {
-                    console.error("Total Scanner Startup Error:", err);
-                    showToast("카메라 권한을 확인해 주세요.");
-                });
+                }
 
             } catch (err) {
-                console.error("Major Scanner Error:", err);
-                showToast("⚠️ 스캐너 엔진 초기화 실패");
+                console.error("Scanner startup error:", err);
+                showToast("카메라 권한을 허용해 주세요.");
             }
         }
 
@@ -707,7 +719,7 @@
                     </div>
                     <!-- 가격비교 별도 박스 -->
                     <a href="https://search.shopping.naver.com/search/all?query=${encodeURIComponent(item.name)}" 
-                       target="_blank" class="item-compare">
+                       target="_blank" class="item-compare-link">
                         가격비교
                     </a>
                 </div>
