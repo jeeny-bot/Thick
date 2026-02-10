@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>띡띡! THICK - Pro Smart Scanner</title>
+    <!-- Modern Typography -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+KR:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Html5-Qrcode Engine -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        /* [프리미엄 하이엔드 디자인 시스템 - 인라인 통합] */
+        :root {
+            --bg-main: #f2f2f7;
+            --card-dark: #1c1c1e;
+            --highlight-orange: #ff6b00;
+            --highlight-blue: #007aff;
+            --peach-grad: linear-gradient(180deg, #ffb399 0%, #ff8c66 100%);
+            --card-radius: 44px;
+            --item-radius: 20px;
+            --text-main: #000000;
+            --text-dim: #8e8e93;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            /* 전체 스크롤 방지 */
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-wrap {
+            width: 100%;
+            max-width: 480px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 16px;
+            position: relative;
+        }
+
+        /* --- Common Card Style --- */
+        .card {
+            border-radius: var(--card-radius);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Scanner Card (Upper) --- */
+        .scanner-card {
+            background: var(--card-dark);
+            height: 48%;
+            /* 이미지 비율에 맞춰 조정 */
+            padding: 28px;
+            color: var(--white);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge {
+            background: var(--white);
+            color: var(--card-dark);
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            font-weight: 300;
+            opacity: 0.7;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 14px;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: var(--white);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .scanner-viewport {
+            flex: 1;
+            background: #000;
+            border-radius: 28px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .viewport-label {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0.5;
+            z-index: 5;
+            text-transform: lowercase;
+        }
+
+        #reader {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Reticle Animation */
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .reticle-box {
+            width: 220px;
+            height: 110px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* 이미지에 있는 조준선 디자인 구현 */
+        .reticle-box::before,
+        .reticle-box::after,
+        .reticle-box span::before,
+        .reticle-box span::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border-color: #fff;
+            border-style: solid;
+        }
+
+        .reticle-box::before {
+            top: -2px;
+            left: -2px;
+            border-width: 2px 0 0 2px;
+        }
+
+        .reticle-box::after {
+            top: -2px;
+            right: -2px;
+            border-width: 2px 2px 0 0;
+        }
+
+        .reticle-box span::before {
+            bottom: -2px;
+            left: -2px;
+            border-width: 0 0 2px 2px;
+        }
+
+        .reticle-box span::after {
+            bottom: -2px;
+            right: -2px;
+            border-width: 0 2px 2px 0;
+        }
+
+        .reticle-line-wrap {
+            width: 90%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reticle-dot {
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #fff;
+        }
+
+        /* --- Cart Card (Lower) --- */
+        .cart-card {
+            background: var(--peach-grad);
+            flex: 1;
+            padding: 28px;
+            margin-bottom: 80px;
+            /* Toolbar space */
+            color: var(--white);
+        }
+
+        .cart-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .cart-header-row h3 {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #000;
+            opacity: 0.9;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-pill {
+            padding: 10px 20px;
+            border-radius: 24px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .btn-pill:active {
+            transform: scale(0.95);
+        }
+
+        .btn-white {
+            background: var(--white);
+            color: #000;
+        }
+
+        .btn-coral {
+            background: #ff6b4a;
+            color: var(--white);
+        }
+
+        /* Dynamic Item Cards */
+        .cart-items-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow-y: auto;
+            flex: 1;
+            padding-bottom: 20px;
+        }
+
+        /* Hide scrollbar */
+        .cart-items-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .item-card {
+            background: var(--white);
+            border-radius: var(--item-radius);
+            padding: 18px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #000;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .item-main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-label {
+            font-size: 0.75rem;
+            color: #999;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .item-name {
+            font-weight: 800;
+            font-size: 1.2rem;
+            margin: 3px 0;
+        }
+
+        .item-sub {
+            font-size: 0.85rem;
+            color: #bbb;
+            font-weight: 500;
+        }
+
+        .item-val-badge {
+            background: #f2f2f7;
+            padding: 16px 28px;
+            border-radius: 24px;
+            font-weight: 800;
+            font-size: 1.3rem;
+        }
+
+        .btn-blue-action {
+            background: #4a8dfd;
+            color: var(--white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        .price-focus .price-val {
+            color: #ff3b30;
+            font-weight: 800;
+            font-size: 1.5rem;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* --- Floating Toolbar --- */
+        .floating-toolbar {
+            position: absolute;
+            bottom: 30px;
+            left: 24px;
+            right: 24px;
+            background: var(--card-dark);
+            border-radius: 22px;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--white);
+            z-index: 100;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .tool-btn {
+            font-weight: 800;
+            font-size: 1rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .tool-btn.danger {
+            color: #ff5252;
+        }
+
+        .tool-btn.primary {
+            background: #4a8dfd;
+            color: var(--white);
+            padding: 10px 24px;
+            border-radius: 14px;
+        }
+
+        .total-info {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
+        }
+
+        /* Animation & Utils */
+        @keyframes popIn {
+            from {
+                transform: scale(0.9) translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 24px 48px;
+            border-radius: 60px;
+            z-index: 2000;
+            font-weight: 800;
+            font-size: 1.2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-wrap">
+        <!-- TOP SECTION: Scanner Card -->
+        <section class="card scanner-card">
+            <header class="card-header">
+                <div class="logo-area">
+                    <span class="badge">35</span>
+                    <h1 class="logo-text">띡띡! <span>THICK</span></h1>
+                </div>
+                <div class="header-icons">
+                    <button class="icon-btn"><i data-lucide="search" style="width:20px"></i></button>
+                    <button class="icon-btn"><i data-lucide="user" style="width:20px"></i></button>
+                </div>
+            </header>
+
+            <div class="scanner-viewport">
+                <span class="viewport-label">scanner container</span>
+                <div id="reader"></div>
+                <!-- Custom Reticle (조준선) -->
+                <div class="scanner-overlay">
+                    <div class="reticle-box">
+                        <div class="reticle-line-wrap">
+                            <div class="reticle-dot"></div>
+                        </div>
+                        <span></span> <!-- Bottom border helpers -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM SECTION: Cart Card -->
+        <section class="card cart-card">
+            <div class="cart-header-row">
+                <h3 id="cart-item-count">0 Cart item</h3>
+                <div class="cart-actions">
+                    <button class="btn-pill btn-white" onclick="location.reload()">B Reset</button>
+                    <button class="btn-pill btn-coral">BT cuvltior</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Cart Items -->
+            <div id="cart-list" class="cart-items-container">
+                <!-- Empty Msg -->
+                <div id="empty-msg"
+                    style="text-align: center; margin-top: 50px; opacity: 0.7; color: #000; font-weight: 600;">
+                    화면 중앙의 스캐너로<br>바코드를 스캔해주세요.
+                </div>
+            </div>
+        </section>
+
+        <!-- FLOATING TOOLBAR -->
+        <footer class="floating-toolbar">
+            <button class="tool-btn danger">측존 폼메</button>
+            <div class="total-info">Total Color</div>
+            <button class="tool-btn primary">BT HAGE</button>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+    <script>
+        // Lucide 아이콘 초기화
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
