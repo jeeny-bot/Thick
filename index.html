@@ -411,7 +411,7 @@
         let cart = [];
         let html5QrCode = null;
 
-        // 3. 스캐너 로직 (안정성 극대화)
+        // 3. 스캐너 로직 (민감도 최적화 버전)
         async function initScanner() {
             try {
                 if (html5QrCode) {
@@ -420,29 +420,36 @@
 
                 html5QrCode = new Html5Qrcode("reader");
 
+                // 고성능 스캔 설정
                 const config = {
-                    fps: 24,
-                    qrbox: { width: 250, height: 150 },
+                    fps: 30, // 프레임속도 향상
+                    qrbox: function (viewfinderWidth, viewfinderHeight) {
+                        // 뷰파인더 크기에 맞게 최적 분석 영역 계산 (이미지 레티클과 매칭)
+                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                        const boxWidth = viewfinderWidth * 0.7;
+                        const boxHeight = viewfinderHeight * 0.45;
+                        return { width: boxWidth, height: boxHeight };
+                    },
                     aspectRatio: 1.0,
-                    experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+                    disableFlip: true, // 1D 바코드 인식 품질 향상
+                    experimentalFeatures: {
+                        useBarCodeDetectorIfSupported: true // 네이티브 API 최우선 사용
+                    }
                 };
 
-                // 스캐너 시작 - FacingMode 강제 설정
+                // 스캐너 시작 - 고해상도 캠 고정 및 포맷 집중
                 await html5QrCode.start(
                     { facingMode: "environment" },
                     config,
-                    (decodedText) => {
-                        onScanSuccess(decodedText);
-                    },
-                    (error) => { /* 스캔 시도 중 오류 무시 */ }
+                    (decodedText) => onScanSuccess(decodedText)
                 ).catch(err => {
                     console.error("Scanner startup error:", err);
-                    showToast("카메라 권한을 확인해주세요.");
+                    showToast("카메라 접근을 허용해 주세요.");
                 });
 
             } catch (err) {
                 console.error("Major Scanner Error:", err);
-                showToast("⚠️ 스캐너 로딩 실패");
+                showToast("⚠️ 스캐너 엔진 오류");
             }
         }
 
