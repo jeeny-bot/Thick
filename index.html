@@ -412,6 +412,38 @@
             margin-left: 5px;
             font-weight: 800;
         }
+
+        /* Utils */
+        .hidden {
+            display: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 14px 40px;
+            border-radius: 50px;
+            font-weight: 900;
+            z-index: 10000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            white-space: nowrap;
+        }
+
+        .empty-cart-msg {
+            text-align: center;
+            margin-top: 40%;
+            opacity: 0.8;
+            font-weight: 700;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -564,12 +596,17 @@
 
         // 4. 장바구니 로직
         function addToCart(barcode, manualInfo = null) {
+            // 수동 정보가 들어오면 DB를 업데이트하여 다음번 스캔 시 팝업 방지
+            if (manualInfo) {
+                PRODUCT_DB[barcode] = manualInfo;
+            }
+
             const existing = cart.find(item => item.barcode === barcode);
             if (existing) {
                 existing.qty += 1;
                 existing.updatedAt = Date.now();
             } else {
-                const product = manualInfo || PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 0 };
+                const product = PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 0 };
                 cart.unshift({
                     id: Date.now(),
                     updatedAt: Date.now(),
