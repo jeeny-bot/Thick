@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>띡띡! Thick - Smart Scanner Pro</title>
+    <title>띡! Thick - Smart Scanner Pro</title>
     <!-- Google Fonts: Noto Sans KR -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
         rel="stylesheet">
@@ -233,26 +233,31 @@
 
         .item-name-label {
             font-weight: 700;
-            font-size: 1.15rem;
-            flex: 1.2;
+            font-size: 0.6rem;
+            /* 텍스트 밀림 방지를 위한 추가 축소 */
+            flex: 1.1;
             word-break: keep-all;
+            line-height: 1.2;
         }
 
         .item-price-label {
             font-weight: 900;
-            font-size: 1.2rem;
+            font-size: 0.7rem;
+            /* 추가 축소 */
             flex: 1;
             text-align: center;
+            line-height: 1.2;
         }
 
         .item-qty-label {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 2px;
             font-weight: 700;
-            font-size: 1.2rem;
+            font-size: 0.7rem;
+            /* 추가 축소 */
             justify-content: flex-end;
-            flex: 1;
+            flex: 0.7;
             color: #444;
         }
 
@@ -269,16 +274,16 @@
         .item-compare-link {
             background-color: var(--white);
             border-radius: var(--item-radius);
-            min-width: 120px;
+            min-width: 90px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
             color: #000;
             font-weight: 900;
-            font-size: 1rem;
+            font-size: 0.8rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            padding: 0 10px;
+            padding: 0 8px;
         }
 
         /* --- 하단 합계 블랙 바 (이미지 반영) --- */
@@ -294,16 +299,16 @@
 
         .summary-title {
             font-weight: 900;
-            font-size: 1.2rem;
+            font-size: 0.7rem;
             color: #fff;
         }
 
         .summary-value {
             flex: 1;
             text-align: right;
-            margin-right: 25px;
+            margin-right: 8px;
             font-weight: 900;
-            font-size: 1.35rem;
+            font-size: 0.8rem;
             color: #fff;
         }
 
@@ -311,11 +316,106 @@
             background-color: var(--white);
             color: #000;
             border: none;
-            border-radius: 10px;
-            padding: 10px 24px;
+            border-radius: 8px;
+            padding: 5px 12px;
             font-weight: 900;
-            font-size: 1.1rem;
+            font-size: 0.7rem;
             cursor: pointer;
+        }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+        }
+
+        .modal-card {
+            background: var(--white);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 30px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            color: #000;
+            font-size: 1.4rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .modal-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-label {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #eee;
+            font-size: 1.1rem;
+            font-weight: 700;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .modal-input:focus {
+            border-color: var(--orange-main);
+        }
+
+        .modal-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background: var(--orange-main);
+            color: #fff;
+        }
+
+        .btn-cancel {
+            background: #eee;
+            color: #666;
+        }
+
+        .qty-num {
+            font-size: 0.75rem;
+            color: var(--orange-main);
+            margin-left: 3px;
+            font-weight: 800;
         }
 
         /* Utils */
@@ -342,7 +442,6 @@
             white-space: nowrap;
         }
 
-        /* 엠티 스테이트 보정 */
         .empty-cart-msg {
             text-align: center;
             margin-top: 40%;
@@ -359,7 +458,7 @@
         <section class="scanner-card">
             <header class="scanner-header">
                 <div class="logo-box">III</div>
-                <div class="logo-text">Thick</div>
+                <div class="logo-text">Thick 띡!</div>
             </header>
             <div class="scanner-viewport">
                 <div id="reader"></div>
@@ -390,6 +489,25 @@
         </section>
     </div>
 
+    <!-- 수동 등록 모달 -->
+    <div id="manual-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h2 class="modal-title">미등록 상품 등록</h2>
+            <div class="modal-input-group">
+                <span class="modal-label">바코드 숫자</span>
+                <input type="text" id="manual-barcode" class="modal-input" placeholder="바코드 번호">
+            </div>
+            <div class="modal-input-group">
+                <span class="modal-label">가격 (원)</span>
+                <input type="number" id="manual-price" class="modal-input" placeholder="가격을 입력하세요" inputmode="numeric">
+            </div>
+            <div class="modal-btn-group">
+                <button class="modal-btn btn-cancel" onclick="closeManualModal()">취소</button>
+                <button class="modal-btn btn-save" onclick="saveManualEntry()">장바구니 담기</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 토스트 UI -->
     <div id="toast" class="toast-notification hidden"></div>
 
@@ -410,62 +528,99 @@
         // 2. 상태 관리
         let cart = [];
         let html5QrCode = null;
+        let isModalOpen = false;
 
-        // 3. 스캐너 로직 (안정성 극대화)
+        // 3. 스캐너 로직 (13자리 바코드 인식 특화 튜닝)
         async function initScanner() {
             try {
                 if (html5QrCode) {
                     try { await html5QrCode.stop(); } catch (e) { }
                 }
 
-                html5QrCode = new Html5Qrcode("reader");
+                // 스캐너 인스턴스 생성 시 최신 EAN-13 및 1D 포맷 강제 활성화
+                html5QrCode = new Html5Qrcode("reader", {
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.UPC_E,
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.ITF,
+                        Html5QrcodeSupportedFormats.QR_CODE
+                    ],
+                    verbose: false
+                });
 
                 const config = {
-                    fps: 24,
-                    qrbox: { width: 250, height: 150 },
+                    fps: 60, // 인식 민감도를 극대화하기 위해 60fps 설정
+                    qrbox: function (viewfinderWidth, viewfinderHeight) {
+                        // 13자리 바코드가 한 번에 들어올 수 있도록 가로 영역을 넓게 확보 (90%)
+                        return { width: viewfinderWidth * 0.9, height: viewfinderHeight * 0.5 };
+                    },
                     aspectRatio: 1.0,
-                    experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+                    disableFlip: true,
+                    videoConstraints: {
+                        facingMode: "environment",
+                        width: { min: 640, ideal: 1280, max: 1920 },
+                        height: { min: 480, ideal: 720, max: 1080 },
+                        focusMode: "continuous"
+                    },
+                    experimentalFeatures: {
+                        useBarCodeDetectorIfSupported: true // 네이티브 API 최우선 사용
+                    }
                 };
 
-                // 스캐너 시작 - FacingMode 강제 설정
                 await html5QrCode.start(
                     { facingMode: "environment" },
                     config,
-                    (decodedText) => {
-                        onScanSuccess(decodedText);
-                    },
-                    (error) => { /* 스캔 시도 중 오류 무시 */ }
+                    (decodedText) => onScanSuccess(decodedText)
                 ).catch(err => {
                     console.error("Scanner startup error:", err);
-                    showToast("카메라 권한을 확인해주세요.");
+                    showToast("카메라 권한을 확인해 주세요.");
                 });
 
             } catch (err) {
                 console.error("Major Scanner Error:", err);
-                showToast("⚠️ 스캐너 로딩 실패");
+                showToast("⚠️ 스캐너 엔진 초기화 실패");
             }
         }
 
         function onScanSuccess(barcode) {
-            // 중복 스캔 시퀀스 락 (1.2초)
+            if (isModalOpen) return; // 모달 열려있을 땐 스캔 무시
+
             const now = Date.now();
-            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1200)) {
+            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) {
                 return;
             }
 
             if (navigator.vibrate) navigator.vibrate(80);
-            addToCart(barcode);
-            showToast("SUCCESS SCAN!");
+
+            // 등록된 상품인지 확인 (이름이 '미등록'으로 시작하는 경우도 미등록으로 간주)
+            const product = PRODUCT_DB[barcode];
+            const isUnregistered = !product || (product.name && product.name.startsWith("미등록"));
+
+            if (!isUnregistered) {
+                addToCart(barcode);
+                showToast("SUCCESS SCAN!");
+            } else {
+                // 미등록 바코드일 때만 팝업 생성
+                openManualModal(barcode);
+            }
         }
 
         // 4. 장바구니 로직
-        function addToCart(barcode) {
+        function addToCart(barcode, manualInfo = null) {
+            // 수동 정보가 들어오면 DB를 업데이트하여 다음번 스캔 시 팝업 방지
+            if (manualInfo) {
+                PRODUCT_DB[barcode] = manualInfo;
+            }
+
             const existing = cart.find(item => item.barcode === barcode);
             if (existing) {
                 existing.qty += 1;
                 existing.updatedAt = Date.now();
             } else {
-                const product = PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 8000 };
+                const product = PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 0 };
                 cart.unshift({
                     id: Date.now(),
                     updatedAt: Date.now(),
@@ -476,6 +631,29 @@
                 });
             }
             render();
+        }
+
+        // 수동 등록 모달 제어
+        function openManualModal(barcode) {
+            isModalOpen = true;
+            document.getElementById('manual-barcode').value = barcode;
+            document.getElementById('manual-price').value = "";
+            document.getElementById('manual-modal').classList.remove('hidden');
+        }
+
+        function closeManualModal() {
+            isModalOpen = false;
+            document.getElementById('manual-modal').classList.add('hidden');
+        }
+
+        function saveManualEntry() {
+            const barcode = document.getElementById('manual-barcode').value;
+            const name = "미등록 상품"; // 상품명 입력 제외, 기본값 사용
+            const price = parseInt(document.getElementById('manual-price').value) || 0;
+
+            addToCart(barcode, { name, price });
+            closeManualModal();
+            showToast("상품 등록 완료!");
         }
 
         function updateQty(id, delta) {
