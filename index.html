@@ -256,6 +256,10 @@
                 </div>
             </div>
             <p class="scanner-tip-text">상품을 스캔해주세요</p>
+            <button onclick="startScanner()" style="margin-top:10px;padding:10px 20px;border:none;border-radius:10px;background:#fff;color:#000;font-weight:700;">
+                카메라 시작
+                </button>
+                
         </section>
 
         <section class="cart-card">
@@ -607,6 +611,9 @@ function isInAppBrowser() {
 
 if (isInAppBrowser()) {
   alert("로그인이 안될 경우, 오른쪽 상단 메뉴에서 '브라우저로 열기'를 눌러주세요.");
+}
+function startScanner() {
+  initScanner();
 }
 
 
