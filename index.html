@@ -233,7 +233,7 @@
             마트에서 가격 암산은 이제 그만.<br>
             바코드만 찍으면 합계가 바로 나옵니다.
         </p>
-        <button class="btn-start" onclick="enterApp()">지금 시작하기</button>
+        
         <button class="btn-google" onclick="loginWithGoogle()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
             구글로 시작하기
@@ -486,8 +486,7 @@
           addDoc, 
           serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged }
-        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        
 
       
         // 🔥 네 Firebase 설정값 그대로 넣어
@@ -504,21 +503,29 @@
       
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
-        import { GoogleAuthProvider, signInWithPopup }
-         from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-         const provider = new GoogleAuthProvider();
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-         window.loginWithGoogle = async function() {
-             try {
-             await signInWithPopup(auth, provider);
-             console.log("🔥 구글 로그인 성공");
-           } catch (e) {
-             console.error("❌ 로그인 실패:", e);
-           }
-      };
+window.loginWithGoogle = async function () {
+    try {
 
+await signInWithPopup(auth, provider);
+
+console.log("🔥 구글 로그인 성공");
+
+} catch (e) {
+console.error("❌ 로그인 실패:", e);
+}
+
+                  
+       
       onAuthStateChanged(auth, (user) => {
          if (user) {
          window.currentUid = user.uid;
@@ -588,8 +595,18 @@ window.finishSession = async function() {
 
     location.reload();
 }
-
       </script>
+      <script>
+function isInAppBrowser() {
+  const ua = navigator.userAgent;
+  return /KAKAOTALK|NAVER|Instagram|FBAN|FBAV/i.test(ua);
+}
+
+if (isInAppBrowser()) {
+  alert("로그인이 안될 경우, 오른쪽 상단 메뉴에서 '브라우저로 열기'를 눌러주세요.");
+}
+</script>
+
       
 </body>
 </html>
