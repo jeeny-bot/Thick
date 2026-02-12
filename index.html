@@ -108,9 +108,7 @@
             color: var(--white);
             display: flex;
             flex-direction: column;
-            height: 32%;
-            min-height: 220px;
-            position: relative;
+            height: 320px;   /* 👈 고정 높이로 변경 */
         }
 
         .scanner-header {
@@ -144,17 +142,16 @@
             justify-content: center;
             border: 1px solid #222;
         }
-
+        .scanner-viewport video {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+}
         #reader {
             width: 100% !important;
           }
 
-        #reader video {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-        }
-
+        
         .viewport-border-overlay {
             position: absolute;
             top: 15px; left: 15px; right: 15px; bottom: 15px;
