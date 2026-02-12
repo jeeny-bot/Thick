@@ -513,16 +513,17 @@
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+
+
 window.loginWithGoogle = async function () {
-    try {
+  try {
+    await signInWithPopup(auth, provider);
+    console.log("🔥 구글 로그인 성공");
+  } catch (e) {
+    console.error("❌ 로그인 실패:", e);
+  }
+};
 
-await signInWithPopup(auth, provider);
-
-console.log("🔥 구글 로그인 성공");
-
-} catch (e) {
-console.error("❌ 로그인 실패:", e);
-}
 
                   
        
@@ -533,7 +534,7 @@ console.error("❌ 로그인 실패:", e);
         // 🔥 자동 진입
          document.getElementById('landing-page').classList.add('hidden');
          document.getElementById('app-container').style.opacity = '1';
-         initScanner();
+        // initScanner();
          render();
 
          console.log("✅ 로그인 UID:", user.uid);
@@ -596,6 +597,8 @@ window.finishSession = async function() {
     location.reload();
 }
       </script>
+     
+
       <script>
 function isInAppBrowser() {
   const ua = navigator.userAgent;
@@ -605,8 +608,10 @@ function isInAppBrowser() {
 if (isInAppBrowser()) {
   alert("로그인이 안될 경우, 오른쪽 상단 메뉴에서 '브라우저로 열기'를 눌러주세요.");
 }
+
+
 </script>
 
-      
+ 
 </body>
 </html>
