@@ -16,6 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
         rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <style>
         .btn-google {
          margin-top: 16px;
@@ -332,14 +333,18 @@
                 }
                 html5QrCode = new Html5Qrcode("reader");
                 
-                 await html5QrCode.start(
+                await html5QrCode.start(
     { facingMode: "environment" },
     {
-        fps: 10,
-        qrbox: 270
+        fps: 12,
+        qrbox: 270,
+        experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+        }
     },
     (decodedText) => onScanSuccess(decodedText)
 );
+
 
 
 
@@ -529,7 +534,7 @@ window.loginWithGoogle = async function () {
         // 🔥 자동 진입
          document.getElementById('landing-page').classList.add('hidden');
          document.getElementById('app-container').style.opacity = '1';
-        // initScanner();
+         startScanner();
          render();
 
          console.log("✅ 로그인 UID:", user.uid);
@@ -599,17 +604,58 @@ function isInAppBrowser() {
   const ua = navigator.userAgent;
   return /KAKAOTALK|NAVER|Instagram|FBAN|FBAV/i.test(ua);
 }
+function isIOS() {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
 
 if (isInAppBrowser()) {
   alert("로그인이 안될 경우, 오른쪽 상단 메뉴에서 '브라우저로 열기'를 눌러주세요.");
 }
 function startScanner() {
-  initScanner();
+    if (isIOS()) {
+        startQuaggaScanner();
+    } else {
+        initScanner();
+    }
 }
 
+function startQuaggaScanner() {
+    Quagga.init({
+        inputStream: {
+    type: "LiveStream",
+    target: document.querySelector("#reader"),
+    constraints: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        facingMode: "environment"
+    }
+},
 
+        decoder: {
+            readers: [
+                "ean_reader",
+                "ean_8_reader",
+                "code_128_reader",
+                "upc_reader",
+                "upc_e_reader"
+            ]
+        }
+    }, function (err) {
+        if (err) {
+            console.log(err);
+            showToast("카메라 시작 실패");
+            return;
+        }
+        Quagga.start();
+    });
+
+    Quagga.onDetected(function (result) {
+        const code = result.codeResult.code;
+        onScanSuccess(code);
+    });
+}
+    
 </script>
 
- 
 </body>
 </html>
