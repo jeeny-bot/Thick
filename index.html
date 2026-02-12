@@ -337,7 +337,9 @@
                  };
 
                  await html5QrCode.start(
-    { facingMode: "environment" },
+    { 
+        facingMode: { exact:"environment" } 
+    },
     {
         fps: 10,
         qrbox: { width: 250, height: 150 },
@@ -351,6 +353,7 @@
     },
     (decodedText) => onScanSuccess(decodedText)
 );
+
 
             } catch (err) {
                 showToast("카메라 권한을 허용해 주세요.");
