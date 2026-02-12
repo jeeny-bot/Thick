@@ -337,15 +337,18 @@
                  };
 
                  await html5QrCode.start(
-    { 
-        facingMode: { exact:"environment" } 
+    {
+        facingMode: "environment",
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
     },
     {
-        fps: 10,
-        qrbox: { width: 280, height: 180 },
+        fps: 15,
+        qrbox: 280
     },
     (decodedText) => onScanSuccess(decodedText)
 );
+
 
 
             } catch (err) {
