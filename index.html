@@ -332,16 +332,10 @@
                 }
                 html5QrCode = new Html5Qrcode("reader");
                 const config = {
-                    fps: 20,
-                    qrbox: (viewfinderWidth, viewfinderHeight) => {
-                        const width = viewfinderWidth * 0.9;
-                        const height = viewfinderHeight * 0.45;
-                        return { width, height };
-                    },
-                    aspectRatio: 1.0,
-                    disableFlip: true,
-                    experimentalFeatures: { useBarCodeDetectorIfSupported: true }
-                };
+                 fps: 10,
+                 qrbox: { width: 250, height: 150 }
+                 };
+
                 await html5QrCode.start(
                     { facingMode: "environment" },
                     config,
