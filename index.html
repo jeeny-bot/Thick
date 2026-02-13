@@ -16,7 +16,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
         rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <style>
         .btn-google {
          margin-top: 16px;
@@ -326,14 +325,14 @@
                 html5QrCode = new Html5Qrcode("reader");
                 
                 await html5QrCode.start(
-    { facingMode: "environment" },
+    { facingMode: { exact: "environment" } },
     {
-        fps: 12,
-        qrbox: 270,
-        experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true
-        }
-    },
+    fps: 10,
+    qrbox: { width: 250, height: 180 },
+    aspectRatio: 1.777,
+    disableFlip: false
+}
+,
     (decodedText) => onScanSuccess(decodedText)
 );
 
@@ -602,59 +601,11 @@ function isIOS() {
 if (isInAppBrowser()) {
   alert("로그인이 안될 경우, 오른쪽 상단 메뉴에서 '브라우저로 열기'를 눌러주세요.");
 }
+
 function startScanner() {
-    if (isIOS()) {
-        startQuaggaScanner();
-    } else {
-        initScanner();
-    }
+    initScanner();
 }
 
-function startQuaggaScanner() {
-
-    // 🔥 기존 html5-qrcode 카메라 중지
-    if (html5QrCode) {
-        try {
-            html5QrCode.stop();
-        } catch (e) {}
-    }
-    try {
-        Quagga.stop();
-    } catch(e) {}
-    Quagga.init({
-        inputStream: {
-            type: "LiveStream",
-            target: document.querySelector("#reader"),
-            constraints: {
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-                facingMode: "environment"
-            }
-        },
-
-        decoder: {
-            readers: [
-                "ean_reader",
-                "ean_8_reader",
-                "code_128_reader",
-                "upc_reader",
-                "upc_e_reader"
-            ]
-        }
-    }, function (err) {
-        if (err) {
-            console.log(err);
-            showToast("카메라 시작 실패");
-            return;
-        }
-        Quagga.start();
-    });
-
-    Quagga.onDetected(function (result) {
-        const code = result.codeResult.code;
-        onScanSuccess(code);
-    });
-}
     
 </script>
 
