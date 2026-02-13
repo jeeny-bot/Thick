@@ -332,29 +332,28 @@
 
         html5QrCode = new Html5Qrcode("reader");
 
-        await html5QrCode.start(
-            {
-              facingMode: "environment",
-              width: { ideal: 1280 },
-              height: { ideal: 960 },
-              aspectRatio: 1.3333333333
-            },
+        const cameras = await Html5Qrcode.getCameras();
+        if (cameras && cameras.length) {
+            const backCamera = cameras.find(cam =>
+                cam.label.toLowerCase().includes("back")
+            ) || cameras[0];
 
-            {
-                fps: 10,
-                qrbox: { width: 300, height: 225 },
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true
+            await html5QrCode.start(
+                backCamera.id,
+                {
+                    fps: 10,
+                    qrbox: { width: 300, height: 300 }
+                },
+                (decodedText) => {
+                    onScanSuccess(decodedText);
                 }
-            },
-            (decodedText) => onScanSuccess(decodedText)
-        );
+            );
+        }
 
     } catch (err) {
-        showToast("카메라 실행 실패");
+        showToast("카메라 권한을 확인하세요.");
     }
 }
-
 
         function onScanSuccess(barcode) {
             if (isModalOpen) return;
