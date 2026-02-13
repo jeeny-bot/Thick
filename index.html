@@ -318,33 +318,30 @@
         let isModalOpen = false;
 
         async function initScanner() {
-            try {
-                if (html5QrCode) {
-                    try { await html5QrCode.stop(); } catch (e) { }
-                }
-                html5QrCode = new Html5Qrcode("reader");
-                
-                await html5QrCode.start(
-    { facingMode: "environment" },
-
-    {
-    fps: 10,
-    qrbox: { width: 250, height: 180 },
-    aspectRatio: 1.777,
-    disableFlip: false
-}
-,
-    (decodedText) => onScanSuccess(decodedText)
-);
-
-
-
-
-
-            } catch (err) {
-                showToast("카메라 권한을 허용해 주세요.");
-            }
+    try {
+        if (html5QrCode) {
+            try { await html5QrCode.stop(); } catch (e) {}
         }
+
+        html5QrCode = new Html5Qrcode("reader");
+
+        await html5QrCode.start(
+            { facingMode: "environment" },
+            {
+                fps: 10,
+                qrbox: { width: 280, height: 200 },
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                }
+            },
+            (decodedText) => onScanSuccess(decodedText)
+        );
+
+    } catch (err) {
+        showToast("카메라 실행 실패");
+    }
+}
+
 
         function onScanSuccess(barcode) {
             if (isModalOpen) return;
