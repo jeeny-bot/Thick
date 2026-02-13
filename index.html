@@ -16,6 +16,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
         rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
     <style>
         .btn-google {
          margin-top: 16px;
@@ -611,12 +613,65 @@ if (isInAppBrowser()) {
   alert("로그인이 안될 경우, 오른쪽 상단 메뉴에서 '브라우저로 열기'를 눌러주세요.");
 }
 function startScanner() {
-    if ('BarcodeDetector' in window) {
-        startIOSNativeScanner();
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isIOS) {
+        startIOSQuagga();
     } else {
-        initScanner();
+        initScanner(); // 안드로이드는 기존 html5-qrcode 유지
     }
 }
+function startIOSQuagga() {
+
+const reader = document.getElementById("reader");
+reader.innerHTML = "";
+
+const viewport = document.createElement("div");
+viewport.style.width = "100%";
+viewport.style.height = "220px";
+viewport.style.position = "relative";
+
+reader.appendChild(viewport);
+
+Quagga.init({
+    inputStream: {
+        type: "LiveStream",
+        target: viewport,
+        constraints: {
+            facingMode: "environment",
+            width: 640,
+            height: 480
+        }
+    },
+    locator: {
+        patchSize: "medium",
+        halfSample: true
+    },
+    decoder: {
+        readers: [
+            "ean_reader",
+            "ean_8_reader",
+            "code_128_reader",
+            "upc_reader",
+            "upc_e_reader"
+        ]
+    },
+    locate: true
+}, function (err) {
+    if (err) {
+        showToast("카메라 시작 실패");
+        return;
+    }
+    Quagga.start();
+});
+
+Quagga.onDetected(function (result) {
+    if (result && result.codeResult && result.codeResult.code) {
+        onScanSuccess(result.codeResult.code);
+    }
+});
+}
+
 async function startIOSNativeScanner() {
 
 const reader = document.getElementById("reader");
@@ -641,12 +696,20 @@ const detector = new BarcodeDetector();
 
 setInterval(async () => {
     try {
+        console.log("detect 실행중");
+
         const barcodes = await detector.detect(video);
+        console.log("detect 결과:", barcodes);
+
         if (barcodes.length > 0) {
+            console.log("인식됨:", barcodes[0].rawValue);
             onScanSuccess(barcodes[0].rawValue);
         }
-    } catch (e) {}
-}, 300);
+    } catch (e) {
+        console.log("에러:", e);
+    }
+}, 500);
+
 }
 
 
