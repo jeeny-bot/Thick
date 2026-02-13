@@ -665,11 +665,31 @@ Quagga.init({
     Quagga.start();
 });
 
+let scanBuffer = {};
+let scanThreshold = 3; // 3번 연속 감지되어야 인정
+
 Quagga.onDetected(function (result) {
-    if (result && result.codeResult && result.codeResult.code) {
-        onScanSuccess(result.codeResult.code);
+
+    if (!result || !result.codeResult || !result.codeResult.code) return;
+
+    const code = result.codeResult.code;
+
+    if (!scanBuffer[code]) {
+        scanBuffer[code] = 1;
+    } else {
+        scanBuffer[code]++;
+    }
+
+    // 3번 이상 연속 감지되면 성공 처리
+    if (scanBuffer[code] >= scanThreshold) {
+
+        // 버퍼 초기화
+        scanBuffer = {};
+
+        onScanSuccess(code);
     }
 });
+
 }
 
 async function startIOSNativeScanner() {
