@@ -61,12 +61,10 @@
         }
 
         body {
-         background-color: var(--bg-gray);
-         min-height: 100dvh;
-         width: 100%;
-         display: flex;
-         justify-content: center;
-      }
+              background-color: var(--bg-gray);
+              margin: 0;
+             }
+
 
 
         /* 랜딩 페이지 추가 스타일 */
@@ -90,16 +88,17 @@
         }
 
         .container {
-            width: 100%;
-            max-width: 500px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            gap: 16px;
-            opacity: 0; /* 시작 시 숨김 */
-            transition: opacity 0.5s;
-        }
+          width: 100%;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          opacity: 0;
+          transition: opacity 0.5s;
+         }
+
 
         /* --- 상단: 스캐너 카드 (이미지 반영) --- */
         .scanner-card {
