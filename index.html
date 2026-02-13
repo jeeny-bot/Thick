@@ -221,7 +221,6 @@
         .toast-notification { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.9); color: #fff; padding: 14px 40px; border-radius: 50px; font-weight: 900; z-index: 10000; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); white-space: nowrap; }
         .empty-cart-msg { text-align: center; margin-top: 40%; opacity: 0.8; font-weight: 700; color: #fff; }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
        
 </head>
 
@@ -608,65 +607,11 @@ if (isInAppBrowser()) {
   alert("로그인이 안될 경우, 오른쪽 상단 메뉴에서 '브라우저로 열기'를 눌러주세요.");
 }
 function startScanner() {
-    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        startIOSScanner();
-    } else {
-        initScanner();
-    }
+    initScanner();
 }
 
-function startIOSScanner() {
 
-if (html5QrCode) {
-    try { html5QrCode.stop(); } catch(e){}
-}
 
-const readerElement = document.querySelector("#reader");
-readerElement.innerHTML = "";
-
-Quagga.init({
-    inputStream: {
-        type: "LiveStream",
-        target: readerElement,
-        constraints: {
-            width: 640,
-            height: 480,
-            facingMode: "environment"
-        },
-        area: {
-            top: "0%",
-            right: "0%",
-            left: "0%",
-            bottom: "0%"
-        }
-    },
-    locator: {
-        patchSize: "medium",
-        halfSample: true
-    },
-    decoder: {
-        readers: [
-            "ean_reader",
-            "ean_8_reader",
-            "code_128_reader",
-            "upc_reader",
-            "upc_e_reader"
-        ]
-    },
-    locate: true
-}, function (err) {
-    if (err) {
-        showToast("카메라 시작 실패");
-        return;
-    }
-    Quagga.start();
-});
-
-Quagga.onDetected(function (result) {
-    const code = result.codeResult.code;
-    onScanSuccess(code);
-});
-}
 
 
     
