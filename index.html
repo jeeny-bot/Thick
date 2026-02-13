@@ -131,19 +131,26 @@
         }
 
         .scanner-viewport {
-            flex: 1;
-            background: #0d0d0d;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #222;
-        }
+             flex: 1;
+             background: #0d0d0d;
+             border-radius: 12px;
+             overflow: hidden;
+             position: relative;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             border: 1px solid #222;
+             height: 180px;   /* 추가 */
+          }
+
         
         #reader {
             width: 100% !important;
+          }
+             #reader video {
+             width: 100% !important;
+             height: 100% !important;
+             object-fit: cover !important;
           }
 
         
