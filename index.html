@@ -610,40 +610,57 @@ function startScanner() {
 
 function startIOSScanner() {
 
-    if (html5QrCode) {
-        try { html5QrCode.stop(); } catch(e){}
-    }
-
-    Quagga.init({
-        inputStream: {
-            type: "LiveStream",
-            target: document.querySelector("#reader"),
-            constraints: {
-                facingMode: "environment"
-            }
-        },
-        decoder: {
-            readers: [
-                "ean_reader",
-                "ean_8_reader",
-                "code_128_reader",
-                "upc_reader",
-                "upc_e_reader"
-            ]
-        }
-    }, function (err) {
-        if (err) {
-            showToast("카메라 시작 실패");
-            return;
-        }
-        Quagga.start();
-    });
-
-    Quagga.onDetected(function (result) {
-        const code = result.codeResult.code;
-        onScanSuccess(code);
-    });
+if (html5QrCode) {
+    try { html5QrCode.stop(); } catch(e){}
 }
+
+const readerElement = document.querySelector("#reader");
+readerElement.innerHTML = "";
+
+Quagga.init({
+    inputStream: {
+        type: "LiveStream",
+        target: readerElement,
+        constraints: {
+            width: 640,
+            height: 480,
+            facingMode: "environment"
+        },
+        area: {
+            top: "0%",
+            right: "0%",
+            left: "0%",
+            bottom: "0%"
+        }
+    },
+    locator: {
+        patchSize: "medium",
+        halfSample: true
+    },
+    decoder: {
+        readers: [
+            "ean_reader",
+            "ean_8_reader",
+            "code_128_reader",
+            "upc_reader",
+            "upc_e_reader"
+        ]
+    },
+    locate: true
+}, function (err) {
+    if (err) {
+        showToast("카메라 시작 실패");
+        return;
+    }
+    Quagga.start();
+});
+
+Quagga.onDetected(function (result) {
+    const code = result.codeResult.code;
+    onScanSuccess(code);
+});
+}
+
 
     
 </script>
