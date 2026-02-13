@@ -334,9 +334,8 @@
 
         const cameras = await Html5Qrcode.getCameras();
         if (cameras && cameras.length) {
-            const backCamera = cameras.find(cam =>
-                cam.label.toLowerCase().includes("back")
-            ) || cameras[0];
+            const backCamera = cameras[cameras.length - 1];
+
 
             await html5QrCode.start(
                 backCamera.id,
