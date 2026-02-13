@@ -648,7 +648,7 @@ Quagga.init({
          halfSample: false
     },
     numOfWorkers: 0,
-    frequency: 20,
+    frequency: 30,
     decoder: {
         readers: [
         "ean_reader",
@@ -666,7 +666,7 @@ Quagga.init({
 });
 
 let scanBuffer = {};
-let scanThreshold = 3; // 3번 연속 감지되어야 인정
+let scanThreshold = 2; // 3번 연속 감지되어야 인정
 
 Quagga.onDetected(function (result) {
 
@@ -681,7 +681,7 @@ Quagga.onDetected(function (result) {
     }
 
     // 3번 이상 연속 감지되면 성공 처리
-    if (scanBuffer[code] >= scanThreshold) {
+    if (scanBuffer[code] >= scanThreshold && code.length >= 8) {
 
         // 버퍼 초기화
         scanBuffer = {};
