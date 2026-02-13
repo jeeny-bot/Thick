@@ -639,14 +639,16 @@ Quagga.init({
         target: viewport,
         constraints: {
             facingMode: "environment",
-            width: 1280,
-            height: 960
+             width: { ideal: 1920 },
+             height: { ideal: 1080 }
         }
     },
     locator: {
-        patchSize: "medium",
-        halfSample: true
+         patchSize: "large",
+         halfSample: false
     },
+    numOfWorkers: 0,
+    frequency: 10,
     decoder: {
         readers: [
             "ean_reader",
@@ -656,6 +658,7 @@ Quagga.init({
             "upc_e_reader"
         ]
     },
+         
     locate: true
 }, function (err) {
     if (err) {
