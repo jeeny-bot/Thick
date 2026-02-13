@@ -333,10 +333,16 @@
         html5QrCode = new Html5Qrcode("reader");
 
         await html5QrCode.start(
-            { facingMode: "environment" },
+            {
+              facingMode: "environment",
+              width: { ideal: 1280 },
+              height: { ideal: 960 },
+              aspectRatio: 1.3333333333
+            },
+
             {
                 fps: 10,
-                qrbox: { width: 280, height: 200 },
+                qrbox: { width: 300, height: 225 },
                 experimentalFeatures: {
                     useBarCodeDetectorIfSupported: true
                 }
