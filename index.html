@@ -325,7 +325,8 @@
                 html5QrCode = new Html5Qrcode("reader");
                 
                 await html5QrCode.start(
-    { facingMode: { exact: "environment" } },
+    { facingMode: "environment" },
+
     {
     fps: 10,
     qrbox: { width: 250, height: 180 },
