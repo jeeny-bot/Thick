@@ -644,22 +644,16 @@ Quagga.init({
         }
     },
     locator: {
-         patchSize: "large",
+         patchSize: "medium",
          halfSample: false
     },
     numOfWorkers: 0,
-    frequency: 10,
+    frequency: 20,
     decoder: {
-        readers: [
-            "ean_reader",
-            "ean_8_reader",
-            "code_128_reader",
-            "upc_reader",
-            "upc_e_reader"
-        ]
+        readers: ["ean_reader"]
     },
          
-    locate: true
+    locate: false
 }, function (err) {
     if (err) {
         showToast("카메라 시작 실패");
