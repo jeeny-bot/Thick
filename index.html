@@ -607,14 +607,53 @@ if (isInAppBrowser()) {
   alert("로그인이 안될 경우, 오른쪽 상단 메뉴에서 '브라우저로 열기'를 눌러주세요.");
 }
 function startScanner() {
+
+// 1️⃣ Safari가 네이티브 바코드 지원하면
+if ('BarcodeDetector' in window) {
+    startNativeScanner();
+} else {
+    // 2️⃣ 지원 안 하면 기존 방식 사용
     initScanner();
 }
+}
+async function startNativeScanner() {
 
+const reader = document.getElementById("reader");
+reader.innerHTML = "";
 
+const video = document.createElement("video");
+video.setAttribute("playsinline", true);
+video.style.width = "100%";
+video.style.height = "100%";
+video.style.objectFit = "cover";
 
+reader.appendChild(video);
 
+const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "environment" }
+});
 
-    
+video.srcObject = stream;
+await video.play();
+
+const detector = new BarcodeDetector({
+    formats: ["ean_13", "ean_8", "code_128", "upc_a", "upc_e"]
+});
+
+async function scanLoop() {
+    try {
+        const barcodes = await detector.detect(video);
+        if (barcodes.length > 0) {
+            onScanSuccess(barcodes[0].rawValue);
+        }
+    } catch (e) {}
+
+    requestAnimationFrame(scanLoop);
+}
+
+scanLoop();
+}
+
 </script>
 
 </body>
