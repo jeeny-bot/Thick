@@ -643,13 +643,17 @@ const detector = new BarcodeDetector({
 async function scanLoop() {
     try {
         const barcodes = await detector.detect(video);
+
         if (barcodes.length > 0) {
             onScanSuccess(barcodes[0].rawValue);
+            return; // 인식되면 루프 잠시 멈춤
         }
+
     } catch (e) {}
 
-    requestAnimationFrame(scanLoop);
+    setTimeout(scanLoop, 200); // 0.2초 간격으로 재시도
 }
+
 
 scanLoop();
 }
