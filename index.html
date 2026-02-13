@@ -650,7 +650,10 @@ Quagga.init({
     numOfWorkers: 0,
     frequency: 20,
     decoder: {
-        readers: ["ean_reader"]
+        readers: [
+        "ean_reader",
+        "ean_8_reader"
+    ]
     },
          
     locate: false
