@@ -108,7 +108,7 @@
             color: var(--white);
             display: flex;
             flex-direction: column;
-            height: 320px;   /* 👈 고정 높이로 변경 */
+            height: 280px;   /* 👈 고정 높이로 변경 */
         }
 
         .scanner-header {
@@ -142,11 +142,7 @@
             justify-content: center;
             border: 1px solid #222;
         }
-        .scanner-viewport video {
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
-}
+        
         #reader {
             width: 100% !important;
           }
@@ -302,7 +298,7 @@
             document.getElementById('app-container').style.opacity = '1';
             
             // 기존 스캐너 시작 로직 실행
-            initScanner();
+            
             render();
             
             setTimeout(() => {
@@ -530,7 +526,6 @@ window.loginWithGoogle = async function () {
         // 🔥 자동 진입
          document.getElementById('landing-page').classList.add('hidden');
          document.getElementById('app-container').style.opacity = '1';
-         startScanner();
          render();
 
          console.log("✅ 로그인 UID:", user.uid);
@@ -616,16 +611,26 @@ function startScanner() {
 }
 
 function startQuaggaScanner() {
+
+    // 🔥 기존 html5-qrcode 카메라 중지
+    if (html5QrCode) {
+        try {
+            html5QrCode.stop();
+        } catch (e) {}
+    }
+    try {
+        Quagga.stop();
+    } catch(e) {}
     Quagga.init({
         inputStream: {
-    type: "LiveStream",
-    target: document.querySelector("#reader"),
-    constraints: {
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        facingMode: "environment"
-    }
-},
+            type: "LiveStream",
+            target: document.querySelector("#reader"),
+            constraints: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                facingMode: "environment"
+            }
+        },
 
         decoder: {
             readers: [
