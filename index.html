@@ -142,7 +142,6 @@
     getAuth,
     onAuthStateChanged,
     signInWithRedirect,
-    getRedirectResult,
     GoogleAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -172,23 +171,13 @@ provider.setCustomParameters({
         alert("로그인 실패");
     }
 };
-
-// 🔥 여기 추가 (onAuthStateChanged 위!)
-getRedirectResult(auth)
-  .then((result) => {
-    if (result && result.user) {
-      window.location.href = "dashboard.html";
-    }
-  })
-  .catch((error) => {
-    console.error("Redirect 로그인 오류:", error);
-  });
-
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        window.location.href = "dashboard.html";
+        window.location.replace("dashboard.html");
     }
 });
+
+
 
     </script>
 
