@@ -90,7 +90,46 @@
 </head>
 
 <body>
-
+    <script>
+        var ua = navigator.userAgent.toLowerCase();
+      
+        if (ua.indexOf("kakaotalk") > -1) {
+          document.body.innerHTML = `
+            <div style="
+              display:flex;
+              flex-direction:column;
+              justify-content:center;
+              align-items:center;
+              height:100vh;
+              text-align:center;
+              padding:20px;
+              font-family:sans-serif;
+            ">
+              <h2>구글 로그인은<br>외부 브라우저에서만 가능합니다</h2>
+              <button onclick="openBrowser()" style="
+                margin-top:20px;
+                padding:15px 25px;
+                font-size:16px;
+                border-radius:10px;
+                border:none;
+                background:#e67e22;
+                color:white;
+              ">크롬에서 열기</button>
+            </div>
+          `;
+        }
+      
+        function openBrowser() {
+          var url = window.location.href;
+          window.location.href =
+            "intent://" +
+            url.replace(/^https?:\/\//, "") +
+            "#Intent;scheme=https;package=com.android.chrome;end;";
+        }
+      </script>
+    
+      
+      
     <!-- ✅ 랜딩 페이지 유지 -->
     <section id="landing-page">
         <div class="hero-logo">III</div>
