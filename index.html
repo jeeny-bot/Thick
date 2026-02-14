@@ -104,6 +104,15 @@
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
             구글로 시작하기
         </button>
+        <button class="btn-google" onclick="loginWithKakao()" style="background:#FEE500;color:#000;">
+            카카오로 시작하기
+        </button>
+        
+        <button class="btn-google" onclick="loginWithNaver()" style="background:#03C75A;color:#fff;">
+            네이버로 시작하기
+        </button>
+        
+        
 
         <p style="margin-top: 40px; font-size: 0.8rem; opacity: 0.6;">thick.ai.kr - Smart Shopping Helper</p>
     </section>
@@ -146,6 +155,22 @@
                 window.location.href = "dashboard.html";
             }
         });
+        window.loginWithKakao = function () {
+    window.location.href =
+        "https://kauth.kakao.com/oauth/authorize" +
+        "?client_id=여기에_카카오_REST_API_KEY" +
+        "&redirect_uri=https://thick.ai.kr/kakao.html" +
+        "&response_type=code";
+};
+
+window.loginWithNaver = function () {
+    window.location.href =
+        "https://nid.naver.com/oauth2.0/authorize" +
+        "?client_id=여기에_네이버_CLIENT_ID" +
+        "&redirect_uri=https://thick.ai.kr/naver.html" +
+        "&response_type=code";
+};
+
     </script>
 
 </body>
