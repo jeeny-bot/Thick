@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 데이터보기</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Noto Sans KR', sans-serif;
+  background: linear-gradient(160deg, #0f0f0f 0%, #1c1c1e 100%);
+  color: #fff;
+}
+
+.wrapper {
+  padding: 80px 20px 60px 20px;
+  max-width: 540px;
+  margin: auto;
+}
+
+.title {
+  font-size: 1.9rem;
+  font-weight: 900;
+  margin-bottom: 35px;
+  text-align: center;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #e67e22, #ff9f43);
+  border-radius: 28px;
+  padding: 35px 25px;
+  margin-bottom: 35px;
+  box-shadow: 0 25px 60px rgba(230,126,34,0.35);
+}
+
+.hero-card h3 {
+  margin: 0 0 15px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.hero-value {
+  font-size: 2.4rem;
+  font-weight: 900;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.card {
+  background: #ffffff;
+  color: #000;
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card h3 {
+  margin: 0 0 12px 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.big-number {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #e67e22;
+}
+
+.wide-card {
+  margin-top: 25px;
+}
+
+button {
+  transition: 0.2s ease;
+}
+button:hover {
+  opacity: 0.8;
+}
+.exit-btn {
+  position: fixed;
+  top: 30px;
+  left: 20px;
+  padding: 16px 30px;
+  border: none;
+  border-radius: 40px;
+  background: #e67e22;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(230,126,34,0.45);
+  z-index: 9999;
+  transition: 0.2s ease;
+}
+
+.exit-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(230,126,34,0.55);
+}
+.clickable {
+  cursor: pointer;
+}
+
+.chart-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+}
+
+.chart-box {
+  background: linear-gradient(145deg, #1e1e22, #111113);
+  width: 90%;
+  max-width: 480px;
+  padding: 35px;
+  border-radius: 28px;
+  position: relative;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+
+.chart-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  border: none;
+  background: #ff8c2a;
+  color: #fff;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(255,140,42,0.5);
+}
+
+
+.hidden {
+  display: none;
+}
+
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+ <button onclick="goDashboard()" class="exit-btn">
+  ← 나가기
+</button>
+
+
+
+<div class="wrapper">
+
+<div class="title">이번 달 소비 리포트</div>
+
+<div class="hero-card">
+  <h3>이번 달 총 소비</h3>
+  <div class="hero-value" id="month-total">로딩중...</div>
+</div>
+
+<div class="grid">
+
+  <div class="card clickable" onclick="openChartModal('diff')">
+
+    <h3>지난달 대비 변화</h3>
+    <div class="big-number" id="month-diff">로딩중...</div>
+  </div>
+
+  <div class="card clickable" onclick="openChartModal('count')">
+
+    <h3>이번 달 구매 횟수</h3>
+    <div class="big-number" id="month-count">로딩중...</div>
+  </div>
+
+  <div class="card clickable" onclick="openChartModal('average')">
+
+    <h3>평균 장보기 금액</h3>
+    <div class="big-number" id="month-average">로딩중...</div>
+  </div>
+
+  <div class="card clickable" onclick="openChartModal('category')">
+
+    <h3>최다 소비 카테고리</h3>
+    <div class="big-number" id="top-category">로딩중...</div>
+  </div>
+
+</div>
+
+<div class="card wide-card clickable" onclick="openChartModal('savingMonth')">
+
+  <h3>이번 달 절약 가능 금액</h3>
+  <div class="big-number" id="saving-month">로딩중...</div>
+</div>
+
+<div class="card wide-card clickable" onclick="openChartModal('savingYear')">
+
+  <h3>연간 절약 예상</h3>
+  <div class="big-number" id="saving-year">로딩중...</div>
+</div>
+
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { 
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
+  authDomain: "thick-fdd38.firebaseapp.com",
+  projectId: "thick-fdd38",
+  storageBucket: "thick-fdd38.firebasestorage.app",
+  messagingSenderId: "109235677950",
+  appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastMonthFirstDay = new Date(
+  now.getFullYear(),
+  now.getMonth() - 1,
+  1
+);
+
+const lastMonthLastDay = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  0,
+  23, 59, 59
+);
+
+
+  const sessionsRef = collection(db, "users", user.uid, "sessions");
+
+  const q = query(
+    sessionsRef,
+    where("createdAt", ">=", firstDay)
+  );
+  const lastMonthQuery = query(
+  sessionsRef,
+  where("createdAt", ">=", lastMonthFirstDay),
+  where("createdAt", "<=", lastMonthLastDay)
+);
+
+
+  const snapshot = await getDocs(q);
+
+  let total = 0;
+  let count = 0;
+
+  let categoryMap = {};
+
+snapshot.forEach(doc => {
+  const data = doc.data();
+  total += data.totalPrice || 0;
+  count++;
+
+  if (data.items) {
+    data.items.forEach(item => {
+
+      let category = "기타";
+
+      if (item.name.includes("라면") || item.name.includes("햇반")) {
+        category = "식품";
+      } else if (item.name.includes("사이다") || item.name.includes("콜라")) {
+        category = "음료";
+      }
+
+      if (!categoryMap[category]) {
+        categoryMap[category] = 0;
+      }
+
+      categoryMap[category] += item.price * item.qty;
+    });
+  }
+});
+
+  const lastSnapshot = await getDocs(lastMonthQuery);
+
+let lastTotal = 0;
+
+lastSnapshot.forEach(doc => {
+  const data = doc.data();
+  lastTotal += data.totalPrice || 0;
+});
+
+
+  document.getElementById("month-total").innerText =
+    total.toLocaleString() + "원";
+    let diff = total - lastTotal;
+let diffText = "";
+
+if (diff > 0) {
+  diffText = `+${diff.toLocaleString()}원 증가`;
+} else if (diff < 0) {
+  diffText = `${diff.toLocaleString()}원 절약`;
+} else {
+  diffText = "변화 없음";
+}
+
+document.getElementById("month-diff").innerText = diffText;
+
+
+  document.getElementById("month-count").innerText =
+    count + "회";
+    let average = 0;
+
+if (count > 0) {
+  average = Math.floor(total / count);
+}
+
+document.getElementById("month-average").innerText =
+  average.toLocaleString() + "원";
+  let topCategory = "없음";
+let topValue = 0;
+
+for (const key in categoryMap) {
+  if (categoryMap[key] > topValue) {
+    topValue = categoryMap[key];
+    topCategory = key;
+  }
+}
+
+document.getElementById("top-category").innerText =
+  `${topCategory} · ${topValue.toLocaleString()}원`;
+
+// 🔥 절약 가능 금액 계산 (8% 기준)
+let savingMonth = Math.floor(total * 0.08);
+let savingYear = savingMonth * 12;
+
+document.getElementById("saving-month").innerText =
+  savingMonth.toLocaleString() + "원";
+
+document.getElementById("saving-year").innerText =
+  savingYear.toLocaleString() + "원";
+
+
+
+});
+window.goDashboard = function() {
+  window.location.href = "dashboard.html";
+};
+
+let chartInstance = null;
+
+window.openChartModal = async function(type) {
+
+  const modal = document.getElementById("chart-modal");
+  modal.classList.remove("hidden");
+
+  const ctx = document.getElementById("chartCanvas");
+
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const now = new Date();
+  const months = [];
+  const values = [];
+
+  const sessionsRef = collection(db, "users", user.uid, "sessions");
+
+  for (let i = 2; i >= 0; i--) {
+
+    const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+
+    months.push(start.getMonth() + 1 + "월");
+
+    const q = query(
+      sessionsRef,
+      where("createdAt", ">=", start),
+      where("createdAt", "<=", end)
+    );
+
+    const snapshot = await getDocs(q);
+
+    let total = 0;
+    let count = 0;
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      total += data.totalPrice || 0;
+      count++;
+    });
+
+    if (type === "count") {
+      values.push(count);
+    } else if (type === "average") {
+      values.push(count > 0 ? Math.floor(total / count) : 0);
+    } else if (type === "savingMonth") {
+      values.push(Math.floor(total * 0.08));
+    } else if (type === "savingYear") {
+      values.push(Math.floor(total * 0.08) * 12);
+    } else {
+      values.push(total);
+    }
+  }
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{
+        data: values,
+        backgroundColor: '#ff8c2a',
+        borderRadius: 12,
+        barThickness: 40
+      }]
+    },
+    options: {
+      responsive: true,
+      animation: {
+        duration: 900,
+        easing: 'easeOutCubic'
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: "rgba(255,255,255,0.08)"
+          },
+          ticks: {
+            color: "#999"
+          }
+        },
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: "#999",
+            font: { weight: '700' }
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+};
+
+
+window.closeChartModal = function() {
+  document.getElementById("chart-modal").classList.add("hidden");
+};
+
+</script>
+<div id="chart-modal" class="chart-modal hidden">
+  <div class="chart-box">
+    <button class="chart-close" onclick="closeChartModal()">✕</button>
+    <canvas id="chartCanvas"></canvas>
+  </div>
+</div>
+
+</body>
+</html>
+
