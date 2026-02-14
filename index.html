@@ -90,41 +90,14 @@
 </head>
 
 <body>
-    <script>
-        var ua = navigator.userAgent.toLowerCase();
-      
-        if (ua.indexOf("kakaotalk") > -1) {
-          document.body.innerHTML = `
-            <div style="
-              display:flex;
-              flex-direction:column;
-              justify-content:center;
-              align-items:center;
-              height:100vh;
-              text-align:center;
-              padding:20px;
-              font-family:sans-serif;
-            ">
-              <h2>카카오톡 안에서는<br>구글 로그인이 차단됩니다</h2>
-              <p style="margin-top:15px;">
-                오른쪽 상단 ⋮ 버튼을 눌러<br>
-                "브라우저로 열기"를 선택해주세요.
-              </p>
-            </div>
-          `;
-        }
-      </script>
-      
-    
-      
-      
+
     <!-- ✅ 랜딩 페이지 유지 -->
     <section id="landing-page">
         <div class="hero-logo">III</div>
         <h1 class="hero-title">쇼핑이<br><span>가벼워진다</span></h1>
         <p class="hero-desc">
-            내가 장보기한 물건들의 합계가 궁금하죠?.<br>
-            바코드만 찍으면 합계와 가격비교가 바로 나옵니다.
+            마트에서 가격 암산은 이제 그만.<br>
+            바코드만 찍으면 합계가 바로 나옵니다.
         </p>
 
         <button class="btn-google" onclick="loginWithGoogle()">
@@ -142,6 +115,7 @@
     getAuth,
     onAuthStateChanged,
     signInWithRedirect,
+    getRedirectResult,
     GoogleAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -171,13 +145,23 @@ provider.setCustomParameters({
         alert("로그인 실패");
     }
 };
+
+// 🔥 여기 추가 (onAuthStateChanged 위!)
+getRedirectResult(auth)
+  .then((result) => {
+    if (result && result.user) {
+      window.location.href = "dashboard.html";
+    }
+  })
+  .catch((error) => {
+    console.error("Redirect 로그인 오류:", error);
+  });
+
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        window.location.replace("dashboard.html");
+        window.location.href = "dashboard.html";
     }
 });
-
-
 
     </script>
 
