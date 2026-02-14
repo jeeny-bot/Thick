@@ -105,28 +105,16 @@
               padding:20px;
               font-family:sans-serif;
             ">
-              <h2>구글 로그인은<br>외부 브라우저에서만 가능합니다</h2>
-              <button onclick="openBrowser()" style="
-                margin-top:20px;
-                padding:15px 25px;
-                font-size:16px;
-                border-radius:10px;
-                border:none;
-                background:#e67e22;
-                color:white;
-              ">크롬에서 열기</button>
+              <h2>카카오톡 안에서는<br>구글 로그인이 차단됩니다</h2>
+              <p style="margin-top:15px;">
+                오른쪽 상단 ⋮ 버튼을 눌러<br>
+                "브라우저로 열기"를 선택해주세요.
+              </p>
             </div>
           `;
         }
-      
-        function openBrowser() {
-          var url = window.location.href;
-          window.location.href =
-            "intent://" +
-            url.replace(/^https?:\/\//, "") +
-            "#Intent;scheme=https;package=com.android.chrome;end;";
-        }
       </script>
+      
     
       
       
@@ -135,8 +123,8 @@
         <div class="hero-logo">III</div>
         <h1 class="hero-title">쇼핑이<br><span>가벼워진다</span></h1>
         <p class="hero-desc">
-            마트에서 가격 암산은 이제 그만.<br>
-            바코드만 찍으면 합계가 바로 나옵니다.
+            내가 장보기한 물건들의 합계가 궁금하죠?.<br>
+            바코드만 찍으면 합계와 가격비교가 바로 나옵니다.
         </p>
 
         <button class="btn-google" onclick="loginWithGoogle()">
