@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Kakao Login</title>
+</head>
+<body>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+   apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
+   authDomain: "thick-fdd38.firebaseapp.com",
+   projectId: "thick-fdd38",
+   storageBucket: "thick-fdd38.firebasestorage.app",
+   messagingSenderId: "109235677950",
+   appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
+   measurementId: "G-LH61G4J09W"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const url = new URL(window.location.href);
+const code = url.searchParams.get("code");
+
+if (code) {
+    // 지금은 테스트 단계
+    // 카카오 인증 완료되면 바로 대시보드 이동
+    window.location.replace("dashboard.html");
+}
+</script>
+
+</body>
+</html>
