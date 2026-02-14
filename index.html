@@ -112,13 +112,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { 
-    getAuth,
-    onAuthStateChanged,
-    signInWithRedirect,
-    getRedirectResult,
-    GoogleAuthProvider
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
+            getAuth,
+            onAuthStateChanged,
+            signInWithPopup,
+            GoogleAuthProvider
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         const firebaseConfig = {
            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
@@ -138,31 +136,19 @@ provider.setCustomParameters({
 });
 
         window.loginWithGoogle = async function () {
-    try {
-        await signInWithRedirect(auth, provider);
-    } catch (e) {
-        console.error("로그인 실패:", e);
-        alert("로그인 실패");
-    }
-};
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (e) {
+                console.error("로그인 실패:", e);
+                alert("로그인 실패");
+            }
+        };
 
-// 🔥 여기 추가 (onAuthStateChanged 위!)
-getRedirectResult(auth)
-  .then((result) => {
-    if (result && result.user) {
-      window.location.href = "dashboard.html";
-    }
-  })
-  .catch((error) => {
-    console.error("Redirect 로그인 오류:", error);
-  });
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        window.location.href = "dashboard.html";
-    }
-});
-
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.location.href = "dashboard.html";
+            }
+        });
     </script>
 
 </body>
