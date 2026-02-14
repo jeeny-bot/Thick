@@ -355,48 +355,20 @@
     }
 }
 
-async function onScanSuccess(barcode) {
-    if (isModalOpen) return;
-    
-    // 1초 내 중복 스캔 방지
-    const now = Date.now();
-    if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
-    
-    if (navigator.vibrate) navigator.vibrate(80);
-
-    // 1. 로컬 DB(PRODUCT_DB) 먼저 확인
-    const product = PRODUCT_DB[barcode];
-    const isUnregistered = !product || (product.name && product.name.includes("미등록"));
-
-    if (!isUnregistered) {
-        addToCart(barcode);
-        showToast("SUCCESS SCAN!");
-    } else {
-        // 2. 모르는 상품이면 네이버 Worker 호출
-        try {
-            showToast("네이버에서 상품 찾는 중...");
-            const workerUrl = `https://solitary-cloud-2c8c.motheryjkim.workers.dev?query=${barcode}`;
-            const response = await fetch(workerUrl);
-            const data = await response.json();
-
-            if (data.items && data.items.length > 0) {
-                // 네이버 검색 결과가 있음
-                const item = data.items[0];
-                const cleanName = item.title.replace(/<[^>]*>?/gm, ''); 
-                const price = parseInt(item.lprice) || 0;
-
-                addToCart(barcode, { name: cleanName, price: price });
-                showToast("자동 등록 성공!");
+        function onScanSuccess(barcode) {
+            if (isModalOpen) return;
+            const now = Date.now();
+            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
+            if (navigator.vibrate) navigator.vibrate(80);
+            const product = PRODUCT_DB[barcode];
+            const isUnregistered = !product || (product.name && product.name.includes("미등록"));
+            if (!isUnregistered) {
+                addToCart(barcode);
+                showToast("SUCCESS SCAN!");
             } else {
-                // 네이버에도 없음 -> 이때만 수동 팝업
                 openManualModal(barcode);
             }
-        } catch (e) {
-            console.error("연동 오류:", e);
-            openManualModal(barcode);
         }
-    }
-}
 
         function addToCart(barcode, manualInfo = null) {
             if (manualInfo) PRODUCT_DB[barcode] = manualInfo;
@@ -485,7 +457,7 @@ async function onScanSuccess(barcode) {
                             <button class="qty-control-btn" onclick="updateQty(${item.id}, 1)">+</button>
                         </div>
                     </div>
-                    <a href="https://search.shopping.naver.com/search/all?query=${item.barcode}" target="_blank" class="item-compare-link">가격비교</a>
+                    <a href="https://search.shopping.naver.com/search/all?query=${encodeURIComponent(item.name)}" target="_blank" class="item-compare-link">가격비교</a>
                 </div>
             `).join('');
             const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
@@ -600,7 +572,6 @@ window.loginWithGoogle = async function () {
     }
 };
 window.finishSession = async function() {
-
     if (!window.currentUid || cart.length === 0) {
         window.location.href = "dashboard.html";
         return;
@@ -617,21 +588,12 @@ window.finishSession = async function() {
                 createdAt: serverTimestamp()
             }
         );
-
-        // 🔥 기존 reload 완전 제거
-        showToast("구매 기록이 저장되었습니다 ✔");
-
-        setTimeout(() => {
-            window.location.href = "dashboard.html";
-        }, 3000);
-
     } catch (e) {
-        console.error("❌ 세션 저장 실패:", e);
-        showToast("저장 실패. 다시 시도해주세요.");
+        console.error("세션 저장 실패:", e);
     }
+
+    window.location.href = "dashboard.html";
 };
-
-
 
       </script>
      
