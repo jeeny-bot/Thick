@@ -322,6 +322,8 @@
         let cart = [];
         let html5QrCode = null;
         let isModalOpen = false;
+        let lastScannedBarcode = null;
+
 
         async function initScanner() {
     try {
@@ -353,20 +355,17 @@
     }
 }
 
-async function onScanSuccess(barcode) {
+function onScanSuccess(barcode) {
+    if (isModalOpen) return;
+    
 
-if (isModalOpen) return;
 
 const now = Date.now();
 if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
 
 if (navigator.vibrate) navigator.vibrate(80);
 
-let product = null;
-
-if (window.findProductInFirebase) {
-    product = await window.findProductInFirebase(barcode);
-}
+window.findProductInFirebase(barcode).then(product => {
 
 if (product && product.name) {
     addToCart(barcode, { name: product.name, price: product.price });
@@ -374,7 +373,9 @@ if (product && product.name) {
 } else {
     openManualModal(barcode);
 }
-}
+
+});
+
 
 
 
