@@ -230,8 +230,8 @@
         <div class="hero-logo">III</div>
         <h1 class="hero-title">쇼핑이<br><span>가벼워진다</span></h1>
         <p class="hero-desc">
-            마트에서 가격 암산은 이제 그만.<br>
-            바코드만 찍으면 합계가 바로 나옵니다.
+            지금 내가 산 물건의 전체가격은?.<br>
+            띡 스캐너로 지금 확인하세요
         </p>
         
         <button class="btn-google" onclick="loginWithGoogle()">
@@ -279,21 +279,26 @@
     </div>
 
     <div id="manual-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <h2 class="modal-title">미등록 상품 등록</h2>
-            <div class="modal-input-group">
-                <span class="modal-label">바코드 숫자</span>
-                <input type="text" id="manual-barcode" class="modal-input" placeholder="바코드 번호">
-            </div>
-            <div class="modal-input-group">
-                <span class="modal-label">가격 (원)</span>
-                <input type="number" id="manual-price" class="modal-input" placeholder="가격을 입력하세요" inputmode="numeric">
-            </div>
-            <div class="modal-btn-group">
-                <button class="modal-btn btn-cancel" onclick="closeManualModal()">취소</button>
-                <button class="modal-btn btn-save" onclick="saveManualEntry()">장바구니 담기</button>
-            </div>
+    <div class="modal-card">
+        <h2 class="modal-title">📦 신규 상품 등록</h2>
+        <div class="modal-input-group">
+            <span class="modal-label">바코드</span>
+            <input type="text" id="manual-barcode" class="modal-input" readonly style="background:#f9f9f9; color:#999;">
         </div>
+        <div class="modal-input-group">
+            <span class="modal-label">상품명</span>
+            <input type="text" id="manual-name" class="modal-input" placeholder="상품 이름을 입력하세요">
+        </div>
+        <div class="modal-input-group">
+            <span class="modal-label">판매 가격 (원)</span>
+            <input type="number" id="manual-price" class="modal-input" placeholder="0" inputmode="numeric">
+        </div>
+        <div class="modal-btn-group">
+            <button class="modal-btn btn-cancel" onclick="closeManualModal()">취소</button>
+            <button class="modal-btn btn-save" onclick="saveManualEntry()">저장 후 담기</button>
+        </div>
+    </div>
+</div>
     </div>
 
     <div id="toast" class="toast-notification hidden"></div>
@@ -402,25 +407,46 @@
         }
 
         function openManualModal(barcode) {
-            isModalOpen = true;
-            document.getElementById('manual-barcode').value = barcode;
-            document.getElementById('manual-price').value = "";
-            document.getElementById('manual-modal').classList.remove('hidden');
-        }
+    isModalOpen = true; // 스캔 중지
+    document.getElementById('manual-barcode').value = barcode;
+    document.getElementById('manual-name').value = ""; // 이름 초기화
+    document.getElementById('manual-price').value = ""; // 가격 초기화
+    document.getElementById('manual-modal').classList.remove('hidden');
+    document.getElementById('manual-name').focus(); // 상품명 입력창에 커서 둠
+}
 
         function closeManualModal() {
-            isModalOpen = false;
-            document.getElementById('manual-modal').classList.add('hidden');
-        }
+    isModalOpen = false; // 스캔 다시 시작
+    document.getElementById('manual-modal').classList.add('hidden');
+}
 
-        function saveManualEntry() {
-            const barcode = document.getElementById('manual-barcode').value;
-            const name = "미등록 상품";
-            const price = parseInt(document.getElementById('manual-price').value) || 0;
-            addToCart(barcode, { name, price });
-            closeManualModal();
-            showToast("상품 등록 완료!");
-        }
+        async function saveManualEntry() {
+    const barcode = document.getElementById('manual-barcode').value;
+    const name = document.getElementById('manual-name').value;
+    const price = parseInt(document.getElementById('manual-price').value) || 0;
+
+    if (!name) { 
+        alert("상품명을 입력해주세요!"); 
+        return; 
+    }
+
+    // 1. 장바구니에 즉시 담기 (addToCart 함수 활용)
+    addToCart(barcode, { name, price });
+
+    // 2. Firebase에 실시간 저장 (이미 만들어두신 window.saveScanToDB 활용)
+    if (window.saveScanToDB) {
+        window.saveScanToDB({
+            barcode: barcode,
+            name: name,
+            price: price,
+            qty: 1,
+            type: "manual_registration" // 수동 등록임을 기록
+        });
+    }
+
+    closeManualModal();
+    showToast("신규 상품이 저장되었습니다! ✅");
+}
 
         function updateQty(id, delta) {
             const item = cart.find(i => i.id === id);
@@ -572,6 +598,7 @@ window.loginWithGoogle = async function () {
     }
 };
 window.finishSession = async function() {
+
     if (!window.currentUid || cart.length === 0) {
         window.location.href = "dashboard.html";
         return;
@@ -588,12 +615,21 @@ window.finishSession = async function() {
                 createdAt: serverTimestamp()
             }
         );
-    } catch (e) {
-        console.error("세션 저장 실패:", e);
-    }
 
-    window.location.href = "dashboard.html";
+        // 🔥 기존 reload 완전 제거
+        showToast("구매 기록이 저장되었습니다 ✔");
+
+        setTimeout(() => {
+            window.location.href = "dashboard.html";
+        }, 3000);
+
+    } catch (e) {
+        console.error("❌ 세션 저장 실패:", e);
+        showToast("저장 실패. 다시 시도해주세요.");
+    }
 };
+
+
 
       </script>
      
