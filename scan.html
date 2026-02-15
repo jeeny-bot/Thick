@@ -391,17 +391,7 @@
                     qty: 1
                 });
             }
-            if (window.saveScanToDB) {
-                 const dbProduct = PRODUCT_DB[barcode] || { name: "미등록", price: 0 };
-
-                 window.saveScanToDB({
-                     barcode: barcode,
-                     name: dbProduct.name,
-                     price: dbProduct.price,
-                     qty: 1
-             });
-          }
-
+            
             render();
         }
 
@@ -575,30 +565,7 @@ window.loginWithGoogle = async function () {
 
       
         // 🔥 이 함수가 지금 undefined였던 함수
-        window.saveScanToDB = async function (data) {
-        try {
-
-        const currentUid = window.currentUid;
-
-        if (!currentUid) {
-            console.log("❌ 로그인 안됨");
-            return;
-        }
-
-        await addDoc(
-            collection(db, "users", currentUid, "scans"),
-            {
-                ...data,
-                createdAt: serverTimestamp()
-            }
-        );
-
-        console.log("🔥 DB 저장 성공");
-
-    } catch (e) {
-        console.error("❌ DB 저장 실패:", e);
-    }
-};
+        
 window.finishSession = async function() {
 
     if (!window.currentUid || cart.length === 0) {
