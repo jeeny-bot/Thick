@@ -650,10 +650,16 @@ window.findProductInFirebase = async function(barcode) {
 
 window.finishSession = async function() {
 
-    if (!window.currentUid || cart.length === 0) {
-        window.location.href = "dashboard.html";
-        return;
-    }
+    if (!window.currentUid) {
+    showToast("로그인이 필요합니다.");
+    return;
+}
+
+if (cart.length === 0) {
+    showToast("장바구니가 비어있습니다.");
+    return;
+}
+
 
     const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
 
