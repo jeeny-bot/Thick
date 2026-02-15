@@ -317,14 +317,7 @@
             }, 600);
         }
 
-        // [기존 스크립트 그대로 보존]
-        const PRODUCT_DB = {
-            "8801048101037": { name: "신라면 (5개입)", price: 4500 },
-            "8801056154018": { name: "칠성사이다 500ml", price: 1800 },
-            "8801043014783": { name: "햇반 210g", price: 1500 },
-            "88023014": { name: "미등록 제품", price: 12000 }
-        };
-
+        
         let cart = [];
         let html5QrCode = null;
         let isModalOpen = false;
@@ -362,50 +355,39 @@
         function onScanSuccess(barcode) {
             if (isModalOpen) return;
             const now = Date.now();
-            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) {
-              window.scanLock = false;
-              return;
-        }
-
+            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
             if (navigator.vibrate) navigator.vibrate(80);
-            (async () => {
-
-const sessionProduct = await window.findProductFromSessions(barcode);
-
-if (sessionProduct) {
-    addToCart(barcode, sessionProduct);
-    showToast("이전 구매 기록에서 불러왔습니다 ✔");
-    return;
+            if (window.findProductFromSessions) {
+    window.findProductFromSessions(barcode).then(sessionProduct => {
+        if (sessionProduct) {
+            addToCart(barcode, {
+                name: sessionProduct.name,
+                price: sessionProduct.price,
+                qty: sessionProduct.qty
+            });
+            showToast("이전 구매 기록에서 불러왔습니다 ✔");
+            return;
+        }
+    });
 }
 
-const product = PRODUCT_DB[barcode];
-const isUnregistered = !product || (product.name && product.name.includes("미등록"));
-
-if (!isUnregistered) {
-    addToCart(barcode);
-    showToast("SUCCESS SCAN!");
-} else {
-    openManualModal(barcode);
-}
-
-})();
-}
+             }
 
         function addToCart(barcode, manualInfo = null) {
-            if (manualInfo) PRODUCT_DB[barcode] = manualInfo;
+            
             const existing = cart.find(item => item.barcode === barcode);
             if (existing) {
                 existing.qty += 1;
                 existing.updatedAt = Date.now();
             } else {
-                const product = PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 0 };
+                
                 cart.unshift({
-                    id: Date.now(),
-                    updatedAt: Date.now(),
-                    barcode: barcode,
-                    name: product.name,
-                    price: product.price,
-                    qty: 1
+    id: Date.now(),
+    updatedAt: Date.now(),
+    barcode: barcode,
+    name: manualInfo?.name || `미등록 (${barcode})`,
+    price: manualInfo?.price || 0,
+    qty: manualInfo?.qty || 1
                 });
             }
             if (window.saveScanToDB) {
@@ -534,7 +516,7 @@ async function saveManualEntry() {
   getDocs,
   query,
   orderBy,
-  limit
+  limit 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
 
@@ -620,35 +602,45 @@ window.loginWithGoogle = async function () {
         console.error("❌ DB 저장 실패:", e);
     }
 };
+} catch (e) {
+        console.error("❌ DB 저장 실패:", e);
+    }
+};   // ← 여기까지가 saveScanToDB 끝
+
+// 👇👇👇 여기부터 추가
+
 window.findProductFromSessions = async function(barcode) {
 
-if (!window.currentUid) return null;
+    if (!window.currentUid) return null;
 
-const q = query(
-    collection(db, "users", window.currentUid, "sessions"),
-    orderBy("createdAt", "desc"),
-    limit(100)
-);
+    const q = query(
+        collection(db, "users", window.currentUid, "sessions"),
+        orderBy("createdAt", "desc"),
+        limit(100)
+    );
 
-const snap = await getDocs(q);
+    const snap = await getDocs(q);
 
-for (const doc of snap.docs) {
-    const data = doc.data();
-    if (!Array.isArray(data.items)) continue;
+    for (const doc of snap.docs) {
+        const data = doc.data();
+        if (!Array.isArray(data.items)) continue;
 
-    for (const item of data.items) {
-        if (item.barcode === barcode) {
-            return {
-                name: item.name,
-                price: Number(item.price) || 0
-            };
+        for (const item of data.items) {
+            if (item.barcode === barcode) {
+                return {
+    name: item.name,
+    price: Number(item.price) || 0,
+    qty: Number(item.qty) || 1
+};
+
+            }
         }
     }
-}
 
-
-return null;
+    return null;
 };
+
+
 window.finishSession = async function() {
 
     if (!window.currentUid || cart.length === 0) {
