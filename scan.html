@@ -353,7 +353,7 @@
     }
 }
 
-function onScanSuccess(barcode) {
+async function onScanSuccess(barcode) {
 
 if (isModalOpen) return;
 
@@ -362,25 +362,20 @@ if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt <
 
 if (navigator.vibrate) navigator.vibrate(80);
 
-(async () => {
+let product = null;
 
-    let product = PRODUCT_DB[barcode];
-
-    // 🔥 1차: 로컬 확인
-    if (!product && window.findProductInFirebase) {
-        product = await window.findProductInFirebase(barcode);
-    }
-
-    // 🔥 2차: 있으면 자동 담기
-    if (product && product.name) {
-        addToCart(barcode, { name: product.name, price: product.price });
-        showToast("불러오기 성공 ✅");
-    } else {
-        openManualModal(barcode);
-    }
-
-})();
+if (window.findProductInFirebase) {
+    product = await window.findProductInFirebase(barcode);
 }
+
+if (product && product.name) {
+    addToCart(barcode, { name: product.name, price: product.price });
+    showToast("자동 불러오기 성공 ✅");
+} else {
+    openManualModal(barcode);
+}
+}
+
 
 
 function addToCart(barcode, productInfo) {
