@@ -318,12 +318,16 @@
         }
 
         // [기존 스크립트 그대로 보존]
-        
+        const PRODUCT_DB = {
+            "8801048101037": { name: "신라면 (5개입)", price: 4500 },
+            "8801056154018": { name: "칠성사이다 500ml", price: 1800 },
+            "8801043014783": { name: "햇반 210g", price: 1500 },
+            "88023014": { name: "미등록 제품", price: 12000 }
+        };
+
         let cart = [];
         let html5QrCode = null;
         let isModalOpen = false;
-        let lastScannedBarcode = null;
-
 
         async function initScanner() {
     try {
@@ -355,51 +359,64 @@
     }
 }
 
-function onScanSuccess(barcode) {
-    if (isModalOpen) return;
-    
+        function onScanSuccess(barcode) {
+            if (isModalOpen) return;
+            const now = Date.now();
+            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
+            if (navigator.vibrate) navigator.vibrate(80);
+            (async () => {
 
+const sessionProduct = await window.findProductFromSessions(barcode);
 
-const now = Date.now();
-if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
+if (sessionProduct) {
+    addToCart(barcode, sessionProduct);
+    showToast("이전 구매 기록에서 불러왔습니다 ✔");
+    return;
+}
 
-if (navigator.vibrate) navigator.vibrate(80);
+const product = PRODUCT_DB[barcode];
+const isUnregistered = !product || (product.name && product.name.includes("미등록"));
 
-window.findProductInFirebase(barcode).then(product => {
-
-if (product && product.name) {
-    addToCart(barcode, { name: product.name, price: product.price });
-    showToast("자동 불러오기 성공 ✅");
+if (!isUnregistered) {
+    addToCart(barcode);
+    showToast("SUCCESS SCAN!");
 } else {
     openManualModal(barcode);
 }
 
-});
-
-
-
-
-function addToCart(barcode, productInfo) {
-
-const existing = cart.find(item => item.barcode === barcode);
-
-if (existing) {
-    existing.qty += 1;
-    existing.updatedAt = Date.now();
-} else {
-    cart.unshift({
-        id: Date.now(),
-        updatedAt: Date.now(),
-        barcode: barcode,
-        name: productInfo.name,
-        price: productInfo.price,
-        qty: 1
-    });
+})();
 }
 
-render();
-}
+        function addToCart(barcode, manualInfo = null) {
+            if (manualInfo) PRODUCT_DB[barcode] = manualInfo;
+            const existing = cart.find(item => item.barcode === barcode);
+            if (existing) {
+                existing.qty += 1;
+                existing.updatedAt = Date.now();
+            } else {
+                const product = PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 0 };
+                cart.unshift({
+                    id: Date.now(),
+                    updatedAt: Date.now(),
+                    barcode: barcode,
+                    name: product.name,
+                    price: product.price,
+                    qty: 1
+                });
+            }
+            if (window.saveScanToDB) {
+                 const dbProduct = PRODUCT_DB[barcode] || { name: "미등록", price: 0 };
 
+                 window.saveScanToDB({
+                     barcode: barcode,
+                     name: dbProduct.name,
+                     price: dbProduct.price,
+                     qty: 1
+             });
+          }
+
+            render();
+        }
 
         // [수정] 모달 열기: 바코드 번호를 보여주고 입력을 기다립니다.
 function openManualModal(barcode) {
@@ -506,14 +523,14 @@ async function saveManualEntry() {
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { 
-            getFirestore,
-  collection,
-  addDoc,
+            getFirestore, 
+  collection, 
+  addDoc, 
   serverTimestamp,
-  query,
   getDocs,
+  query,
   orderBy,
-  limit 
+  limit
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
 
@@ -571,48 +588,61 @@ window.loginWithGoogle = async function () {
          console.log("❌ 로그인 안됨");
     }
 });
-window.findProductInFirebase = async function(barcode) {
-
-if (!window.currentUid) return null;
-
-try {
-
-    const qSessions = query(
-        collection(db, "users", window.currentUid, "sessions"),
-        orderBy("createdAt", "desc"),
-        limit(30)
-    );
-
-    const sessionSnap = await getDocs(qSessions);
-
-    for (const sDoc of sessionSnap.docs) {
-
-        const items = sDoc.data().items;
-
-        if (items) {
-            const found = items.find(i => String(i.barcode) === String(barcode));
-            if (found) {
-                return {
-                    name: found.name,
-                    price: found.price
-                };
-            }
-        }
-    }
-
-    return null;
-
-} catch (e) {
-    console.error("조회 에러:", e);
-    return null;
-}
-};
-
 
 
       
         // 🔥 이 함수가 지금 undefined였던 함수
-        
+        window.saveScanToDB = async function (data) {
+        try {
+
+        const currentUid = window.currentUid;
+
+        if (!currentUid) {
+            console.log("❌ 로그인 안됨");
+            return;
+        }
+
+        await addDoc(
+            collection(db, "users", currentUid, "scans"),
+            {
+                ...data,
+                createdAt: serverTimestamp()
+            }
+        );
+
+        console.log("🔥 DB 저장 성공");
+
+    } catch (e) {
+        console.error("❌ DB 저장 실패:", e);
+    }
+};
+window.findProductFromSessions = async function(barcode) {
+
+if (!window.currentUid) return null;
+
+const q = query(
+    collection(db, "users", window.currentUid, "sessions"),
+    orderBy("createdAt", "desc"),
+    limit(5)
+);
+
+const snap = await getDocs(q);
+
+for (const doc of snap.docs) {
+    const data = doc.data();
+    if (!data.items) continue;
+
+    const found = data.items.find(i => i.barcode === barcode);
+    if (found) {
+        return {
+            name: found.name,
+            price: found.price
+        };
+    }
+}
+
+return null;
+};
 window.finishSession = async function() {
 
     if (!window.currentUid || cart.length === 0) {
@@ -644,6 +674,7 @@ window.finishSession = async function() {
         showToast("저장 실패. 다시 시도해주세요.");
     }
 };
+
 
 
       </script>
