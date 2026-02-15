@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 // 🔥 Firebase 설정값 (당신이 콘솔에서 복사한 값 그대로 유지)
 const firebaseConfig = {
@@ -57,3 +58,16 @@ async function calculatePurchaseCycle(uid, productId) {
 
 // 🔥 HTML 버튼에서 호출 가능하게 등록
 window.calculatePurchaseCycle = calculatePurchaseCycle;
+// 🔥 products 컬렉션에서 바코드 조회
+async function getProductFromProductsCollection(uid, barcode) {
+
+  const productRef = doc(db, "users", uid, "products", barcode);
+  const snapshot = await getDoc(productRef);
+
+  if (snapshot.exists()) {
+    return snapshot.data();
+  } else {
+    return null;
+  }
+}
+

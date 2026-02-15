@@ -398,17 +398,7 @@ async function onScanSuccess(barcode) {
                     qty: 1
                 });
             }
-            if (window.saveScanToDB) {
-                 const dbProduct = PRODUCT_DB[barcode] || { name: "미등록", price: 0 };
-
-                 window.saveScanToDB({
-                     barcode: barcode,
-                     name: dbProduct.name,
-                     price: dbProduct.price,
-                     qty: 1
-             });
-          }
-
+            
             render();
         }
 
@@ -452,6 +442,17 @@ async function saveManualEntry() {
             type: "manual_registration" // 수동 등록임을 기록
         });
     }
+    // 🔥 products 컬렉션에도 저장 (자동 캐시 생성)
+if (window.currentUid) {
+    const productRef = doc(db, "users", window.currentUid, "products", String(barcode));
+
+    await setDoc(productRef, {
+        name: name,
+        price: price,
+        updatedAt: serverTimestamp()
+    });
+}
+
 
     closeManualModal();
     showToast("신규 상품이 저장되었습니다! ✅");
@@ -517,10 +518,18 @@ async function saveManualEntry() {
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { 
-          getFirestore, 
-          collection, 
-          addDoc, 
-          serverTimestamp 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            serverTimestamp,
+            doc,
+            getDoc,
+            getDocs,
+            setDoc,
+            query,
+            where,
+            limit,
+            orderBy
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
 
@@ -581,68 +590,63 @@ window.loginWithGoogle = async function () {
 
 
       
-        // 🔥 이 함수가 지금 undefined였던 함수
-        window.saveScanToDB = async function (data) {
-        try {
-
-        const currentUid = window.currentUid;
-
-        if (!currentUid) {
-            console.log("❌ 로그인 안됨");
-            return;
-        }
-
-        await addDoc(
-            collection(db, "users", currentUid, "scans"),
-            {
-                ...data,
-                createdAt: serverTimestamp()
-            }
-        );
-
-        console.log("🔥 DB 저장 성공");
-
-    } catch (e) {
-        console.error("❌ DB 저장 실패:", e);
-    }
-};
+        
 // 🔥 [추가] 서버 이중 조회 로직: scans와 sessions를 모두 확인
 // 이 함수를 기존 위치에 그대로 덮어쓰세요
 // 이 함수만 찾아서 아래 내용으로 싹 갈아끼우시면 됩니다.
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 window.findProductInFirebase = async function(barcode) {
+
     if (!window.currentUid) return null;
+
     try {
-        // A. scans 확인 (String으로 변환해서 비교)
+
+        // 🔥 1️⃣ products 먼저 조회
+        const productRef = doc(db, "users", window.currentUid, "products", String(barcode));
+        const productSnap = await getDoc(productRef);
+
+        if (productSnap.exists()) {
+            return productSnap.data();
+        }
+
+        // 🔥 2️⃣ 기존 scans 확인
         const qScans = query(
             collection(db, "users", window.currentUid, "scans"),
-            where("barcode", "==", String(barcode)), 
+            where("barcode", "==", String(barcode)),
             limit(1)
         );
-        const scanSnap = await getDocs(qScans);
-        if (!scanSnap.empty) return scanSnap.docs[0].data();
 
-        // B. sessions(영수증) 내부 뒤지기 (String으로 변환해서 비교)
+        const scanSnap = await getDocs(qScans);
+        if (!scanSnap.empty) {
+            return scanSnap.docs[0].data();
+        }
+
+        // 🔥 3️⃣ sessions 확인
         const qSessions = query(
             collection(db, "users", window.currentUid, "sessions"),
             orderBy("createdAt", "desc"),
-            limit(20) 
+            limit(20)
         );
+
         const sessionSnap = await getDocs(qSessions);
-        
-        for (const doc of sessionSnap.docs) {
-            const items = doc.data().items;
+
+        for (const sDoc of sessionSnap.docs) {
+            const items = sDoc.data().items;
             if (items) {
-                // 핵심: 여기서 String(i.barcode) 처리가 되어야 "88023014"를 인식합니다.
                 const found = items.find(i => String(i.barcode) === String(barcode));
                 if (found) return { name: found.name, price: found.price };
             }
         }
+
         return null;
+
     } catch (e) {
         console.error("조회 에러:", e);
         return null;
     }
 };
+
 
 window.finishSession = async function() {
 
