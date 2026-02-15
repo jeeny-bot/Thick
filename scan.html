@@ -630,16 +630,18 @@ const snap = await getDocs(q);
 
 for (const doc of snap.docs) {
     const data = doc.data();
-    if (!data.items) continue;
+    if (!Array.isArray(data.items)) continue;
 
-    const found = data.items.find(i => i.barcode === barcode);
-    if (found) {
-        return {
-            name: found.name,
-            price: found.price
-        };
+    for (const item of data.items) {
+        if (item.barcode === barcode) {
+            return {
+                name: item.name,
+                price: Number(item.price) || 0
+            };
+        }
     }
 }
+
 
 return null;
 };
