@@ -230,8 +230,8 @@
         <div class="hero-logo">III</div>
         <h1 class="hero-title">쇼핑이<br><span>가벼워진다</span></h1>
         <p class="hero-desc">
-            지금 내가 산 물건의 전체가격은?.<br>
-            띡 스캐너로 지금 확인하세요
+            마트에서 가격 암산은 이제 그만.<br>
+            바코드만 찍으면 합계가 바로 나옵니다.
         </p>
         
         <button class="btn-google" onclick="loginWithGoogle()">
@@ -279,26 +279,25 @@
     </div>
 
     <div id="manual-modal" class="modal-overlay hidden">
-    <div class="modal-card">
-        <h2 class="modal-title">📦 신규 상품 등록</h2>
-        <div class="modal-input-group">
-            <span class="modal-label">바코드</span>
-            <input type="text" id="manual-barcode" class="modal-input" readonly style="background:#f9f9f9; color:#999;">
+        <div class="modal-card">
+            <h2 class="modal-title">📦 신규 상품 등록</h2>
+            <div class="modal-input-group">
+                <span class="modal-label">바코드</span>
+                <input type="text" id="manual-barcode" class="modal-input" readonly style="background:#f9f9f9; color:#999;">
+            </div>
+            <div class="modal-input-group">
+                <span class="modal-label">상품명</span>
+                <input type="text" id="manual-name" class="modal-input" placeholder="상품 이름을 입력하세요">
+            </div>
+            <div class="modal-input-group">
+                <span class="modal-label">판매 가격 (원)</span>
+                <input type="number" id="manual-price" class="modal-input" placeholder="0" inputmode="numeric">
+            </div>
+            <div class="modal-btn-group">
+                <button class="modal-btn btn-cancel" onclick="closeManualModal()">취소</button>
+                <button class="modal-btn btn-save" onclick="saveManualEntry()">저장 후 담기</button>
+            </div>
         </div>
-        <div class="modal-input-group">
-            <span class="modal-label">상품명</span>
-            <input type="text" id="manual-name" class="modal-input" placeholder="상품 이름을 입력하세요">
-        </div>
-        <div class="modal-input-group">
-            <span class="modal-label">판매 가격 (원)</span>
-            <input type="number" id="manual-price" class="modal-input" placeholder="0" inputmode="numeric">
-        </div>
-        <div class="modal-btn-group">
-            <button class="modal-btn btn-cancel" onclick="closeManualModal()">취소</button>
-            <button class="modal-btn btn-save" onclick="saveManualEntry()">저장 후 담기</button>
-        </div>
-    </div>
-</div>
     </div>
 
     <div id="toast" class="toast-notification hidden"></div>
@@ -360,43 +359,27 @@
     }
 }
 
-        // [수정] 스캔 성공 시 실행되는 로직
 async function onScanSuccess(barcode) {
-    if (isModalOpen) return;
-    const now = Date.now();
-    // 중복 스캔 방지
-    if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
-    if (navigator.vibrate) navigator.vibrate(80);
+            if (isModalOpen) return;
+            const now = Date.now();
+            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
+            if (navigator.vibrate) navigator.vibrate(80);
 
-    // 1. 내 로컬 DB(PRODUCT_DB) 먼저 확인
-    const product = PRODUCT_DB[barcode];
-    const isUnregistered = !product || (product.name && product.name.includes("미등록"));
-
-    if (!isUnregistered) {
-        addToCart(barcode);
-        showToast("기존 상품 추가!");
-    } else {
-        // 2. [추가] 로컬에 없으면 Firebase 서버에 내가 저장한 적이 있는지 물어보기
-        showToast("저장된 정보 찾는 중...");
-        
-        try {
-            // Firebase에서 이 바코드로 저장된 가장 최근 데이터를 하나 가져옵니다.
-            const foundData = await window.findProductInFirebase(barcode);
+            // --- 여기부터 수정됨 ---
+            showToast("조회 중...");
+            let product = PRODUCT_DB[barcode]; // 1. 로컬 확인
             
-            if (foundData) {
-                // 서버에 데이터가 있다면? 장바구니에 바로 담기!
-                addToCart(barcode, { name: foundData.name, price: foundData.price });
-                showToast("내 기록에서 불러왔습니다! ✅");
+            if (!product && window.findProductInFirebase) {
+                product = await window.findProductInFirebase(barcode); // 2. 서버 이중 확인
+            }
+
+            if (product && product.name && !product.name.includes("미등록")) {
+                addToCart(barcode, { name: product.name, price: product.price });
+                showToast("불러오기 성공! ✅");
             } else {
-                // 3. 서버에도 없으면? 그때 모달(팝업) 띄우기
                 openManualModal(barcode);
             }
-        } catch (e) {
-            console.error("데이터 조회 실패:", e);
-            openManualModal(barcode); // 에러 나면 안전하게 입력창 띄우기
         }
-    }
-}
 
         function addToCart(barcode, manualInfo = null) {
             if (manualInfo) PRODUCT_DB[barcode] = manualInfo;
@@ -417,32 +400,6 @@ async function onScanSuccess(barcode) {
             }
             if (window.saveScanToDB) {
                  const dbProduct = PRODUCT_DB[barcode] || { name: "미등록", price: 0 };
-                 // [추가] Firebase에서 특정 바코드 정보를 찾아오는 함수
-                 window.findProductInFirebase = async function(barcode) {
-    if (!window.currentUid) return null;
-
-    try {
-        const { query, collection, where, orderBy, limit, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-        
-        // [수정] 대표님이 기존에 쓰시던 'scans' 폴더를 먼저 확인합니다.
-        const q = query(
-            collection(db, "users", window.currentUid, "scans"),
-            where("barcode", "==", barcode),
-            orderBy("createdAt", "desc"),
-            limit(1)
-        );
-
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-            return querySnapshot.docs[0].data(); 
-        }
-        return null; 
-    } catch (e) {
-        console.error("Firebase 조회 에러:", e);
-        return null;
-    }
-};
 
                  window.saveScanToDB({
                      barcode: barcode,
@@ -455,7 +412,8 @@ async function onScanSuccess(barcode) {
             render();
         }
 
-        function openManualModal(barcode) {
+        // [수정] 모달 열기: 바코드 번호를 보여주고 입력을 기다립니다.
+function openManualModal(barcode) {
     isModalOpen = true; // 스캔 중지
     document.getElementById('manual-barcode').value = barcode;
     document.getElementById('manual-name').value = ""; // 이름 초기화
@@ -464,12 +422,14 @@ async function onScanSuccess(barcode) {
     document.getElementById('manual-name').focus(); // 상품명 입력창에 커서 둠
 }
 
-        function closeManualModal() {
+// [수정] 모달 닫기
+function closeManualModal() {
     isModalOpen = false; // 스캔 다시 시작
     document.getElementById('manual-modal').classList.add('hidden');
 }
 
-        async function saveManualEntry() {
+// [수정] 저장 버튼 클릭 시: 장바구니에 담고 Firebase에도 실시간으로 꽂아넣습니다.
+async function saveManualEntry() {
     const barcode = document.getElementById('manual-barcode').value;
     const name = document.getElementById('manual-name').value;
     const price = parseInt(document.getElementById('manual-price').value) || 0;
@@ -646,6 +606,50 @@ window.loginWithGoogle = async function () {
         console.error("❌ DB 저장 실패:", e);
     }
 };
+// 🔥 [추가] 서버 이중 조회 로직: scans와 sessions를 모두 확인
+window.findProductInFirebase = async function(barcode) {
+    if (!window.currentUid) return null;
+    try {
+        const { query, collection, where, getDocs, limit, orderBy } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        
+        // A. scans 컬렉션(단일 등록) 확인
+        const qScans = query(
+            collection(db, "users", window.currentUid, "scans"),
+            where("barcode", "==", barcode),
+            limit(1)
+        );
+        const scanSnap = await getDocs(qScans);
+        if (!scanSnap.empty) {
+            console.log("✅ scans에서 찾음");
+            return scanSnap.docs[0].data();
+        }
+
+        // B. sessions 컬렉션(과거 영수증) 확인 (최근 15개 세션)
+        console.log("🔍 sessions 기록 뒤지는 중...");
+        const qSessions = query(
+            collection(db, "users", window.currentUid, "sessions"),
+            orderBy("createdAt", "desc"),
+            limit(15)
+        );
+        const sessionSnap = await getDocs(qSessions);
+        
+        for (const doc of sessionSnap.docs) {
+            const items = doc.data().items;
+            if (items) {
+                const found = items.find(i => i.barcode === barcode);
+                if (found) {
+                    console.log("✅ sessions 내역에서 찾음");
+                    return { name: found.name, price: found.price };
+                }
+            }
+        }
+        return null;
+    } catch (e) {
+        console.error("❌ 조회 에러:", e);
+        return null;
+    }
+};
+
 window.finishSession = async function() {
 
     if (!window.currentUid || cart.length === 0) {
