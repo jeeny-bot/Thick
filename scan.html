@@ -361,8 +361,14 @@
 
         function onScanSuccess(barcode) {
             if (isModalOpen) return;
+            if (window.scanLock) return;
+window.scanLock = true;
             const now = Date.now();
-            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
+            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) {
+    window.scanLock = false;
+    return;
+}
+
             if (navigator.vibrate) navigator.vibrate(80);
             (async () => {
 
@@ -385,6 +391,9 @@ if (!isUnregistered) {
 }
 
 })();
+setTimeout(() => {
+    window.scanLock = false;
+}, 1500);
 }
 
         function addToCart(barcode, manualInfo = null) {
@@ -623,7 +632,7 @@ if (!window.currentUid) return null;
 const q = query(
     collection(db, "users", window.currentUid, "sessions"),
     orderBy("createdAt", "desc"),
-    limit(5)
+    limit(100)
 );
 
 const snap = await getDocs(q);
