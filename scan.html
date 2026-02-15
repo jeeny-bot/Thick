@@ -359,23 +359,16 @@
     }
 }
 
-async function onScanSuccess(barcode) {
+        function onScanSuccess(barcode) {
             if (isModalOpen) return;
             const now = Date.now();
             if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
             if (navigator.vibrate) navigator.vibrate(80);
-
-            // --- 여기부터 수정됨 ---
-            showToast("조회 중...");
-            let product = PRODUCT_DB[barcode]; // 1. 로컬 확인
-            
-            if (!product && window.findProductInFirebase) {
-                product = await window.findProductInFirebase(barcode); // 2. 서버 이중 확인
-            }
-
-            if (product && product.name && !product.name.includes("미등록")) {
-                addToCart(barcode, { name: product.name, price: product.price });
-                showToast("불러오기 성공! ✅");
+            const product = PRODUCT_DB[barcode];
+            const isUnregistered = !product || (product.name && product.name.includes("미등록"));
+            if (!isUnregistered) {
+                addToCart(barcode);
+                showToast("SUCCESS SCAN!");
             } else {
                 openManualModal(barcode);
             }
@@ -398,7 +391,17 @@ async function onScanSuccess(barcode) {
                     qty: 1
                 });
             }
-            
+            if (window.saveScanToDB) {
+                 const dbProduct = PRODUCT_DB[barcode] || { name: "미등록", price: 0 };
+
+                 window.saveScanToDB({
+                     barcode: barcode,
+                     name: dbProduct.name,
+                     price: dbProduct.price,
+                     qty: 1
+             });
+          }
+
             render();
         }
 
@@ -442,17 +445,6 @@ async function saveManualEntry() {
             type: "manual_registration" // 수동 등록임을 기록
         });
     }
-    // 🔥 products 컬렉션에도 저장 (자동 캐시 생성)
-if (window.currentUid) {
-    const productRef = doc(db, "users", window.currentUid, "products", String(barcode));
-
-    await setDoc(productRef, {
-        name: name,
-        price: price,
-        updatedAt: serverTimestamp()
-    });
-}
-
 
     closeManualModal();
     showToast("신규 상품이 저장되었습니다! ✅");
@@ -518,18 +510,10 @@ if (window.currentUid) {
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { 
-            getFirestore, 
-            collection, 
-            addDoc, 
-            serverTimestamp,
-            doc,
-            getDoc,
-            getDocs,
-            setDoc,
-            query,
-            where,
-            limit,
-            orderBy
+          getFirestore, 
+          collection, 
+          addDoc, 
+          serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
 
@@ -590,76 +574,37 @@ window.loginWithGoogle = async function () {
 
 
       
-        
-// 🔥 [추가] 서버 이중 조회 로직: scans와 sessions를 모두 확인
-// 이 함수를 기존 위치에 그대로 덮어쓰세요
-// 이 함수만 찾아서 아래 내용으로 싹 갈아끼우시면 됩니다.
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // 🔥 이 함수가 지금 undefined였던 함수
+        window.saveScanToDB = async function (data) {
+        try {
 
-window.findProductInFirebase = async function(barcode) {
+        const currentUid = window.currentUid;
 
-    if (!window.currentUid) return null;
-
-    try {
-
-        // 🔥 1️⃣ products 먼저 조회
-        const productRef = doc(db, "users", window.currentUid, "products", String(barcode));
-        const productSnap = await getDoc(productRef);
-
-        if (productSnap.exists()) {
-            return productSnap.data();
+        if (!currentUid) {
+            console.log("❌ 로그인 안됨");
+            return;
         }
 
-        // 🔥 2️⃣ 기존 scans 확인
-        const qScans = query(
-            collection(db, "users", window.currentUid, "scans"),
-            where("barcode", "==", String(barcode)),
-            limit(1)
-        );
-
-        const scanSnap = await getDocs(qScans);
-        if (!scanSnap.empty) {
-            return scanSnap.docs[0].data();
-        }
-
-        // 🔥 3️⃣ sessions 확인
-        const qSessions = query(
-            collection(db, "users", window.currentUid, "sessions"),
-            orderBy("createdAt", "desc"),
-            limit(20)
-        );
-
-        const sessionSnap = await getDocs(qSessions);
-
-        for (const sDoc of sessionSnap.docs) {
-            const items = sDoc.data().items;
-            if (items) {
-                const found = items.find(i => String(i.barcode) === String(barcode));
-                if (found) return { name: found.name, price: found.price };
+        await addDoc(
+            collection(db, "users", currentUid, "scans"),
+            {
+                ...data,
+                createdAt: serverTimestamp()
             }
-        }
+        );
 
-        return null;
+        console.log("🔥 DB 저장 성공");
 
     } catch (e) {
-        console.error("조회 에러:", e);
-        return null;
+        console.error("❌ DB 저장 실패:", e);
     }
 };
-
-
 window.finishSession = async function() {
 
-    if (!window.currentUid) {
-    showToast("로그인이 필요합니다.");
-    return;
-}
-
-if (cart.length === 0) {
-    showToast("장바구니가 비어있습니다.");
-    return;
-}
-
+    if (!window.currentUid || cart.length === 0) {
+        window.location.href = "dashboard.html";
+        return;
+    }
 
     const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
 
