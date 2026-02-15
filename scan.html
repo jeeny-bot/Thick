@@ -318,13 +318,7 @@
         }
 
         // [기존 스크립트 그대로 보존]
-        const PRODUCT_DB = {
-            "8801048101037": { name: "신라면 (5개입)", price: 4500 },
-            "8801056154018": { name: "칠성사이다 500ml", price: 1800 },
-            "8801043014783": { name: "햇반 210g", price: 1500 },
-            "88023014": { name: "미등록 제품", price: 12000 }
-        };
-
+        
         let cart = [];
         let html5QrCode = null;
         let isModalOpen = false;
@@ -389,26 +383,27 @@ if (navigator.vibrate) navigator.vibrate(80);
 }
 
 
-        function addToCart(barcode, manualInfo = null) {
-            if (manualInfo) PRODUCT_DB[barcode] = manualInfo;
-            const existing = cart.find(item => item.barcode === barcode);
-            if (existing) {
-                existing.qty += 1;
-                existing.updatedAt = Date.now();
-            } else {
-                const product = PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 0 };
-                cart.unshift({
-                    id: Date.now(),
-                    updatedAt: Date.now(),
-                    barcode: barcode,
-                    name: product.name,
-                    price: product.price,
-                    qty: 1
-                });
-            }
-            
-            render();
-        }
+function addToCart(barcode, productInfo) {
+
+const existing = cart.find(item => item.barcode === barcode);
+
+if (existing) {
+    existing.qty += 1;
+    existing.updatedAt = Date.now();
+} else {
+    cart.unshift({
+        id: Date.now(),
+        updatedAt: Date.now(),
+        barcode: barcode,
+        name: productInfo.name,
+        price: productInfo.price,
+        qty: 1
+    });
+}
+
+render();
+}
+
 
         // [수정] 모달 열기: 바코드 번호를 보여주고 입력을 기다립니다.
 function openManualModal(barcode) {
