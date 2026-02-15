@@ -359,20 +359,35 @@
     }
 }
 
-        function onScanSuccess(barcode) {
-            if (isModalOpen) return;
-            const now = Date.now();
-            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
-            if (navigator.vibrate) navigator.vibrate(80);
-            const product = PRODUCT_DB[barcode];
-            const isUnregistered = !product || (product.name && product.name.includes("미등록"));
-            if (!isUnregistered) {
-                addToCart(barcode);
-                showToast("SUCCESS SCAN!");
-            } else {
-                openManualModal(barcode);
-            }
-        }
+function onScanSuccess(barcode) {
+
+if (isModalOpen) return;
+
+const now = Date.now();
+if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
+
+if (navigator.vibrate) navigator.vibrate(80);
+
+(async () => {
+
+    let product = PRODUCT_DB[barcode];
+
+    // 🔥 1차: 로컬 확인
+    if (!product && window.findProductInFirebase) {
+        product = await window.findProductInFirebase(barcode);
+    }
+
+    // 🔥 2차: 있으면 자동 담기
+    if (product && product.name) {
+        addToCart(barcode, { name: product.name, price: product.price });
+        showToast("불러오기 성공 ✅");
+    } else {
+        openManualModal(barcode);
+    }
+
+})();
+}
+
 
         function addToCart(barcode, manualInfo = null) {
             if (manualInfo) PRODUCT_DB[barcode] = manualInfo;
@@ -500,10 +515,14 @@ async function saveManualEntry() {
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { 
-          getFirestore, 
-          collection, 
-          addDoc, 
-          serverTimestamp 
+            getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  getDocs,
+  orderBy,
+  limit 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
 
@@ -561,6 +580,43 @@ window.loginWithGoogle = async function () {
          console.log("❌ 로그인 안됨");
     }
 });
+window.findProductInFirebase = async function(barcode) {
+
+if (!window.currentUid) return null;
+
+try {
+
+    const qSessions = query(
+        collection(db, "users", window.currentUid, "sessions"),
+        orderBy("createdAt", "desc"),
+        limit(30)
+    );
+
+    const sessionSnap = await getDocs(qSessions);
+
+    for (const sDoc of sessionSnap.docs) {
+
+        const items = sDoc.data().items;
+
+        if (items) {
+            const found = items.find(i => String(i.barcode) === String(barcode));
+            if (found) {
+                return {
+                    name: found.name,
+                    price: found.price
+                };
+            }
+        }
+    }
+
+    return null;
+
+} catch (e) {
+    console.error("조회 에러:", e);
+    return null;
+}
+};
+
 
 
       
@@ -597,7 +653,6 @@ window.finishSession = async function() {
         showToast("저장 실패. 다시 시도해주세요.");
     }
 };
-
 
 
       </script>
