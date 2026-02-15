@@ -607,45 +607,39 @@ window.loginWithGoogle = async function () {
     }
 };
 // 🔥 [추가] 서버 이중 조회 로직: scans와 sessions를 모두 확인
+// 이 함수를 기존 위치에 그대로 덮어쓰세요
+// 이 함수만 찾아서 아래 내용으로 싹 갈아끼우시면 됩니다.
 window.findProductInFirebase = async function(barcode) {
     if (!window.currentUid) return null;
     try {
-        const { query, collection, where, getDocs, limit, orderBy } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-        
-        // A. scans 컬렉션(단일 등록) 확인
+        // A. scans 확인 (String으로 변환해서 비교)
         const qScans = query(
             collection(db, "users", window.currentUid, "scans"),
-            where("barcode", "==", barcode),
+            where("barcode", "==", String(barcode)), 
             limit(1)
         );
         const scanSnap = await getDocs(qScans);
-        if (!scanSnap.empty) {
-            console.log("✅ scans에서 찾음");
-            return scanSnap.docs[0].data();
-        }
+        if (!scanSnap.empty) return scanSnap.docs[0].data();
 
-        // B. sessions 컬렉션(과거 영수증) 확인 (최근 15개 세션)
-        console.log("🔍 sessions 기록 뒤지는 중...");
+        // B. sessions(영수증) 내부 뒤지기 (String으로 변환해서 비교)
         const qSessions = query(
             collection(db, "users", window.currentUid, "sessions"),
             orderBy("createdAt", "desc"),
-            limit(15)
+            limit(20) 
         );
         const sessionSnap = await getDocs(qSessions);
         
         for (const doc of sessionSnap.docs) {
             const items = doc.data().items;
             if (items) {
-                const found = items.find(i => i.barcode === barcode);
-                if (found) {
-                    console.log("✅ sessions 내역에서 찾음");
-                    return { name: found.name, price: found.price };
-                }
+                // 핵심: 여기서 String(i.barcode) 처리가 되어야 "88023014"를 인식합니다.
+                const found = items.find(i => String(i.barcode) === String(barcode));
+                if (found) return { name: found.name, price: found.price };
             }
         }
         return null;
     } catch (e) {
-        console.error("❌ 조회 에러:", e);
+        console.error("조회 에러:", e);
         return null;
     }
 };
