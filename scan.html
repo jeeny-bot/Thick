@@ -570,9 +570,10 @@ window.loginWithGoogle = async function () {
 
          console.log("✅ 로그인 UID:", user.uid);
     } else {
-         window.currentUid = null;
-         console.log("❌ 로그인 안됨");
-    }
+    window.currentUid = null;
+    window.location.href = "index.html";
+}
+
 });
 
 
