@@ -418,13 +418,13 @@ async function onScanSuccess(barcode) {
             if (window.saveScanToDB) {
                  const dbProduct = PRODUCT_DB[barcode] || { name: "미등록", price: 0 };
                  // [추가] Firebase에서 특정 바코드 정보를 찾아오는 함수
-window.findProductInFirebase = async function(barcode) {
+                 window.findProductInFirebase = async function(barcode) {
     if (!window.currentUid) return null;
 
     try {
         const { query, collection, where, orderBy, limit, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
         
-        // 내 스캔 기록(scans)에서 이 바코드와 일치하는 것을 최신순으로 1개만 가져옴
+        // [수정] 대표님이 기존에 쓰시던 'scans' 폴더를 먼저 확인합니다.
         const q = query(
             collection(db, "users", window.currentUid, "scans"),
             where("barcode", "==", barcode),
@@ -433,10 +433,11 @@ window.findProductInFirebase = async function(barcode) {
         );
 
         const querySnapshot = await getDocs(q);
+        
         if (!querySnapshot.empty) {
-            return querySnapshot.docs[0].data(); // 저장된 이름과 가격 반환
+            return querySnapshot.docs[0].data(); 
         }
-        return null; // 데이터 없음
+        return null; 
     } catch (e) {
         console.error("Firebase 조회 에러:", e);
         return null;
