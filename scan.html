@@ -361,13 +361,11 @@
 
         function onScanSuccess(barcode) {
             if (isModalOpen) return;
-            if (window.scanLock) return;
-window.scanLock = true;
             const now = Date.now();
             if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) {
-    window.scanLock = false;
-    return;
-}
+              window.scanLock = false;
+              return;
+        }
 
             if (navigator.vibrate) navigator.vibrate(80);
             (async () => {
@@ -391,9 +389,6 @@ if (!isUnregistered) {
 }
 
 })();
-setTimeout(() => {
-    window.scanLock = false;
-}, 1500);
 }
 
         function addToCart(barcode, manualInfo = null) {
