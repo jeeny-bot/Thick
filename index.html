@@ -168,6 +168,7 @@
 
         // Naver Provider
         const naverProvider = new OAuthProvider('oidc.naver');
+        naverProvider.addScope('email');
         window.loginWithNaver = async function () {
             try {
                 await signInWithPopup(auth, naverProvider);
