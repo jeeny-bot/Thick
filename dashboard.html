@@ -6,84 +6,231 @@
 <title>Thick - Dashboard</title>
 
 <style>
+  :root {
+  --orange-main: #e67e22;
+  --orange-light: #ff9f43;
+}
+  
 body {
   margin: 0;
-  background: #f2f2f7;
+  background: linear-gradient(160deg, #0f0f0f 0%, #1c1c1e 100%);
   font-family: 'Noto Sans KR', sans-serif;
+  color: #fff;
 }
 
 .wrapper {
-  height: 100vh;
+  min-height: 100vh;
+  padding: 100px 24px 60px 24px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  gap: 30px;
+}
+
+.header {
   text-align: center;
+  margin-bottom: 60px;
 }
 
 .main-title {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 900;
+  margin-bottom: 12px;
 }
 
-.menu-btn {
-  width: 260px;
-  padding: 20px;
-  border-radius: 20px;
-  border: none;
-  font-size: 1.1rem;
-  font-weight: 900;
+
+.sub-title {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.6);
+}
+
+
+.menu-container {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.menu-card {
+  padding: 28px;
+  border-radius: 28px;
   cursor: pointer;
+  transition: 0.25s ease;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
-.btn-report {
-  background: #000;
+.menu-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+}
+
+.card-report {
+  background: #f8f8f8;
+  color: #000;
+}
+
+.card-scan {
+  background: linear-gradient(135deg, var(--orange-main), var(--orange-light));
   color: #fff;
 }
 
-.btn-scan {
-  background: #e67e22;
-  color: #fff;
+.card-title {
+  font-size: 1.3rem;
+  font-weight: 900;
+  margin-bottom: 8px;
 }
 
-.desc {
-  font-size: 0.8rem;
-  opacity: 0.6;
-  margin-top: 6px;
+.card-desc {
+  font-size: 0.85rem;
+  opacity: 0.7;
 }
 
 #user-status-bar {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: #000;
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  padding: 10px 18px;
+  border-radius: 30px;
   font-weight: 700;
   font-size: 0.8rem;
+  border: 1px solid rgba(255,255,255,0.1);
 }
+
+#logout-btn {
+  background: linear-gradient(135deg, #e67e22, #ff9f43);
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(230,126,34,0.4);
+
+}
+
+
+
+
+#logout-btn:hover {
+  transform: scale(1.1);
+}
+
+ .menu-card {
+  padding: 22px 20px;
+}
+
+.card-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.card-icon {
+  font-size: 2rem;
+  min-width: 44px;
+}
+
+.card-text {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.card-desc {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+ 
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.title-logo {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+}
+.title-row .hero-logo {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.8rem;
+}
+
+
+
 </style>
+
 </head>
 
 <body>
 
-<div id="user-status-bar">로딩중...</div>
+<div id="user-status-bar">
+  <span id="status-text">로딩중...</span>
+  <button id="logout-btn" onclick="logout()">로그아웃</button>
+
+
+</div>
+
 
 <div class="wrapper">
-  <div class="main-title">안녕하세요 회원님</div>
 
-  <div>
-    <button class="menu-btn btn-report" onclick="goReport()">내 데이터보기</button>
-    <div class="desc">내 소비 리포트를 확인합니다</div>
+ <div class="header">
+  <div class="title-row">
+    <div class="hero-logo">III</div>
+    <div class="main-title">이번 달 소비를 한눈에</div>
   </div>
+  <div class="sub-title">데이터 기반으로 똑똑한 소비를 시작하세요</div>
+</div>
 
-  <div>
-    <button class="menu-btn btn-scan" onclick="goScan()">장보기</button>
-    <div class="desc">마트에서 바코드를 스캔합니다</div>
+
+
+  <div class="menu-container">
+
+    <div class="menu-card card-report" onclick="goReport()">
+  <div class="card-row">
+    <div class="card-icon">📊</div>
+    <div class="card-text">
+      <div class="card-title">소비 리포트 확인</div>
+      <div class="card-desc">이번 달 소비 분석과 3개월 추이를 확인하세요</div>
+    </div>
   </div>
 </div>
+
+
+    <div class="menu-card card-scan" onclick="goScan()">
+  <div class="card-row">
+    <div class="card-icon">🛒</div>
+    <div class="card-text">
+      <div class="card-title">지금 장보기 시작</div>
+      <div class="card-desc">마트에서 상품을 스캔하고 소비를 기록하세요</div>
+    </div>
+  </div>
+</div>
+
+
+  </div>
+
+</div>
+
 
 <script type="module">
 
@@ -95,8 +242,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
@@ -123,7 +272,9 @@ onAuthStateChanged(auth, async (user) => {
   const snapshot = await getDoc(userRef);
 
   const data = snapshot.data();
-  const statusBar = document.getElementById("user-status-bar");
+  const statusBar = document.getElementById("status-text");
+
+
 
   if (!data) {
     statusBar.innerText = "회원정보 없음";
@@ -131,9 +282,33 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   if (data.subscriptionStatus === "active") {
-    statusBar.innerText = "구독중";
-    return;
+  statusBar.innerText = "구독중";
+  return;
+}
+
+if (data.subscriptionStatus === "trial") {
+
+  const createdAt = data.createdAt.toDate();
+  const now = new Date();
+
+  const totalTrialHours = 60 * 24;
+  const diffHours = Math.floor(
+    (now - createdAt) / (1000 * 60 * 60)
+  );
+
+  const remainHours = totalTrialHours - diffHours;
+
+  if (remainHours > 0) {
+    const days = Math.floor(remainHours / 24);
+    const hours = remainHours % 24;
+    statusBar.innerText = `무료사용중 - ${days}일 ${hours}시간`;
+  } else {
+    statusBar.innerText = "무료기간 종료";
   }
+
+  return;
+}
+
 
   const createdAt = data.createdAt.toDate();
   const now = new Date();
@@ -159,6 +334,12 @@ window.goReport = function() {
 window.goScan = function() {
   window.location.href = "scan.html";
 };
+
+window.logout = async function() {
+  await signOut(auth);
+  window.location.href = "index.html";
+};
+
 
 </script>
 
