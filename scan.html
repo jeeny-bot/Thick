@@ -2,11 +2,7 @@
 <html lang="ko">
 
 <head>
-<<<<<<< HEAD
-
-=======
     
->>>>>>> ea891cf (Update dashboard and scan pages)
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -47,16 +43,6 @@
     overflow-x: hidden;
 }
 
-<<<<<<< HEAD
-        html,
-        body {
-            width: 100%;
-            min-height: 100%;
-            overflow-x: hidden;
-        }
-
-=======
->>>>>>> ea891cf (Update dashboard and scan pages)
         /* [기존 스타일 유지] */
         :root {
             --orange-main: #e67e22;
@@ -76,15 +62,9 @@
         }
 
         body {
-<<<<<<< HEAD
-            background-color: var(--bg-gray);
-            margin: 0;
-        }
-=======
               background-color: var(--bg-gray);
               margin: 0;
              }
->>>>>>> ea891cf (Update dashboard and scan pages)
 
 
 
@@ -128,12 +108,7 @@
             color: var(--white);
             display: flex;
             flex-direction: column;
-<<<<<<< HEAD
-            height: 280px;
-            /* 👈 고정 높이로 변경 */
-=======
             height: 280px;   /* 👈 고정 높이로 변경 */
->>>>>>> ea891cf (Update dashboard and scan pages)
         }
 
         .scanner-header {
@@ -157,21 +132,6 @@
         }
 
         .scanner-viewport {
-<<<<<<< HEAD
-            flex: 1;
-            background: #0d0d0d;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #222;
-            height: 220px;
-            /* 추가 */
-        }
-
-=======
              flex: 1;
              background: #0d0d0d;
              border-radius: 12px;
@@ -183,7 +143,6 @@
              border: 1px solid #222;
              height: 220px;   /* 추가 */
           }
->>>>>>> ea891cf (Update dashboard and scan pages)
 
         
         #reader {
@@ -245,231 +204,6 @@
         .summary-value { flex: 1; text-align: right; margin-right: 8px; font-weight: 900; font-size: 1rem; color: #fff; }
         .btn-checkout { background-color: var(--white); color: #000; border: none; border-radius: 8px; padding: 5px 12px; font-weight: 900; font-size: 0.8rem; cursor: pointer; }
 
-<<<<<<< HEAD
-        .item-info-card {
-            background-color: var(--white);
-            border-radius: var(--item-radius);
-            padding: 0 18px;
-            display: flex;
-            align-items: center;
-            color: #000;
-            flex: 1;
-            justify-content: space-between;
-        }
-
-        .item-name-label {
-            font-weight: 700;
-            font-size: 0.8rem;
-            flex: 1.1;
-            word-break: keep-all;
-            line-height: 1.2;
-        }
-
-        .item-price-label {
-            font-weight: 900;
-            font-size: 0.85rem;
-            flex: 1;
-            text-align: center;
-            line-height: 1.2;
-        }
-
-        .item-qty-label {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            justify-content: flex-end;
-            flex: 0.7;
-            color: #444;
-        }
-
-        .qty-control-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            font-weight: 900;
-            cursor: pointer;
-            color: #000;
-            padding: 0 6px;
-        }
-
-        .item-compare-link {
-            background-color: var(--white);
-            border-radius: var(--item-radius);
-            min-width: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: #000;
-            font-weight: 900;
-            font-size: 0.8rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            padding: 0 8px;
-        }
-
-        .summary-footer {
-            background-color: var(--black-card);
-            border-radius: 15px;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 15px;
-        }
-
-        .summary-title {
-            font-weight: 900;
-            font-size: 0.8rem;
-            color: #fff;
-        }
-
-        .summary-value {
-            flex: 1;
-            text-align: right;
-            margin-right: 8px;
-            font-weight: 900;
-            font-size: 1rem;
-            color: #fff;
-        }
-
-        .btn-checkout {
-            background-color: var(--white);
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            padding: 5px 12px;
-            font-weight: 900;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 20000;
-        }
-
-        .modal-card {
-            background: var(--white);
-            width: 90%;
-            max-width: 400px;
-            border-radius: 30px;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-title {
-            color: #000;
-            font-size: 1.4rem;
-            font-weight: 900;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .modal-input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .modal-label {
-            color: #666;
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-left: 5px;
-        }
-
-        .modal-input {
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid #eee;
-            font-size: 1.1rem;
-            font-weight: 700;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .modal-input:focus {
-            border-color: var(--orange-main);
-        }
-
-        .modal-btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .modal-btn {
-            flex: 1;
-            padding: 15px;
-            border-radius: 12px;
-            border: none;
-            font-size: 1.1rem;
-            font-weight: 900;
-            cursor: pointer;
-        }
-
-        .btn-save {
-            background: var(--orange-main);
-            color: #fff;
-        }
-
-        .btn-cancel {
-            background: #eee;
-            color: #666;
-        }
-
-        .qty-num {
-            font-size: 0.75rem;
-            color: var(--orange-main);
-            margin-left: 3px;
-            font-weight: 800;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        ::-webkit-scrollbar {
-            display: none;
-        }
-
-        .toast-notification {
-            position: fixed;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: #fff;
-            padding: 14px 40px;
-            border-radius: 50px;
-            font-weight: 900;
-            z-index: 10000;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-            white-space: nowrap;
-        }
-
-        .empty-cart-msg {
-            text-align: center;
-            margin-top: 40%;
-            opacity: 0.8;
-            font-weight: 700;
-            color: #fff;
-        }
-=======
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 20000; }
         .modal-card { background: var(--white); width: 90%; max-width: 400px; border-radius: 30px; padding: 30px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
         .modal-title { color: #000; font-size: 1.4rem; font-weight: 900; text-align: center; margin-bottom: 10px; }
@@ -487,7 +221,6 @@
         ::-webkit-scrollbar { display: none; }
         .toast-notification { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.9); color: #fff; padding: 14px 40px; border-radius: 50px; font-weight: 900; z-index: 10000; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); white-space: nowrap; }
         .empty-cart-msg { text-align: center; margin-top: 40%; opacity: 0.8; font-weight: 700; color: #fff; }
->>>>>>> ea891cf (Update dashboard and scan pages)
     </style>
        
 </head>
@@ -523,18 +256,10 @@
                 </div>
             </div>
             <p class="scanner-tip-text">상품을 스캔해주세요</p>
-<<<<<<< HEAD
-            <button onclick="startScanner()"
-                style="margin-top:10px;padding:10px 20px;border:none;border-radius:10px;background:#fff;color:#000;font-weight:700;">
-                카메라 시작
-            </button>
-
-=======
             <button onclick="startScanner()" style="margin-top:10px;padding:10px 20px;border:none;border-radius:10px;background:#fff;color:#000;font-weight:700;">
                 카메라 시작
                 </button>
                 
->>>>>>> ea891cf (Update dashboard and scan pages)
         </section>
 
         <section class="cart-card">
@@ -558,12 +283,7 @@
             <h2 class="modal-title">📦 신규 상품 등록</h2>
             <div class="modal-input-group">
                 <span class="modal-label">바코드</span>
-<<<<<<< HEAD
-                <input type="text" id="manual-barcode" class="modal-input" readonly
-                    style="background:#f9f9f9; color:#999;">
-=======
                 <input type="text" id="manual-barcode" class="modal-input" readonly style="background:#f9f9f9; color:#999;">
->>>>>>> ea891cf (Update dashboard and scan pages)
             </div>
             <div class="modal-input-group">
                 <span class="modal-label">상품명</span>
@@ -587,15 +307,9 @@
         function enterApp() {
             document.getElementById('landing-page').style.transform = 'translateY(-100%)';
             document.getElementById('app-container').style.opacity = '1';
-<<<<<<< HEAD
-
-            // 기존 스캐너 시작 로직 실행
-
-=======
             
             // 기존 스캐너 시작 로직 실행
             
->>>>>>> ea891cf (Update dashboard and scan pages)
             render();
             
             setTimeout(() => {
@@ -613,83 +327,9 @@
 
         let cart = [];
         let html5QrCode = null;
-<<<<<<< HEAD
-        window.findProductInFirebase = async function (barcode) {
-            console.log("🔍 Firebase 조회 시작:", barcode);
-            try {
-                const { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-                const localDb = getFirestore();
-=======
         let isModalOpen = false;
->>>>>>> ea891cf (Update dashboard and scan pages)
 
-                // 1. 전역 상품 컬렉션에서 조회 (가장 정확)
-                const productRef = doc(localDb, "products", String(barcode));
-                const productSnap = await getDoc(productRef);
-
-                if (productSnap.exists()) {
-                    console.log("✅ 전역 DB에서 발견:", productSnap.data().name);
-                    return productSnap.data();
-                }
-
-                // 2. 사용자의 이전 세션 기록에서 조회 (Fallback)
-                if (window.currentUid) {
-                    const q = query(
-                        collection(localDb, "users", window.currentUid, "sessions"),
-                        orderBy("createdAt", "desc"),
-                        limit(10)
-                    );
-                    const snap = await getDocs(q);
-
-                    for (const doc of snap.docs) {
-                        const items = doc.data().items;
-                        if (items && Array.isArray(items)) {
-                            const match = items.find(i => String(i.barcode).trim() === String(barcode).trim());
-                            if (match && match.name && !match.name.includes("미등록")) {
-                                console.log("✅ 이전 기록에서 발견:", match.name);
-                                return { name: match.name, price: match.price };
-                            }
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error("❌ Firebase 조회 에러:", e);
-            }
-            console.log("ℹ️ Firebase에 정보 없음");
-            return null;
-        };
         async function initScanner() {
-<<<<<<< HEAD
-            try {
-                if (html5QrCode) {
-                    try { await html5QrCode.stop(); } catch (e) { }
-                }
-
-                html5QrCode = new Html5Qrcode("reader");
-
-                const cameras = await Html5Qrcode.getCameras();
-                if (cameras && cameras.length) {
-                    const backCamera = cameras[cameras.length - 1];
-
-
-                    await html5QrCode.start(
-                        backCamera.id,
-                        {
-                            fps: 10,
-                            qrbox: { width: 300, height: 300 }
-                        },
-                        (decodedText) => {
-                            onScanSuccess(decodedText);
-                        }
-                    );
-                }
-
-            } catch (err) {
-                showToast("카메라 권한을 확인하세요.");
-            }
-        }
-
-=======
     try {
         if (html5QrCode) {
             try { await html5QrCode.stop(); } catch (e) {}
@@ -719,7 +359,6 @@
     }
 }
 
->>>>>>> ea891cf (Update dashboard and scan pages)
         function onScanSuccess(barcode) {
             if (isModalOpen) return;
             const now = Date.now();
@@ -753,11 +392,7 @@
                 });
             }
             if (window.saveScanToDB) {
-<<<<<<< HEAD
-                const dbProduct = PRODUCT_DB[barcode] || { name: "미등록", price: 0 };
-=======
                  const dbProduct = PRODUCT_DB[barcode] || { name: "미등록", price: 0 };
->>>>>>> ea891cf (Update dashboard and scan pages)
 
                  window.saveScanToDB({
                      barcode: barcode,
@@ -771,51 +406,6 @@
         }
 
         // [수정] 모달 열기: 바코드 번호를 보여주고 입력을 기다립니다.
-<<<<<<< HEAD
-        function openManualModal(barcode) {
-            isModalOpen = true; // 스캔 중지
-            document.getElementById('manual-barcode').value = barcode;
-            document.getElementById('manual-name').value = ""; // 이름 초기화
-            document.getElementById('manual-price').value = ""; // 가격 초기화
-            document.getElementById('manual-modal').classList.remove('hidden');
-            document.getElementById('manual-name').focus(); // 상품명 입력창에 커서 둠
-        }
-
-        // [수정] 모달 닫기
-        function closeManualModal() {
-            isModalOpen = false; // 스캔 다시 시작
-            document.getElementById('manual-modal').classList.add('hidden');
-        }
-
-        // [수정] 저장 버튼 클릭 시: 장바구니에 담고 Firebase에도 실시간으로 꽂아넣습니다.
-        async function saveManualEntry() {
-            const barcode = document.getElementById('manual-barcode').value;
-            const name = document.getElementById('manual-name').value;
-            const price = parseInt(document.getElementById('manual-price').value) || 0;
-
-            if (!name) {
-                alert("상품명을 입력해주세요!");
-                return;
-            }
-
-            // 1. 장바구니에 즉시 담기 (addToCart 함수 활용)
-            addToCart(barcode, { name, price });
-
-            // 2. Firebase에 실시간 저장 (이미 만들어두신 window.saveScanToDB 활용)
-            if (window.saveScanToDB) {
-                window.saveScanToDB({
-                    barcode: barcode,
-                    name: name,
-                    price: price,
-                    qty: 1,
-                    type: "manual_registration" // 수동 등록임을 기록
-                });
-            }
-
-            closeManualModal();
-            showToast("신규 상품이 저장되었습니다! ✅");
-        }
-=======
 function openManualModal(barcode) {
     isModalOpen = true; // 스캔 중지
     document.getElementById('manual-barcode').value = barcode;
@@ -859,7 +449,6 @@ async function saveManualEntry() {
     closeManualModal();
     showToast("신규 상품이 저장되었습니다! ✅");
 }
->>>>>>> ea891cf (Update dashboard and scan pages)
 
         function updateQty(id, delta) {
             const item = cart.find(i => i.id === id);
@@ -928,12 +517,7 @@ async function saveManualEntry() {
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
 
-<<<<<<< HEAD
-
-
-=======
       
->>>>>>> ea891cf (Update dashboard and scan pages)
         // 🔥 네 Firebase 설정값 그대로 넣어
         const firebaseConfig = {
            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
@@ -960,16 +544,6 @@ const provider = new GoogleAuthProvider();
 
 
 
-<<<<<<< HEAD
-        window.loginWithGoogle = async function () {
-            try {
-                await signInWithPopup(auth, provider);
-                console.log("🔥 구글 로그인 성공");
-            } catch (e) {
-                console.error("❌ 로그인 실패:", e);
-            }
-        };
-=======
 window.loginWithGoogle = async function () {
   try {
     await signInWithPopup(auth, provider);
@@ -978,7 +552,6 @@ window.loginWithGoogle = async function () {
     console.error("❌ 로그인 실패:", e);
   }
 };
->>>>>>> ea891cf (Update dashboard and scan pages)
 
 
                   
@@ -1000,62 +573,13 @@ window.loginWithGoogle = async function () {
 });
 
 
-<<<<<<< HEAD
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.currentUid = user.uid;
-
-                // 🔥 자동 진입
-                document.getElementById('landing-page').classList.add('hidden');
-                document.getElementById('app-container').style.opacity = '1';
-                render();
-
-                console.log("✅ 로그인 UID:", user.uid);
-            } else {
-                window.currentUid = null;
-                console.log("❌ 로그인 안됨");
-            }
-        });
-
-
-
-=======
       
->>>>>>> ea891cf (Update dashboard and scan pages)
         // 🔥 이 함수가 지금 undefined였던 함수
         window.saveScanToDB = async function (data) {
         try {
 
         const currentUid = window.currentUid;
 
-<<<<<<< HEAD
-                if (!currentUid) {
-                    console.log("❌ 로그인 안됨");
-                    return;
-                }
-
-                await addDoc(
-                    collection(db, "users", currentUid, "scans"),
-                    {
-                        ...data,
-                        createdAt: serverTimestamp()
-                    }
-                );
-
-                console.log("🔥 DB 저장 성공");
-
-            } catch (e) {
-                console.error("❌ DB 저장 실패:", e);
-            }
-        };
-        window.finishSession = async function () {
-            console.log("🏁 finishSession started. UID:", window.currentUid, "Cart length:", cart.length);
-
-            if (!window.currentUid || cart.length === 0) {
-                console.log("⚠️ No user or empty cart. Redirecting to dashboard.");
-                window.location.href = "dashboard.html";
-                return;
-=======
         if (!currentUid) {
             console.log("❌ 로그인 안됨");
             return;
@@ -1091,39 +615,12 @@ window.finishSession = async function() {
                 items: cart,
                 totalPrice: total,
                 createdAt: serverTimestamp()
->>>>>>> ea891cf (Update dashboard and scan pages)
             }
         );
 
         // 🔥 기존 reload 완전 제거
         showToast("구매 기록이 저장되었습니다 ✔");
 
-<<<<<<< HEAD
-            try {
-                console.log("💾 Saving session to Firebase...");
-                await addDoc(
-                    collection(db, "users", window.currentUid, "sessions"),
-                    {
-                        items: cart,
-                        totalPrice: total,
-                        createdAt: serverTimestamp()
-                    }
-                );
-
-                console.log("✅ Session saved successfully.");
-                showToast("구매 기록이 저장되었습니다 :)");
-
-                setTimeout(() => {
-                    console.log("🚀 Navigating to dashboard...");
-                    window.location.href = "dashboard.html";
-                }, 1500); // 딜레이를 약간 단축 (3000 -> 1500)
-
-            } catch (e) {
-                console.error("❌ Session save failed:", e);
-                showToast("저장 실패. 다시 시도해주세요.");
-            }
-        };
-=======
         setTimeout(() => {
             window.location.href = "dashboard.html";
         }, 3000);
@@ -1133,7 +630,6 @@ window.finishSession = async function() {
         showToast("저장 실패. 다시 시도해주세요.");
     }
 };
->>>>>>> ea891cf (Update dashboard and scan pages)
 
 
 
@@ -1306,188 +802,16 @@ async function scanLoop() {
             return; // 인식되면 루프 잠시 멈춤
         }
 
-<<<<<<< HEAD
-        if (isInAppBrowser()) {
-            alert("로그인이 안될 경우, 오른쪽 상단 메뉴에서 '브라우저로 열기'를 눌러주세요.");
-        }
-        function startScanner() {
-            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-            if (isIOS) {
-                startIOSQuagga();
-            } else {
-                initScanner(); // 안드로이드는 기존 html5-qrcode 유지
-            }
-        }
-        function startIOSQuagga() {
-
-            const reader = document.getElementById("reader");
-            reader.innerHTML = "";
-
-            const viewport = document.createElement("div");
-            viewport.style.width = "100%";
-            viewport.style.height = "340px";
-            viewport.style.position = "relative";
-
-            reader.appendChild(viewport);
-
-            Quagga.init({
-                inputStream: {
-                    type: "LiveStream",
-                    target: viewport,
-                    constraints: {
-                        facingMode: "environment",
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    }
-                },
-                locator: {
-                    patchSize: "medium",
-                    halfSample: false
-                },
-                numOfWorkers: 0,
-                frequency: 30,
-                decoder: {
-                    readers: [
-                        "ean_reader",
-                        "ean_8_reader"
-                    ]
-                },
-
-                locate: false
-            }, function (err) {
-                if (err) {
-                    showToast("카메라 시작 실패");
-                    return;
-                }
-                Quagga.start();
-            });
-
-            let scanBuffer = {};
-            let scanThreshold = 2; // 3번 연속 감지되어야 인정
-
-            Quagga.onDetected(function (result) {
-
-                if (!result || !result.codeResult || !result.codeResult.code) return;
-
-                const code = result.codeResult.code;
-
-                if (!scanBuffer[code]) {
-                    scanBuffer[code] = 1;
-                } else {
-                    scanBuffer[code]++;
-                }
-
-                // 3번 이상 연속 감지되면 성공 처리
-                if (scanBuffer[code] >= scanThreshold && code.length >= 8) {
-
-                    // 버퍼 초기화
-                    scanBuffer = {};
-
-                    onScanSuccess(code);
-                }
-            });
-
-        }
-
-        async function startIOSNativeScanner() {
-
-            const reader = document.getElementById("reader");
-            reader.innerHTML = "";
-
-            const video = document.createElement("video");
-            video.setAttribute("playsinline", true);
-            video.style.width = "100%";
-            video.style.height = "100%";
-            video.style.objectFit = "contain";
-
-            reader.appendChild(video);
-
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" }
-            });
-
-            video.srcObject = stream;
-            await video.play();
-
-            const detector = new BarcodeDetector();
-
-            setInterval(async () => {
-                try {
-                    console.log("detect 실행중");
-
-                    const barcodes = await detector.detect(video);
-                    console.log("detect 결과:", barcodes);
-
-                    if (barcodes.length > 0) {
-                        console.log("인식됨:", barcodes[0].rawValue);
-                        onScanSuccess(barcodes[0].rawValue);
-                    }
-                } catch (e) {
-                    console.log("에러:", e);
-                }
-            }, 500);
-
-        }
-=======
     } catch (e) {}
 
     setTimeout(scanLoop, 200); // 0.2초 간격으로 재시도
 }
->>>>>>> ea891cf (Update dashboard and scan pages)
 
 
 scanLoop();
 }
 
-<<<<<<< HEAD
-            const reader = document.getElementById("reader");
-            reader.innerHTML = "";
-
-            const video = document.createElement("video");
-            video.setAttribute("playsinline", true);
-            video.style.width = "100%";
-            video.style.height = "100%";
-            video.style.objectFit = "cover";
-
-            reader.appendChild(video);
-
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" }
-            });
-
-            video.srcObject = stream;
-            await video.play();
-
-            const detector = new BarcodeDetector({
-                formats: ["ean_13", "ean_8", "code_128", "upc_a", "upc_e"]
-            });
-
-            async function scanLoop() {
-                try {
-                    const barcodes = await detector.detect(video);
-
-                    if (barcodes.length > 0) {
-                        onScanSuccess(barcodes[0].rawValue);
-                        return; // 인식되면 루프 잠시 멈춤
-                    }
-
-                } catch (e) { }
-
-                setTimeout(scanLoop, 200); // 0.2초 간격으로 재시도
-            }
-
-
-            scanLoop();
-        }
-
-    </script>
-
-</body>
-
-=======
 </script>
 
 </body>
->>>>>>> ea891cf (Update dashboard and scan pages)
 </html>
