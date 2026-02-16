@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
@@ -303,152 +303,107 @@
     <div id="toast" class="toast-notification hidden"></div>
 
     <script>
-        // [새로운 제어 로직]
-        function enterApp() {
-            document.getElementById('landing-page').style.transform = 'translateY(-100%)';
-            document.getElementById('app-container').style.opacity = '1';
-            
-            // 기존 스캐너 시작 로직 실행
-            
-            render();
-            
-            setTimeout(() => {
-                document.getElementById('landing-page').classList.add('hidden');
-            }, 600);
-        }
-
-        // [기존 스크립트 그대로 보존]
-        const PRODUCT_DB = {
-            "8801048101037": { name: "신라면 (5개입)", price: 4500 },
-            "8801056154018": { name: "칠성사이다 500ml", price: 1800 },
-            "8801043014783": { name: "햇반 210g", price: 1500 },
-            "88023014": { name: "미등록 제품", price: 12000 }
-        };
-
         let cart = [];
         let html5QrCode = null;
         let isModalOpen = false;
 
         async function initScanner() {
-    try {
-        if (html5QrCode) {
-            try { await html5QrCode.stop(); } catch (e) {}
-        }
-
-        html5QrCode = new Html5Qrcode("reader");
-
-        const cameras = await Html5Qrcode.getCameras();
-        if (cameras && cameras.length) {
-            const backCamera = cameras[cameras.length - 1];
-
-
-            await html5QrCode.start(
-                backCamera.id,
-                {
-                    fps: 10,
-                    qrbox: { width: 300, height: 300 }
-                },
-                (decodedText) => {
-                    onScanSuccess(decodedText);
+            try {
+                if (html5QrCode) {
+                    try { await html5QrCode.stop(); } catch (e) {}
                 }
-            );
-        }
-
-    } catch (err) {
-        showToast("카메라 권한을 확인하세요.");
-    }
-}
-
-        function onScanSuccess(barcode) {
-            if (isModalOpen) return;
-            const now = Date.now();
-            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
-            if (navigator.vibrate) navigator.vibrate(80);
-            const product = PRODUCT_DB[barcode];
-            const isUnregistered = !product || (product.name && product.name.includes("미등록"));
-            if (!isUnregistered) {
-                addToCart(barcode);
-                showToast("SUCCESS SCAN!");
-            } else {
-                openManualModal(barcode);
+                html5QrCode = new Html5Qrcode("reader");
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length) {
+                    const backCamera = cameras[cameras.length - 1];
+                    await html5QrCode.start(
+                        backCamera.id,
+                        { fps: 10, qrbox: { width: 300, height: 300 } },
+                        (decodedText) => { onScanSuccess(decodedText); }
+                    );
+                }
+            } catch (err) {
+                showToast("카메라 권한을 확인하세요.");
             }
         }
 
-        function addToCart(barcode, manualInfo = null) {
-            if (manualInfo) PRODUCT_DB[barcode] = manualInfo;
+        // 스캔 성공 시 항상 모달을 엽니다.
+        function onScanSuccess(barcode) {
+            if (isModalOpen) return;
+            // 짧은 시간 내 동일 바코드 스캔 방지
+            if (cart.length > 0 && cart.some(item => item.barcode === barcode && (Date.now() - item.updatedAt < 2000))) return;
+
+            if (navigator.vibrate) navigator.vibrate(80);
+            openManualModal(barcode);
+        }
+
+        // 모달을 열고, DB에서 상품 정보를 조회하여 자동으로 채웁니다.
+        async function openManualModal(barcode) {
+            isModalOpen = true;
+            document.getElementById('manual-modal').classList.remove('hidden');
+            
+            const nameInput = document.getElementById('manual-name');
+            const priceInput = document.getElementById('manual-price');
+
+            // 1. 입력 필드 초기화 및 바코드 값 설정
+            document.getElementById('manual-barcode').value = barcode;
+            nameInput.value = "";
+            priceInput.value = "";
+            nameInput.focus();
+
+            showToast(`바코드 ${barcode} 조회중...`);
+
+            // 2. DB에서 바코드 정보 조회
+            const productInfo = await window.findProductInSessions(barcode);
+
+            // 3. 정보가 있으면 필드에 값 채우기
+            if (productInfo) {
+                nameInput.value = productInfo.name;
+                priceInput.value = productInfo.price;
+                showToast(`✅ 이전 기록을 불러왔습니다.`);
+            } else {
+                showToast(`ℹ️ 처음 보는 상품입니다.`);
+            }
+        }
+
+        function closeManualModal() {
+            isModalOpen = false;
+            document.getElementById('manual-modal').classList.add('hidden');
+        }
+
+        // 모달에서 입력된 정보로 장바구니에 아이템 추가 (DB 직접 수정 X)
+        function saveManualEntry() {
+            const barcode = document.getElementById('manual-barcode').value;
+            const name = document.getElementById('manual-name').value.trim();
+            const price = parseInt(document.getElementById('manual-price').value) || 0;
+
+            if (!name || price <= 0) { 
+                alert("상품명과 가격을 정확히 입력해주세요!"); 
+                return; 
+            }
+
+            addToCart(barcode, { name, price });
+            closeManualModal();
+            showToast("장바구니에 추가되었습니다! ✅");
+        }
+
+        function addToCart(barcode, productInfo) {
             const existing = cart.find(item => item.barcode === barcode);
             if (existing) {
                 existing.qty += 1;
                 existing.updatedAt = Date.now();
             } else {
-                const product = PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 0 };
                 cart.unshift({
                     id: Date.now(),
                     updatedAt: Date.now(),
                     barcode: barcode,
-                    name: product.name,
-                    price: product.price,
+                    name: productInfo.name,
+                    price: productInfo.price,
                     qty: 1
                 });
             }
-            if (window.saveScanToDB) {
-                 const dbProduct = PRODUCT_DB[barcode] || { name: "미등록", price: 0 };
-
-                 window.saveScanToDB({
-                     barcode: barcode,
-                     name: dbProduct.name,
-                     price: dbProduct.price,
-                     qty: 1
-             });
-          }
-
             render();
         }
-
-        // [수정] 모달 열기: 바코드 번호를 보여주고 입력을 기다립니다.
-function openManualModal(barcode) {
-    isModalOpen = true; // 스캔 중지
-    document.getElementById('manual-barcode').value = barcode;
-    document.getElementById('manual-name').value = ""; // 이름 초기화
-    document.getElementById('manual-price').value = ""; // 가격 초기화
-    document.getElementById('manual-modal').classList.remove('hidden');
-    document.getElementById('manual-name').focus(); // 상품명 입력창에 커서 둠
-}
-
-// [수정] 모달 닫기
-function closeManualModal() {
-    isModalOpen = false; // 스캔 다시 시작
-    document.getElementById('manual-modal').classList.add('hidden');
-}
-
-// [수정] 저장 버튼 클릭 시: 장바구니에 담고 Firebase에도 실시간으로 꽂아넣습니다.
-async function saveManualEntry() {
-    const barcode = document.getElementById('manual-barcode').value;
-    const name = document.getElementById('manual-name').value;
-    const price = parseInt(document.getElementById('manual-price').value) || 0;
-
-    if (!name) { 
-        alert("상품명을 입력해주세요!"); 
-        return; 
-    }
-
-    // 1. 장바구니에 즉시 담기 (addToCart 함수 활용)
-    addToCart(barcode, { name, price });
-
-    // 2. Firebase에 실시간 저장 (이미 만들어두신 window.saveScanToDB 활용)
-    if (window.saveScanToDB) {
-        window.saveScanToDB({
-            barcode: barcode,
-            name: name,
-            price: price,
-            qty: 1,
-            type: "manual_registration" // 수동 등록임을 기록
-        });
-    }
-
-    closeManualModal();
-    showToast("신규 상품이 저장되었습니다! ✅");
-}
 
         function updateQty(id, delta) {
             const item = cart.find(i => i.id === id);
@@ -501,9 +456,7 @@ async function saveManualEntry() {
             setTimeout(() => toast.classList.add('hidden'), 2000);
         }
 
-        // 윈도우 로드 시 자동 실행 대신 render만 미리 해둠
         window.addEventListener('load', () => {
-                
             render();
         });
     </script>
@@ -513,12 +466,21 @@ async function saveManualEntry() {
           getFirestore, 
           collection, 
           addDoc, 
-          serverTimestamp 
+          serverTimestamp,
+          query,
+          orderBy,
+          limit,
+          getDocs
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
+        import {
+          getAuth,
+          onAuthStateChanged,
+          signInWithPopup,
+          GoogleAuthProvider
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-      
-        // 🔥 네 Firebase 설정값 그대로 넣어
+        // Firebase 설정
         const firebaseConfig = {
            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
            authDomain: "thick-fdd38.firebaseapp.com",
@@ -529,110 +491,86 @@ async function saveManualEntry() {
            measurementId: "G-LH61G4J09W"
          };
 
-      
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithPopup,
-  GoogleAuthProvider
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
+        window.loginWithGoogle = async function () {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (e) {
+                console.error("❌ 로그인 실패:", e);
+            }
+        };
 
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUid = user.uid;
+                document.getElementById('landing-page').classList.add('hidden');
+                document.getElementById('app-container').style.opacity = '1';
+                render();
+            } else {
+                window.currentUid = null;
+                document.getElementById('landing-page').style.transform = 'translateY(0)';
+                document.getElementById('landing-page').classList.remove('hidden');
+                document.getElementById('app-container').style.opacity = '0';
 
+            }
+        });
+        
+        // 세션 기록에서 바코드를 찾는 함수
+        window.findProductInSessions = async function(barcode) {
+            if (!window.currentUid) return null;
 
-window.loginWithGoogle = async function () {
-  try {
-    await signInWithPopup(auth, provider);
-    console.log("🔥 구글 로그인 성공");
-  } catch (e) {
-    console.error("❌ 로그인 실패:", e);
-  }
-};
+            const sessionsRef = collection(db, "users", window.currentUid, "sessions");
+            const q = query(sessionsRef, orderBy("createdAt", "desc"), limit(50)); // 성능을 위해 최근 50개 세션만 조회
 
-
-                  
-       
-      onAuthStateChanged(auth, (user) => {
-         if (user) {
-         window.currentUid = user.uid;
-
-        // 🔥 자동 진입
-         document.getElementById('landing-page').classList.add('hidden');
-         document.getElementById('app-container').style.opacity = '1';
-         render();
-
-         console.log("✅ 로그인 UID:", user.uid);
-    } else {
-         window.currentUid = null;
-         console.log("❌ 로그인 안됨");
-    }
-});
-
-
-      
-        // 🔥 이 함수가 지금 undefined였던 함수
-        window.saveScanToDB = async function (data) {
-        try {
-
-        const currentUid = window.currentUid;
-
-        if (!currentUid) {
-            console.log("❌ 로그인 안됨");
-            return;
+            try {
+                const querySnapshot = await getDocs(q);
+                for (const doc of querySnapshot.docs) {
+                    const items = doc.data().items || [];
+                    const foundItem = items.find(item => item.barcode === barcode);
+                    if (foundItem) {
+                        return { name: foundItem.name, price: foundItem.price }; // 찾으면 이름과 가격 정보 반환
+                    }
+                }
+            } catch (e) {
+                console.error("세션 조회 실패: ", e);
+            }
+            return null; // 모든 세션을 조회해도 없으면 null 반환
         }
 
-        await addDoc(
-            collection(db, "users", currentUid, "scans"),
-            {
-                ...data,
-                createdAt: serverTimestamp()
+        // 현재 장바구니를 세션으로 저장하는 함수
+        window.finishSession = async function() {
+            if (!window.currentUid || cart.length === 0) {
+                window.location.href = "dashboard.html";
+                return;
             }
-        );
 
-        console.log("🔥 DB 저장 성공");
+            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
 
-    } catch (e) {
-        console.error("❌ DB 저장 실패:", e);
-    }
-};
-window.finishSession = async function() {
+            try {
+                await addDoc(
+                    collection(db, "users", window.currentUid, "sessions"),
+                    {
+                        items: cart,
+                        totalPrice: total,
+                        createdAt: serverTimestamp()
+                    }
+                );
 
-    if (!window.currentUid || cart.length === 0) {
-        window.location.href = "dashboard.html";
-        return;
-    }
+                showToast("구매 기록이 저장되었습니다 ✔");
 
-    const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+                setTimeout(() => {
+                    window.location.href = "dashboard.html";
+                }, 2000);
 
-    try {
-        await addDoc(
-            collection(db, "users", window.currentUid, "sessions"),
-            {
-                items: cart,
-                totalPrice: total,
-                createdAt: serverTimestamp()
+            } catch (e) {
+                console.error("❌ 세션 저장 실패:", e);
+                showToast("저장 실패. 다시 시도해주세요.");
             }
-        );
-
-        // 🔥 기존 reload 완전 제거
-        showToast("구매 기록이 저장되었습니다 ✔");
-
-        setTimeout(() => {
-            window.location.href = "dashboard.html";
-        }, 3000);
-
-    } catch (e) {
-        console.error("❌ 세션 저장 실패:", e);
-        showToast("저장 실패. 다시 시도해주세요.");
-    }
-};
-
-
-
+        };
       </script>
      
 
@@ -727,90 +665,6 @@ Quagga.onDetected(function (result) {
 });
 
 }
-
-async function startIOSNativeScanner() {
-
-const reader = document.getElementById("reader");
-reader.innerHTML = "";
-
-const video = document.createElement("video");
-video.setAttribute("playsinline", true);
-video.style.width = "100%";
-video.style.height = "100%";
-video.style.objectFit = "contain";
-
-reader.appendChild(video);
-
-const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "environment" }
-});
-
-video.srcObject = stream;
-await video.play();
-
-const detector = new BarcodeDetector();
-
-setInterval(async () => {
-    try {
-        console.log("detect 실행중");
-
-        const barcodes = await detector.detect(video);
-        console.log("detect 결과:", barcodes);
-
-        if (barcodes.length > 0) {
-            console.log("인식됨:", barcodes[0].rawValue);
-            onScanSuccess(barcodes[0].rawValue);
-        }
-    } catch (e) {
-        console.log("에러:", e);
-    }
-}, 500);
-
-}
-
-
-async function startNativeScanner() {
-
-const reader = document.getElementById("reader");
-reader.innerHTML = "";
-
-const video = document.createElement("video");
-video.setAttribute("playsinline", true);
-video.style.width = "100%";
-video.style.height = "100%";
-video.style.objectFit = "cover";
-
-reader.appendChild(video);
-
-const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "environment" }
-});
-
-video.srcObject = stream;
-await video.play();
-
-const detector = new BarcodeDetector({
-    formats: ["ean_13", "ean_8", "code_128", "upc_a", "upc_e"]
-});
-
-async function scanLoop() {
-    try {
-        const barcodes = await detector.detect(video);
-
-        if (barcodes.length > 0) {
-            onScanSuccess(barcodes[0].rawValue);
-            return; // 인식되면 루프 잠시 멈춤
-        }
-
-    } catch (e) {}
-
-    setTimeout(scanLoop, 200); // 0.2초 간격으로 재시도
-}
-
-
-scanLoop();
-}
-
 </script>
 
 </body>
