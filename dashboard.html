@@ -6,6 +6,7 @@
 <title>Thick - Dashboard</title>
 
 <style>
+<<<<<<< HEAD
   :root {
   --orange-main: #e67e22;
   --orange-light: #ff9f43;
@@ -86,10 +87,60 @@ body {
   opacity: 0.7;
 }
 
+=======
+body {
+  margin: 0;
+  background: #f2f2f7;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.wrapper {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  text-align: center;
+}
+
+.main-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.menu-btn {
+  width: 260px;
+  padding: 20px;
+  border-radius: 20px;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.btn-report {
+  background: #000;
+  color: #fff;
+}
+
+.btn-scan {
+  background: #e67e22;
+  color: #fff;
+}
+
+.desc {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin-top: 6px;
+}
+
+>>>>>>> ea891cf (Update dashboard and scan pages)
 #user-status-bar {
   position: fixed;
   top: 20px;
   right: 20px;
+<<<<<<< HEAD
   display: flex;
   align-items: center;
   gap: 12px;
@@ -343,5 +394,112 @@ window.logout = async function() {
 
 </script>
 
+=======
+  background: #000;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+</style>
+</head>
+
+<body>
+
+<div id="user-status-bar">로딩중...</div>
+
+<div class="wrapper">
+  <div class="main-title">안녕하세요 회원님</div>
+
+  <div>
+    <button class="menu-btn btn-report" onclick="goReport()">내 데이터보기</button>
+    <div class="desc">내 소비 리포트를 확인합니다</div>
+  </div>
+
+  <div>
+    <button class="menu-btn btn-scan" onclick="goScan()">장보기</button>
+    <div class="desc">마트에서 바코드를 스캔합니다</div>
+  </div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { 
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
+  authDomain: "thick-fdd38.firebaseapp.com",
+  projectId: "thick-fdd38",
+  storageBucket: "thick-fdd38.firebasestorage.app",
+  messagingSenderId: "109235677950",
+  appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
+  measurementId: "G-LH61G4J09W"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const userRef = doc(db, "users", user.uid);
+  const snapshot = await getDoc(userRef);
+
+  const data = snapshot.data();
+  const statusBar = document.getElementById("user-status-bar");
+
+  if (!data) {
+    statusBar.innerText = "회원정보 없음";
+    return;
+  }
+
+  if (data.subscriptionStatus === "active") {
+    statusBar.innerText = "구독중";
+    return;
+  }
+
+  const createdAt = data.createdAt.toDate();
+  const now = new Date();
+
+  const diffDays = Math.floor(
+    (now - createdAt) / (1000 * 60 * 60 * 24)
+  );
+
+  const remain = 60 - diffDays;
+
+  if (remain > 0) {
+    statusBar.innerText = `무료사용중 - ${remain}일`;
+  } else {
+    statusBar.innerText = "무료기간 종료";
+  }
+
+});
+
+window.goReport = function() {
+  window.location.href = "report.html";
+};
+
+window.goScan = function() {
+  window.location.href = "scan.html";
+};
+
+</script>
+
+>>>>>>> ea891cf (Update dashboard and scan pages)
 </body>
 </html>
