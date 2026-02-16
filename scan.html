@@ -1,7 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 
 <head>
+
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
@@ -64,10 +66,6 @@
         body {
             background-color: var(--bg-gray);
             margin: 0;
-            min-height: 100dvh;
-            /* dvh 적용 */
-            display: flex;
-            flex-direction: column;
         }
 
 
@@ -152,10 +150,8 @@
             color: var(--white);
             display: flex;
             flex-direction: column;
-            height: auto;
-            /* 고정 높이 제거 */
-            min-height: 280px;
-            flex-shrink: 0;
+            height: 280px;
+            /* 👈 고정 높이로 변경 */
         }
 
         .scanner-header {
@@ -425,19 +421,6 @@
             z-index: 20000;
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            padding-bottom: calc(16px + env(safe-area-inset-bottom));
-            /* 안전 영역 확보 */
-            gap: 16px;
-            flex: 1;
-            /* 부모 크기에 맞춤 */
-        }
-
         .modal-card {
             background: var(--white);
             width: 90%;
@@ -594,7 +577,7 @@
         <section class="cart-card">
             <div class="cart-header-row"><span id="cart-item-count">0</span> cart item</div>
 
-            <div id="cart-list" class="cart-items-list" style="flex: 1; overflow-y: auto;">
+            <div id="cart-list" class="cart-items-list">
                 <div class="empty-cart-msg">바코드를 스마트폰 렌즈에 비춰주세요.</div>
             </div>
 
@@ -657,15 +640,47 @@
 
         let cart = [];
         let html5QrCode = null;
-        let isModalOpen = false;
-        let isProcessingScan = false;
+        window.findProductInFirebase = async function (barcode) {
+            console.log("🔍 Firebase 조회 시작:", barcode);
+            try {
+                const { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+                const localDb = getFirestore();
 
-        // [반응성 최적화] 연속 감지 버퍼
-        let globalScanBuffer = {};
-        const GLOBAL_SCAN_THRESHOLD = 2; // 2번 연속 감지 시 인정 (속도 향상)
-        let lastScannedBarcode = "";
-        let lastScanTime = 0;
+                // 1. 전역 상품 컬렉션에서 조회 (가장 정확)
+                const productRef = doc(localDb, "products", String(barcode));
+                const productSnap = await getDoc(productRef);
 
+                if (productSnap.exists()) {
+                    console.log("✅ 전역 DB에서 발견:", productSnap.data().name);
+                    return productSnap.data();
+                }
+
+                // 2. 사용자의 이전 세션 기록에서 조회 (Fallback)
+                if (window.currentUid) {
+                    const q = query(
+                        collection(localDb, "users", window.currentUid, "sessions"),
+                        orderBy("createdAt", "desc"),
+                        limit(10)
+                    );
+                    const snap = await getDocs(q);
+
+                    for (const doc of snap.docs) {
+                        const items = doc.data().items;
+                        if (items && Array.isArray(items)) {
+                            const match = items.find(i => String(i.barcode).trim() === String(barcode).trim());
+                            if (match && match.name && !match.name.includes("미등록")) {
+                                console.log("✅ 이전 기록에서 발견:", match.name);
+                                return { name: match.name, price: match.price };
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("❌ Firebase 조회 에러:", e);
+            }
+            console.log("ℹ️ Firebase에 정보 없음");
+            return null;
+        };
         async function initScanner() {
             try {
                 if (html5QrCode) {
@@ -678,15 +693,12 @@
                 if (cameras && cameras.length) {
                     const backCamera = cameras[cameras.length - 1];
 
+
                     await html5QrCode.start(
                         backCamera.id,
                         {
-                            fps: 15, // FPS 상향
-                            qrbox: { width: 300, height: 150 }, // 가로로 긴 바코드에 최적화
-                            aspectRatio: 1.0,
-                            experimentalFeatures: {
-                                useBarCodeDetectorIfSupported: true
-                            }
+                            fps: 10,
+                            qrbox: { width: 300, height: 300 }
                         },
                         (decodedText) => {
                             onScanSuccess(decodedText);
@@ -699,62 +711,18 @@
             }
         }
 
-        async function onScanSuccess(barcode) {
-            if (isModalOpen || isProcessingScan) return;
-
-            // 1. 연속 감지 확인 (오인식 방지)
-            if (!globalScanBuffer[barcode]) {
-                globalScanBuffer = {}; // 다른 바코드가 읽혔다면 초기화
-                globalScanBuffer[barcode] = 1;
-                return;
-            } else {
-                globalScanBuffer[barcode]++;
-            }
-
-            if (globalScanBuffer[barcode] < GLOBAL_SCAN_THRESHOLD) return;
-
-            // 2. 중복 스캔 방지 (쿨타임 1.5초로 단축)
+        function onScanSuccess(barcode) {
+            if (isModalOpen) return;
             const now = Date.now();
-            if (barcode === lastScannedBarcode && (now - lastScanTime < 1500)) {
-                globalScanBuffer = {};
-                return;
-            }
-
-            // 인정되는 스캔 시작
-            isProcessingScan = true;
-            globalScanBuffer = {};
-            lastScannedBarcode = barcode;
-            lastScanTime = now;
-
-            try {
-                if (navigator.vibrate) navigator.vibrate(80);
-
-                let product = null;
-                // Firebase 조회 전 로그 확인
-                console.log("🔍 Looking up barcode in Firebase:", barcode, "UID:", window.currentUid);
-
-                if (typeof window.findProductInFirebase === 'function' && window.currentUid) {
-                    product = await window.findProductInFirebase(barcode);
-                    if (product) console.log("✅ Found in Firebase:", product.name);
-                }
-
-                if (!product) {
-                    product = PRODUCT_DB[barcode];
-                    if (product) console.log("📦 Found in local DB:", product.name);
-                }
-
-                const isUnregistered = !product || (product.name && product.name.includes("미등록"));
-                if (!isUnregistered) {
-                    addToCart(barcode, product);
-                    showToast("SUCCESS SCAN!");
-                } else {
-                    openManualModal(barcode);
-                }
-            } catch (e) {
-                console.error("Scan error:", e);
-            } finally {
-                // 락 해제 시간을 500ms로 단축하여 다음 스캔 준비 단축
-                setTimeout(() => { isProcessingScan = false; }, 500);
+            if (cart.length > 0 && cart[0].barcode === barcode && (now - cart[0].updatedAt < 1000)) return;
+            if (navigator.vibrate) navigator.vibrate(80);
+            const product = PRODUCT_DB[barcode];
+            const isUnregistered = !product || (product.name && product.name.includes("미등록"));
+            if (!isUnregistered) {
+                addToCart(barcode);
+                showToast("SUCCESS SCAN!");
+            } else {
+                openManualModal(barcode);
             }
         }
 
@@ -793,19 +761,10 @@
         function openManualModal(barcode) {
             isModalOpen = true; // 스캔 중지
             document.getElementById('manual-barcode').value = barcode;
-            // 입력창 비우고, 함수가 있으면 실행해서 결과값만 넣기
-            document.getElementById('manual-name').value = "";
-            document.getElementById('manual-price').value = "";
-            if (typeof window.findProductInFirebase === 'function') {
-                window.findProductInFirebase(barcode).then(data => {
-                    if (data) {
-                        document.getElementById('manual-name').value = data.name;
-                        document.getElementById('manual-price').value = data.price;
-                    }
-                });
-            }
+            document.getElementById('manual-name').value = ""; // 이름 초기화
+            document.getElementById('manual-price').value = ""; // 가격 초기화
             document.getElementById('manual-modal').classList.remove('hidden');
-            document.getElementById('manual-name').focus();
+            document.getElementById('manual-name').focus(); // 상품명 입력창에 커서 둠
         }
 
         // [수정] 모달 닫기
@@ -958,11 +917,6 @@
                 document.getElementById('app-container').style.opacity = '1';
                 render();
 
-                // 스캐너 자동 시작 추가
-                if (typeof startScanner === 'function') {
-                    startScanner();
-                }
-
                 console.log("✅ 로그인 UID:", user.uid);
             } else {
                 window.currentUid = null;
@@ -998,8 +952,10 @@
             }
         };
         window.finishSession = async function () {
+            console.log("🏁 finishSession started. UID:", window.currentUid, "Cart length:", cart.length);
 
             if (!window.currentUid || cart.length === 0) {
+                console.log("⚠️ No user or empty cart. Redirecting to dashboard.");
                 window.location.href = "dashboard.html";
                 return;
             }
@@ -1007,6 +963,7 @@
             const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
 
             try {
+                console.log("💾 Saving session to Firebase...");
                 await addDoc(
                     collection(db, "users", window.currentUid, "sessions"),
                     {
@@ -1016,15 +973,16 @@
                     }
                 );
 
-                // 🔥 기존 reload 완전 제거
-                showToast("구매 기록이 저장되었습니다 ✔");
+                console.log("✅ Session saved successfully.");
+                showToast("구매 기록이 저장되었습니다 :)");
 
                 setTimeout(() => {
+                    console.log("🚀 Navigating to dashboard...");
                     window.location.href = "dashboard.html";
-                }, 3000);
+                }, 1500); // 딜레이를 약간 단축 (3000 -> 1500)
 
             } catch (e) {
-                console.error("❌ 세션 저장 실패:", e);
+                console.error("❌ Session save failed:", e);
                 showToast("저장 실패. 다시 시도해주세요.");
             }
         };
@@ -1103,10 +1061,25 @@
             let scanThreshold = 2; // 3번 연속 감지되어야 인정
 
             Quagga.onDetected(function (result) {
+
                 if (!result || !result.codeResult || !result.codeResult.code) return;
+
                 const code = result.codeResult.code;
-                // 기존 Quagga 전용 버퍼 대신 통합 onScanSuccess 사용
-                onScanSuccess(code);
+
+                if (!scanBuffer[code]) {
+                    scanBuffer[code] = 1;
+                } else {
+                    scanBuffer[code]++;
+                }
+
+                // 3번 이상 연속 감지되면 성공 처리
+                if (scanBuffer[code] >= scanThreshold && code.length >= 8) {
+
+                    // 버퍼 초기화
+                    scanBuffer = {};
+
+                    onScanSuccess(code);
+                }
             });
 
         }
@@ -1193,38 +1166,7 @@
 
             scanLoop();
         }
-        window.findProductInFirebase = async function (barcode) {
-            if (!window.currentUid) return null;
-            try {
-                // Firestore 도구들을 가져옵니다.
-                const { getFirestore, query, collection, getDocs, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
 
-                // 중요: db 변수가 없을 상황을 대비해 직접 정의합니다.
-                const localDb = typeof db !== 'undefined' ? db : getFirestore();
-
-                const q = query(
-                    collection(localDb, "users", window.currentUid, "sessions"),
-                    orderBy("createdAt", "desc"),
-                    limit(100)
-                );
-                const snap = await getDocs(q);
-
-                for (const doc of snap.docs) {
-                    const items = doc.data().items;
-                    if (items && Array.isArray(items)) {
-                        // DB의 문자열 바코드와 스캔한 바코드를 정확히 비교
-                        const match = items.find(i => String(i.barcode).trim() === String(barcode).trim());
-                        if (match && match.name && !match.name.includes("미등록")) {
-                            return { name: match.name, price: match.price };
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error("조회 에러:", e);
-                return null;
-            }
-            return null;
-        };
     </script>
 
 </body>

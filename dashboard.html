@@ -1,246 +1,347 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Thick - Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
-        rel="stylesheet">
-    <style>
-        :root {
-            --orange-main: #e67e22;
-            --black-card: #000000;
-            --white: #ffffff;
-            --bg-gray: #f2f2f7;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thick - Dashboard</title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Noto Sans KR', sans-serif;
-        }
+<style>
+  :root {
+  --orange-main: #e67e22;
+  --orange-light: #ff9f43;
+}
+  
+body {
+  margin: 0;
+  background: linear-gradient(160deg, #0f0f0f 0%, #1c1c1e 100%);
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #fff;
+}
 
-        body {
-            background-color: var(--bg-gray);
-            min-height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
+.wrapper {
+  min-height: 100vh;
+  padding: 100px 24px 60px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
+.header {
+  text-align: center;
+  margin-bottom: 60px;
+}
 
-        .logo {
-            border: 2px solid #000;
-            padding: 2px 10px;
-            font-weight: 900;
-            font-size: 1.2rem;
-        }
+.main-title {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
 
-        .user-info {
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
 
-        .stat-card {
-            background: var(--black-card);
-            border-radius: 30px;
-            padding: 30px;
-            color: #fff;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
+.sub-title {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.6);
+}
 
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            margin-bottom: 5px;
-        }
 
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 900;
-        }
+.menu-container {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
 
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 900;
-            margin: 20px 0 15px 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.menu-card {
+  padding: 28px;
+  border-radius: 28px;
+  cursor: pointer;
+  transition: 0.25s ease;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
 
-        .session-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            flex: 1;
-            overflow-y: auto;
-        }
+.menu-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+}
 
-        .session-item {
-            background: #fff;
-            border-radius: 20px;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        }
+.card-report {
+  background: #f8f8f8;
+  color: #000;
+}
 
-        .session-date {
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
+.card-scan {
+  background: linear-gradient(135deg, var(--orange-main), var(--orange-light));
+  color: #fff;
+}
 
-        .session-info {
-            font-size: 0.8rem;
-            color: #888;
-        }
+.card-title {
+  font-size: 1.3rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
 
-        .session-total {
-            font-weight: 900;
-            color: var(--orange-main);
-            font-size: 1.1rem;
-        }
+.card-desc {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
 
-        .btn-scan {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--orange-main);
-            color: #fff;
-            border: none;
-            padding: 18px 40px;
-            border-radius: 40px;
-            font-weight: 900;
-            font-size: 1.1rem;
-            box-shadow: 0 10px 30px rgba(230, 126, 34, 0.4);
-            cursor: pointer;
-            z-index: 100;
-            text-decoration: none;
-        }
+#user-status-bar {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  padding: 10px 18px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  border: 1px solid rgba(255,255,255,0.1);
+}
 
-        .loading {
-            text-align: center;
-            margin-top: 50px;
-            font-weight: 700;
-            opacity: 0.5;
-        }
+#logout-btn {
+  background: linear-gradient(135deg, #e67e22, #ff9f43);
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(230,126,34,0.4);
 
-        .hidden {
-            display: none;
-        }
-    </style>
+}
+
+
+
+
+#logout-btn:hover {
+  transform: scale(1.1);
+}
+
+ .menu-card {
+  padding: 22px 20px;
+}
+
+.card-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.card-icon {
+  font-size: 2rem;
+  min-width: 44px;
+}
+
+.card-text {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.card-desc {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+ 
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.title-logo {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+}
+.title-row .hero-logo {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.8rem;
+}
+
+
+
+</style>
+
 </head>
 
 <body>
-    <div class="header">
-        <div class="logo">III</div>
-        <div class="user-info" id="user-display">Loading...</div>
+
+<div id="user-status-bar">
+  <span id="status-text">濡쒕뵫以?..</span>
+  <button id="logout-btn" onclick="logout()">濡쒓렇?꾩썐</button>
+
+
+</div>
+
+
+<div class="wrapper">
+
+ <div class="header">
+  <div class="title-row">
+    <div class="hero-logo">III</div>
+    <div class="main-title">?대쾲 ???뚮퉬瑜??쒕늿??/div>
+  </div>
+  <div class="sub-title">?곗씠??湲곕컲?쇰줈 ?묐삊???뚮퉬瑜??쒖옉?섏꽭??/div>
+</div>
+
+
+
+  <div class="menu-container">
+
+    <div class="menu-card card-report" onclick="goReport()">
+  <div class="card-row">
+    <div class="card-icon">?뱤</div>
+    <div class="card-text">
+      <div class="card-title">?뚮퉬 由ы룷???뺤씤</div>
+      <div class="card-desc">?대쾲 ???뚮퉬 遺꾩꽍怨?3媛쒖썡 異붿씠瑜??뺤씤?섏꽭??/div>
     </div>
+  </div>
+</div>
 
-    <div class="stat-card">
-        <div class="stat-label">이번 달 총 지출</div>
-        <div class="stat-value" id="monthly-total">0원</div>
+
+    <div class="menu-card card-scan" onclick="goScan()">
+  <div class="card-row">
+    <div class="card-icon">?썟</div>
+    <div class="card-text">
+      <div class="card-title">吏湲??λ낫湲??쒖옉</div>
+      <div class="card-desc">留덊듃?먯꽌 ?곹뭹???ㅼ틪?섍퀬 ?뚮퉬瑜?湲곕줉?섏꽭??/div>
     </div>
+  </div>
+</div>
 
-    <div class="section-title">
-        최근 쇼핑 기록
-    </div>
 
-    <div id="session-list" class="session-list">
-        <div class="loading">기록을 불러오는 중...</div>
-    </div>
+  </div>
 
-    <a href="scan.html" class="btn-scan">새로운 스캔 시작</a>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
-            authDomain: "thick-fdd38.firebaseapp.com",
-            projectId: "thick-fdd38",
-            storageBucket: "thick-fdd38.firebasestorage.app",
-            messagingSenderId: "109235677950",
-            appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
-            measurementId: "G-LH61G4J09W"
-        };
+<script type="module">
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { 
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                document.getElementById('user-display').innerText = user.displayName || "User";
-                loadSessions(user.uid);
-            } else {
-                window.location.href = "scan.html";
-            }
-        });
 
-        async function loadSessions(uid) {
-            const listEl = document.getElementById('session-list');
-            try {
-                const q = query(
-                    collection(db, "users", uid, "sessions"),
-                    orderBy("createdAt", "desc"),
-                    limit(20)
-                );
-                const querySnapshot = await getDocs(q);
+const firebaseConfig = {
+  apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
+  authDomain: "thick-fdd38.firebaseapp.com",
+  projectId: "thick-fdd38",
+  storageBucket: "thick-fdd38.firebasestorage.app",
+  messagingSenderId: "109235677950",
+  appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
+  measurementId: "G-LH61G4J09W"
+};
 
-                if (querySnapshot.empty) {
-                    listEl.innerHTML = '<div class="loading">아직 기록이 없습니다.</div>';
-                    return;
-                }
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-                let totalSpending = 0;
-                let html = '';
+onAuthStateChanged(auth, async (user) => {
 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const date = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : "진행 중";
-                    const price = data.totalPrice || 0;
-                    const itemCount = (data.items || []).length;
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
 
-                    totalSpending += price;
+  const userRef = doc(db, "users", user.uid);
+  const snapshot = await getDoc(userRef);
 
-                    html += `
-                        <div class="session-item">
-                            <div>
-                                <div class="session-date">${date}</div>
-                                <div class="session-info">상품 ${itemCount}개</div>
-                            </div>
-                            <div class="session-total">${price.toLocaleString()}원</div>
-                        </div>
-                    `;
-                });
+  const data = snapshot.data();
+  const statusBar = document.getElementById("status-text");
 
-                listEl.innerHTML = html;
-                document.getElementById('monthly-total').innerText = totalSpending.toLocaleString() + '원';
 
-            } catch (e) {
-                console.error("Error loading sessions:", e);
-                listEl.innerHTML = '<div class="loading">데이터를 불러오지 못했습니다.</div>';
-            }
-        }
-    </script>
+
+  if (!data) {
+    statusBar.innerText = "?뚯썝?뺣낫 ?놁쓬";
+    return;
+  }
+
+  if (data.subscriptionStatus === "active") {
+  statusBar.innerText = "援щ룆以?;
+  return;
+}
+
+if (data.subscriptionStatus === "trial") {
+
+  const createdAt = data.createdAt.toDate();
+  const now = new Date();
+
+  const totalTrialHours = 60 * 24;
+  const diffHours = Math.floor(
+    (now - createdAt) / (1000 * 60 * 60)
+  );
+
+  const remainHours = totalTrialHours - diffHours;
+
+  if (remainHours > 0) {
+    const days = Math.floor(remainHours / 24);
+    const hours = remainHours % 24;
+    statusBar.innerText = `臾대즺?ъ슜以?- ${days}??${hours}?쒓컙`;
+  } else {
+    statusBar.innerText = "臾대즺湲곌컙 醫낅즺";
+  }
+
+  return;
+}
+
+
+  const createdAt = data.createdAt.toDate();
+  const now = new Date();
+
+  const diffDays = Math.floor(
+    (now - createdAt) / (1000 * 60 * 60 * 24)
+  );
+
+  const remain = 60 - diffDays;
+
+  if (remain > 0) {
+    statusBar.innerText = `臾대즺?ъ슜以?- ${remain}??;
+  } else {
+    statusBar.innerText = "臾대즺湲곌컙 醫낅즺";
+  }
+
+});
+
+window.goReport = function() {
+  window.location.href = "report.html";
+};
+
+window.goScan = function() {
+  window.location.href = "scan.html";
+};
+
+window.logout = async function() {
+  await signOut(auth);
+  window.location.href = "index.html";
+};
+
+
+</script>
+
 </body>
-
 </html>
