@@ -539,67 +539,53 @@
         let html5QrCode = null;
         let isModalOpen = false;
 
-        // 3. 스캐너 로직 (iOS 호환성 및 인식률 정밀 튜닝)
+        // 3. 스캐너 로직 (권한 획득 성공률 극대화 및 안정성 튜닝)
         async function initScanner() {
             try {
+                // 기존 인스턴스 정리
                 if (html5QrCode) {
                     try { await html5QrCode.stop(); } catch (e) { }
                 }
 
-                // 스캐너 인스턴스 생성
-                html5QrCode = new Html5Qrcode("reader", {
-                    formatsToSupport: [
-                        Html5QrcodeSupportedFormats.EAN_13,
-                        Html5QrcodeSupportedFormats.EAN_8,
-                        Html5QrcodeSupportedFormats.UPC_A,
-                        Html5QrcodeSupportedFormats.UPC_E,
-                        Html5QrcodeSupportedFormats.CODE_128,
-                        Html5QrcodeSupportedFormats.ITF
-                    ]
-                });
+                // 스캐너 생성 (최소 사양으로 시작하여 권한 유도)
+                html5QrCode = new Html5Qrcode("reader");
 
                 const config = {
-                    fps: 25, // iOS 부하 감소를 위해 안정적인 25fps 설정
+                    fps: 20, // iOS 및 모바일 안정성을 위해 20fps 권장
                     qrbox: (viewfinderWidth, viewfinderHeight) => {
-                        // 13자리 바코드를 위한 넓은 가로 영역 확보
+                        // 가로 바코드 인식을 위해 넓은 가로 영역 확보
                         const width = viewfinderWidth * 0.9;
-                        const height = viewfinderHeight * 0.4;
+                        const height = viewfinderHeight * 0.45;
                         return { width, height };
                     },
                     aspectRatio: 1.0,
                     disableFlip: true,
                     experimentalFeatures: {
-                        useBarCodeDetectorIfSupported: true
+                        useBarCodeDetectorIfSupported: true // 가능할 경우 하드웨어 가속
                     }
                 };
 
-                // [iOS 핵심] 카메라 목록을 직접 조회하여 후면 카메라 선택
-                const devices = await Html5Qrcode.getCameras();
-                if (devices && devices.length > 0) {
-                    // 'back', 'rear', 'environment' 등의 키워드가 포함된 카메라 찾기
-                    let backCamera = devices.find(device =>
-                        device.label.toLowerCase().includes('back') ||
-                        device.label.toLowerCase().includes('rear') ||
-                        device.label.toLowerCase().includes('environment')
-                    ) || devices[devices.length - 1]; // 없으면 마지막 카메라(보통 후면)
-
-                    await html5QrCode.start(
-                        backCamera.id,
-                        config,
-                        (decodedText) => onScanSuccess(decodedText)
-                    );
-                } else {
-                    // 목록 조회 실패 시 표준 방식으로 재시도
-                    await html5QrCode.start(
+                // [iOS/Android 표준] facingMode를 사용하여 즉시 권한 요청 및 시작
+                await html5QrCode.start(
+                    { facingMode: "environment" }, // 후면 카메라 자동 선택
+                    config,
+                    (decodedText) => onScanSuccess(decodedText)
+                ).catch(err => {
+                    console.warn("Camera start failed, retrying with simple config...", err);
+                    // 실패 시 아주 단순한 설정으로 재시도
+                    return html5QrCode.start(
                         { facingMode: "environment" },
-                        config,
+                        { fps: 10, qrbox: { width: 250, height: 150 } },
                         (decodedText) => onScanSuccess(decodedText)
                     );
-                }
+                });
 
             } catch (err) {
-                console.error("Scanner startup error:", err);
-                showToast("카메라 권한을 허용해 주세요.");
+                console.error("Critical Scanner Error:", err);
+                showToast("카메라 권한을 허용하신 후 새로고침해 주세요.");
+
+                // 권한 거부 시 대비: 화면 클릭 시 재시도하도록 안내 가능
+                document.querySelector('.scanner-viewport').onclick = () => location.reload();
             }
         }
 

@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <title>띡! Thick - Smart Scanner Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
+    <style>
+        .btn-google {
+            margin-top: 16px;
+            background: #ffffff;
+            color: #000;
+            border: none;
+            width: 100%;
+            max-width: 300px;
+            padding: 16px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-google img {
+            width: 20px;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+
+        /* [기존 스타일 유지] */
+        :root {
+            --orange-main: #e67e22;
+            --black-card: #000000;
+            --white: #ffffff;
+            --bg-gray: #f2f2f7;
+            --card-radius: 44px;
+            --item-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            margin: 0;
+        }
+
+
+
+        /* 랜딩 페이지 추가 스타일 */
+        #landing-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            text-align: center;
+            color: white;
+            padding: 24px;
+            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .hero-logo {
+            border: 4px solid white;
+            padding: 4px 18px;
+            font-weight: 900;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+
+        .hero-title {
+            font-size: 3.2rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -1.5px;
+        }
+
+        .hero-title span {
+            color: var(--orange-main);
+        }
+
+        .hero-desc {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            line-height: 1.6;
+            margin-bottom: 50px;
+        }
+
+        .btn-start {
+            background: var(--orange-main);
+            color: white;
+            border: none;
+            width: 100%;
+            max-width: 300px;
+            padding: 20px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(230, 126, 34, 0.4);
+        }
+
+        .container {
+            width: 100%;
+            margin: 0 auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+
+        /* --- 상단: 스캐너 카드 (이미지 반영) --- */
+        .scanner-card {
+            background-color: var(--black-card);
+            border-radius: var(--card-radius);
+            padding: 24px;
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            height: 280px;
+            /* 👈 고정 높이로 변경 */
+        }
+
+        .scanner-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .logo-box {
+            border: 2px solid #555;
+            padding: 2px 10px;
+            font-weight: 900;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .scanner-viewport {
+            flex: 1;
+            background: #0d0d0d;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #222;
+            height: 220px;
+            /* 추가 */
+        }
+
+
+        #reader {
+            width: 100% !important;
+        }
+
+        #reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+        }
+
+
+        .viewport-border-overlay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .camera-reticle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .reticle-box {
+            width: 65%;
+            height: 45%;
+            position: relative;
+        }
+
+        .reticle-box::before,
+        .reticle-box::after,
+        .reticle-box span::before,
+        .reticle-box span::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-color: #fff;
+            border-style: solid;
+        }
+
+        .reticle-box::before {
+            top: -4px;
+            left: -4px;
+            border-width: 5px 0 0 5px;
+        }
+
+        .reticle-box::after {
+            top: -4px;
+            right: -4px;
+            border-width: 5px 5px 0 0;
+        }
+
+        .reticle-box span::before {
+            bottom: -4px;
+            left: -4px;
+            border-width: 0 0 5px 5px;
+        }
+
+        .reticle-box span::after {
+            bottom: -4px;
+            right: -4px;
+            border-width: 0 5px 5px 0;
+        }
+
+        .scanner-tip-text {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 1rem;
+            font-weight: 500;
+            opacity: 0.95;
+            letter-spacing: -0.5px;
+        }
+
+        .cart-card {
+            background-color: var(--orange-main);
+            border-radius: var(--card-radius);
+            padding: 24px;
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .cart-header-row {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            padding-left: 8px;
+        }
+
+        .cart-items-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            padding-bottom: 5px;
+        }
+
+        .item-row {
+            display: flex;
+            gap: 10px;
+            min-height: 56px;
+        }
+
+        .item-info-card {
+            background-color: var(--white);
+            border-radius: var(--item-radius);
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            color: #000;
+            flex: 1;
+            justify-content: space-between;
+        }
+
+        .item-name-label {
+            font-weight: 700;
+            font-size: 0.8rem;
+            flex: 1.1;
+            word-break: keep-all;
+            line-height: 1.2;
+        }
+
+        .item-price-label {
+            font-weight: 900;
+            font-size: 0.85rem;
+            flex: 1;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .item-qty-label {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            justify-content: flex-end;
+            flex: 0.7;
+            color: #444;
+        }
+
+        .qty-control-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: 900;
+            cursor: pointer;
+            color: #000;
+            padding: 0 6px;
+        }
+
+        .item-compare-link {
+            background-color: var(--white);
+            border-radius: var(--item-radius);
+            min-width: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #000;
+            font-weight: 900;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 0 8px;
+        }
+
+        .summary-footer {
+            background-color: var(--black-card);
+            border-radius: 15px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .summary-title {
+            font-weight: 900;
+            font-size: 0.8rem;
+            color: #fff;
+        }
+
+        .summary-value {
+            flex: 1;
+            text-align: right;
+            margin-right: 8px;
+            font-weight: 900;
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        .btn-checkout {
+            background-color: var(--white);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-weight: 900;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+        }
+
+        .modal-card {
+            background: var(--white);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 30px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            color: #000;
+            font-size: 1.4rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .modal-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-label {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #eee;
+            font-size: 1.1rem;
+            font-weight: 700;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .modal-input:focus {
+            border-color: var(--orange-main);
+        }
+
+        .modal-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background: var(--orange-main);
+            color: #fff;
+        }
+
+        .btn-cancel {
+            background: #eee;
+            color: #666;
+        }
+
+        .qty-num {
+            font-size: 0.75rem;
+            color: var(--orange-main);
+            margin-left: 3px;
+            font-weight: 800;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 14px 40px;
+            border-radius: 50px;
+            font-weight: 900;
+            z-index: 10000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            white-space: nowrap;
+        }
+
+        .empty-cart-msg {
+            text-align: center;
+            margin-top: 40%;
+            opacity: 0.8;
+            font-weight: 700;
+            color: #fff;
+        }
+    </style>
+
+</head>
+
+<body>
+    <section id="landing-page">
+        <div class="hero-logo">III</div>
+        <h1 class="hero-title">쇼핑이<br><span>가벼워진다</span></h1>
+        <p class="hero-desc">
+            마트에서 가격 암산은 이제 그만.<br>
+            바코드만 찍으면 합계가 바로 나옵니다.
+        </p>
+
+        <button class="btn-google" onclick="loginWithGoogle()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
+            구글로 시작하기
+        </button>
+
+        <p style="margin-top: 40px; font-size: 0.8rem; opacity: 0.4;">thick.ai.kr - Smart Shopping Helper</p>
+    </section>
+
+    <div class="container" id="app-container">
+        <section class="scanner-card">
+            <header class="scanner-header">
+                <div class="logo-box">III</div>
+                <div class="logo-text">Thick 띡!</div>
+            </header>
+            <div class="scanner-viewport">
+                <div id="reader"></div>
+                <div class="viewport-border-overlay"></div>
+                <div class="camera-reticle">
+                    <div class="reticle-box"><span></span></div>
+                </div>
+            </div>
+            <p class="scanner-tip-text">상품을 스캔해주세요</p>
+            <button onclick="startScanner()"
+                style="margin-top:10px;padding:10px 20px;border:none;border-radius:10px;background:#fff;color:#000;font-weight:700;">
+                카메라 시작
+            </button>
+
+        </section>
+
+        <section class="cart-card">
+            <div class="cart-header-row"><span id="cart-item-count">0</span> cart item</div>
+
+            <div id="cart-list" class="cart-items-list">
+                <div class="empty-cart-msg">바코드를 스마트폰 렌즈에 비춰주세요.</div>
+            </div>
+
+            <div class="summary-footer">
+                <span class="summary-title">금액 합계</span>
+                <span class="summary-value"><span id="total-val">0</span>원</span>
+                <button class="btn-checkout" onclick="finishSession()">구매 종료</button>
+
+            </div>
+        </section>
+    </div>
+
+    <div id="manual-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h2 class="modal-title">📦 신규 상품 등록</h2>
+            <div class="modal-input-group">
+                <span class="modal-label">바코드</span>
+                <input type="text" id="manual-barcode" class="modal-input" readonly
+                    style="background:#f9f9f9; color:#999;">
+            </div>
+            <div class="modal-input-group">
+                <span class="modal-label">상품명</span>
+                <input type="text" id="manual-name" class="modal-input" placeholder="상품 이름을 입력하세요">
+            </div>
+            <div class="modal-input-group">
+                <span class="modal-label">판매 가격 (원)</span>
+                <input type="number" id="manual-price" class="modal-input" placeholder="0" inputmode="numeric">
+            </div>
+            <div class="modal-btn-group">
+                <button class="modal-btn btn-cancel" onclick="closeManualModal()">취소</button>
+                <button class="modal-btn btn-save" onclick="saveManualEntry()">저장 후 담기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast-notification hidden"></div>
+
+    <script>
+        // [새로운 제어 로직]
+        function enterApp() {
+            document.getElementById('landing-page').style.transform = 'translateY(-100%)';
+            document.getElementById('app-container').style.opacity = '1';
+
+            // 기존 스캐너 시작 로직 실행
+
+            render();
+
+            setTimeout(() => {
+                document.getElementById('landing-page').classList.add('hidden');
+            }, 600);
+        }
+
+        // [기존 스크립트 그대로 보존]
+        const PRODUCT_DB = {
+            "8801048101037": { name: "신라면 (5개입)", price: 4500 },
+            "8801056154018": { name: "칠성사이다 500ml", price: 1800 },
+            "8801043014783": { name: "햇반 210g", price: 1500 },
+            "88023014": { name: "미등록 제품", price: 12000 }
+        };
+
+        let isModalOpen = false;
+        let isProcessingScan = false;
+
+        // [반응성 최적화] 연속 감지 버퍼
+        let globalScanBuffer = {};
+        const GLOBAL_SCAN_THRESHOLD = 2; // 2번 연속 감지 시 인정 (속도 향상)
+        let lastScannedBarcode = "";
+        let lastScanTime = 0;
+
+        async function initScanner() {
+            try {
+                if (html5QrCode) {
+                    try { await html5QrCode.stop(); } catch (e) { }
+                }
+
+                html5QrCode = new Html5Qrcode("reader");
+
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length) {
+                    const backCamera = cameras[cameras.length - 1];
+
+                    await html5QrCode.start(
+                        backCamera.id,
+                        {
+                            fps: 10,
+                            qrbox: { width: 300, height: 300 }
+                        },
+                        (decodedText) => {
+                            onScanSuccess(decodedText);
+                        }
+                    );
+                }
+
+            } catch (err) {
+                showToast("카메라 권한을 확인하세요.");
+            }
+        }
+
+        async function onScanSuccess(barcode) {
+            if (isModalOpen || isProcessingScan) return;
+
+            // 1. 연속 감지 확인 (오인식 방지)
+            if (!globalScanBuffer[barcode]) {
+                globalScanBuffer = {}; // 다른 바코드가 읽혔다면 초기화
+                globalScanBuffer[barcode] = 1;
+                return;
+            } else {
+                globalScanBuffer[barcode]++;
+            }
+
+            if (globalScanBuffer[barcode] < GLOBAL_SCAN_THRESHOLD) return;
+
+            // 2. 중복 스캔 방지 (쿨타임 1.5초로 단축)
+            const now = Date.now();
+            if (barcode === lastScannedBarcode && (now - lastScanTime < 1500)) {
+                globalScanBuffer = {};
+                return;
+            }
+
+            // 인정되는 스캔 시작
+            isProcessingScan = true;
+            globalScanBuffer = {};
+            lastScannedBarcode = barcode;
+            lastScanTime = now;
+
+            try {
+                if (navigator.vibrate) navigator.vibrate(80);
+
+                let product = null;
+                if (typeof window.findProductInFirebase === 'function') {
+                    product = await window.findProductInFirebase(barcode);
+                }
+                if (!product) product = PRODUCT_DB[barcode];
+
+                const isUnregistered = !product || (product.name && product.name.includes("미등록"));
+                if (!isUnregistered) {
+                    addToCart(barcode, product);
+                    showToast("SUCCESS SCAN!");
+                } else {
+                    openManualModal(barcode);
+                }
+            } catch (e) {
+                console.error("Scan error:", e);
+            } finally {
+                // 락 해제 시간을 500ms로 단축하여 다음 스캔 준비 단축
+                setTimeout(() => { isProcessingScan = false; }, 500);
+            }
+        }
+
+        function addToCart(barcode, manualInfo = null) {
+            if (manualInfo) PRODUCT_DB[barcode] = manualInfo;
+            const existing = cart.find(item => item.barcode === barcode);
+            if (existing) {
+                existing.qty += 1;
+                existing.updatedAt = Date.now();
+            } else {
+                const product = PRODUCT_DB[barcode] || { name: `미등록 (${barcode})`, price: 0 };
+                cart.unshift({
+                    id: Date.now(),
+                    updatedAt: Date.now(),
+                    barcode: barcode,
+                    name: product.name,
+                    price: product.price,
+                    qty: 1
+                });
+            }
+            if (window.saveScanToDB) {
+                const dbProduct = PRODUCT_DB[barcode] || { name: "미등록", price: 0 };
+
+                window.saveScanToDB({
+                    barcode: barcode,
+                    name: dbProduct.name,
+                    price: dbProduct.price,
+                    qty: 1
+                });
+            }
+
+            render();
+        }
+
+        // [수정] 모달 열기: 바코드 번호를 보여주고 입력을 기다립니다.
+        function openManualModal(barcode) {
+            isModalOpen = true; // 스캔 중지
+            document.getElementById('manual-barcode').value = barcode;
+            // 입력창 비우고, 함수가 있으면 실행해서 결과값만 넣기
+            document.getElementById('manual-name').value = "";
+            document.getElementById('manual-price').value = "";
+            if (typeof window.findProductInFirebase === 'function') {
+                window.findProductInFirebase(barcode).then(data => {
+                    if (data) {
+                        document.getElementById('manual-name').value = data.name;
+                        document.getElementById('manual-price').value = data.price;
+                    }
+                });
+            }
+            document.getElementById('manual-modal').classList.remove('hidden');
+            document.getElementById('manual-name').focus();
+        }
+
+        // [수정] 모달 닫기
+        function closeManualModal() {
+            isModalOpen = false; // 스캔 다시 시작
+            document.getElementById('manual-modal').classList.add('hidden');
+        }
+
+        // [수정] 저장 버튼 클릭 시: 장바구니에 담고 Firebase에도 실시간으로 꽂아넣습니다.
+        async function saveManualEntry() {
+            const barcode = document.getElementById('manual-barcode').value;
+            const name = document.getElementById('manual-name').value;
+            const price = parseInt(document.getElementById('manual-price').value) || 0;
+
+            if (!name) {
+                alert("상품명을 입력해주세요!");
+                return;
+            }
+
+            // 1. 장바구니에 즉시 담기 (addToCart 함수 활용)
+            addToCart(barcode, { name, price });
+
+            // 2. Firebase에 실시간 저장 (이미 만들어두신 window.saveScanToDB 활용)
+            if (window.saveScanToDB) {
+                window.saveScanToDB({
+                    barcode: barcode,
+                    name: name,
+                    price: price,
+                    qty: 1,
+                    type: "manual_registration" // 수동 등록임을 기록
+                });
+            }
+
+            closeManualModal();
+            showToast("신규 상품이 저장되었습니다! ✅");
+        }
+
+        function updateQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                item.updatedAt = Date.now();
+                if (item.qty < 1) cart = cart.filter(i => i.id !== id);
+            }
+            render();
+        }
+
+        function render() {
+            const listEl = document.getElementById('cart-list');
+            const countEl = document.getElementById('cart-item-count');
+            const totalValEl = document.getElementById('total-val');
+            if (!listEl) return;
+            if (cart.length === 0) {
+                listEl.innerHTML = '<div class="empty-cart-msg">바코드를 스마트폰 렌즈에 비춰주세요.</div>';
+                countEl.innerText = "0";
+                totalValEl.innerText = "0";
+                return;
+            }
+            listEl.innerHTML = cart.map(item => `
+                <div class="item-row">
+                    <div class="item-info-card">
+                        <span class="item-name-label">${item.name}</span>
+                        <span class="item-price-label">
+                            ${(item.price * item.qty).toLocaleString()}원
+                            <span class="qty-num">${item.qty}</span>
+                        </span>
+                        <div class="item-qty-label">
+                            <button class="qty-control-btn" onclick="updateQty(${item.id}, -1)">-</button>
+                            /
+                            <button class="qty-control-btn" onclick="updateQty(${item.id}, 1)">+</button>
+                        </div>
+                    </div>
+                    <a href="https://search.shopping.naver.com/search/all?query=${encodeURIComponent(item.name)}" target="_blank" class="item-compare-link">가격비교</a>
+                </div>
+            `).join('');
+            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            totalValEl.innerText = total.toLocaleString();
+            countEl.innerText = cart.length;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+        }
+
+        // 윈도우 로드 시 자동 실행 대신 render만 미리 해둠
+        window.addEventListener('load', () => {
+
+            render();
+        });
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+
+        // 🔥 네 Firebase 설정값 그대로 넣어
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
+            authDomain: "thick-fdd38.firebaseapp.com",
+            projectId: "thick-fdd38",
+            storageBucket: "thick-fdd38.firebasestorage.app",
+            messagingSenderId: "109235677950",
+            appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
+            measurementId: "G-LH61G4J09W"
+        };
+
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        import {
+            getAuth,
+            onAuthStateChanged,
+            signInWithPopup,
+            GoogleAuthProvider
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+
+
+        window.loginWithGoogle = async function () {
+            try {
+                await signInWithPopup(auth, provider);
+                console.log("🔥 구글 로그인 성공");
+            } catch (e) {
+                console.error("❌ 로그인 실패:", e);
+            }
+        };
+
+
+
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUid = user.uid;
+
+                // 🔥 자동 진입
+                document.getElementById('landing-page').classList.add('hidden');
+                document.getElementById('app-container').style.opacity = '1';
+                render();
+
+                console.log("✅ 로그인 UID:", user.uid);
+            } else {
+                window.currentUid = null;
+                console.log("❌ 로그인 안됨");
+            }
+        });
+
+
+
+        // 🔥 이 함수가 지금 undefined였던 함수
+        window.saveScanToDB = async function (data) {
+            try {
+
+                const currentUid = window.currentUid;
+
+                if (!currentUid) {
+                    console.log("❌ 로그인 안됨");
+                    return;
+                }
+
+                await addDoc(
+                    collection(db, "users", currentUid, "scans"),
+                    {
+                        ...data,
+                        createdAt: serverTimestamp()
+                    }
+                );
+
+                console.log("🔥 DB 저장 성공");
+
+            } catch (e) {
+                console.error("❌ DB 저장 실패:", e);
+            }
+        };
+        window.finishSession = async function () {
+
+            if (!window.currentUid || cart.length === 0) {
+                window.location.href = "dashboard.html";
+                return;
+            }
+
+            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+
+            try {
+                await addDoc(
+                    collection(db, "users", window.currentUid, "sessions"),
+                    {
+                        items: cart,
+                        totalPrice: total,
+                        createdAt: serverTimestamp()
+                    }
+                );
+
+                // 🔥 기존 reload 완전 제거
+                showToast("구매 기록이 저장되었습니다 ✔");
+
+                setTimeout(() => {
+                    window.location.href = "dashboard.html";
+                }, 3000);
+
+            } catch (e) {
+                console.error("❌ 세션 저장 실패:", e);
+                showToast("저장 실패. 다시 시도해주세요.");
+            }
+        };
+
+
+
+    </script>
+
+
+    <script>
+        function isInAppBrowser() {
+            const ua = navigator.userAgent;
+            return /KAKAOTALK|NAVER|Instagram|FBAN|FBAV/i.test(ua);
+        }
+        function isIOS() {
+            return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        }
+
+        if (isInAppBrowser()) {
+            alert("로그인이 안될 경우, 오른쪽 상단 메뉴에서 '브라우저로 열기'를 눌러주세요.");
+        }
+        function startScanner() {
+            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            if (isIOS) {
+                startIOSQuagga();
+            } else {
+                initScanner(); // 안드로이드는 기존 html5-qrcode 유지
+            }
+        }
+        function startIOSQuagga() {
+
+            const reader = document.getElementById("reader");
+            reader.innerHTML = "";
+
+            const viewport = document.createElement("div");
+            viewport.style.width = "100%";
+            viewport.style.height = "340px";
+            viewport.style.position = "relative";
+
+            reader.appendChild(viewport);
+
+            Quagga.init({
+                inputStream: {
+                    type: "LiveStream",
+                    target: viewport,
+                    constraints: {
+                        facingMode: "environment",
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                },
+                locator: {
+                    patchSize: "medium",
+                    halfSample: false
+                },
+                numOfWorkers: 0,
+                frequency: 30,
+                decoder: {
+                    readers: [
+                        "ean_reader",
+                        "ean_8_reader"
+                    ]
+                },
+
+                locate: false
+            }, function (err) {
+                if (err) {
+                    showToast("카메라 시작 실패");
+                    return;
+                }
+                Quagga.start();
+            });
+
+            let scanBuffer = {};
+            let scanThreshold = 2; // 3번 연속 감지되어야 인정
+
+            Quagga.onDetected(function (result) {
+                if (!result || !result.codeResult || !result.codeResult.code) return;
+                const code = result.codeResult.code;
+                // 기존 Quagga 전용 버퍼 대신 통합 onScanSuccess 사용
+                onScanSuccess(code);
+            });
+
+        }
+
+        async function startIOSNativeScanner() {
+
+            const reader = document.getElementById("reader");
+            reader.innerHTML = "";
+
+            const video = document.createElement("video");
+            video.setAttribute("playsinline", true);
+            video.style.width = "100%";
+            video.style.height = "100%";
+            video.style.objectFit = "contain";
+
+            reader.appendChild(video);
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" }
+            });
+
+            video.srcObject = stream;
+            await video.play();
+
+            const detector = new BarcodeDetector();
+
+            setInterval(async () => {
+                try {
+                    console.log("detect 실행중");
+
+                    const barcodes = await detector.detect(video);
+                    console.log("detect 결과:", barcodes);
+
+                    if (barcodes.length > 0) {
+                        console.log("인식됨:", barcodes[0].rawValue);
+                        onScanSuccess(barcodes[0].rawValue);
+                    }
+                } catch (e) {
+                    console.log("에러:", e);
+                }
+            }, 500);
+
+        }
+
+
+        async function startNativeScanner() {
+
+            const reader = document.getElementById("reader");
+            reader.innerHTML = "";
+
+            const video = document.createElement("video");
+            video.setAttribute("playsinline", true);
+            video.style.width = "100%";
+            video.style.height = "100%";
+            video.style.objectFit = "cover";
+
+            reader.appendChild(video);
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" }
+            });
+
+            video.srcObject = stream;
+            await video.play();
+
+            const detector = new BarcodeDetector({
+                formats: ["ean_13", "ean_8", "code_128", "upc_a", "upc_e"]
+            });
+
+            async function scanLoop() {
+                try {
+                    const barcodes = await detector.detect(video);
+
+                    if (barcodes.length > 0) {
+                        onScanSuccess(barcodes[0].rawValue);
+                        return; // 인식되면 루프 잠시 멈춤
+                    }
+
+                } catch (e) { }
+
+                setTimeout(scanLoop, 200); // 0.2초 간격으로 재시도
+            }
+
+
+            scanLoop();
+        }
+        window.findProductInFirebase = async function (barcode) {
+            if (!window.currentUid) return null;
+            try {
+                // Firestore 도구들을 가져옵니다.
+                const { getFirestore, query, collection, getDocs, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+                // 중요: db 변수가 없을 상황을 대비해 직접 정의합니다.
+                const localDb = typeof db !== 'undefined' ? db : getFirestore();
+
+                const q = query(
+                    collection(localDb, "users", window.currentUid, "sessions"),
+                    orderBy("createdAt", "desc"),
+                    limit(100)
+                );
+                const snap = await getDocs(q);
+
+                for (const doc of snap.docs) {
+                    const items = doc.data().items;
+                    if (items && Array.isArray(items)) {
+                        // DB의 문자열 바코드와 스캔한 바코드를 정확히 비교
+                        const match = items.find(i => String(i.barcode).trim() === String(barcode).trim());
+                        if (match && match.name && !match.name.includes("미등록")) {
+                            return { name: match.name, price: match.price };
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("조회 에러:", e);
+                return null;
+            }
+            return null;
+        };
+    </script>
+
+</body>
+
+</html>
