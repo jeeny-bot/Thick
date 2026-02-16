@@ -168,7 +168,6 @@
       
               // Naver Provider
               const naverProvider = new OAuthProvider('oidc.naver');
-              naverProvider.addScope('email');
               naverProvider.setCustomParameters({ auth_type: 'reauthenticate' });
               window.loginWithNaver = async function () {
                   try {
@@ -204,4 +203,3 @@
       
       </body>
       </html>
-      
