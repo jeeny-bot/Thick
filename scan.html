@@ -64,6 +64,10 @@
         body {
             background-color: var(--bg-gray);
             margin: 0;
+            min-height: 100dvh;
+            /* dvh 적용 */
+            display: flex;
+            flex-direction: column;
         }
 
 
@@ -148,8 +152,10 @@
             color: var(--white);
             display: flex;
             flex-direction: column;
-            height: 280px;
-            /* 👈 고정 높이로 변경 */
+            height: auto;
+            /* 고정 높이 제거 */
+            min-height: 280px;
+            flex-shrink: 0;
         }
 
         .scanner-header {
@@ -419,6 +425,19 @@
             z-index: 20000;
         }
 
+        .container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            /* 안전 영역 확보 */
+            gap: 16px;
+            flex: 1;
+            /* 부모 크기에 맞춤 */
+        }
+
         .modal-card {
             background: var(--white);
             width: 90%;
@@ -575,7 +594,7 @@
         <section class="cart-card">
             <div class="cart-header-row"><span id="cart-item-count">0</span> cart item</div>
 
-            <div id="cart-list" class="cart-items-list">
+            <div id="cart-list" class="cart-items-list" style="flex: 1; overflow-y: auto;">
                 <div class="empty-cart-msg">바코드를 스마트폰 렌즈에 비춰주세요.</div>
             </div>
 
@@ -707,10 +726,18 @@
                 if (navigator.vibrate) navigator.vibrate(80);
 
                 let product = null;
-                if (typeof window.findProductInFirebase === 'function') {
+                // Firebase 조회 전 로그 확인
+                console.log("🔍 Looking up barcode in Firebase:", barcode, "UID:", window.currentUid);
+
+                if (typeof window.findProductInFirebase === 'function' && window.currentUid) {
                     product = await window.findProductInFirebase(barcode);
+                    if (product) console.log("✅ Found in Firebase:", product.name);
                 }
-                if (!product) product = PRODUCT_DB[barcode];
+
+                if (!product) {
+                    product = PRODUCT_DB[barcode];
+                    if (product) console.log("📦 Found in local DB:", product.name);
+                }
 
                 const isUnregistered = !product || (product.name && product.name.includes("미등록"));
                 if (!isUnregistered) {
