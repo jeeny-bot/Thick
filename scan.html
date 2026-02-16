@@ -2,8 +2,6 @@
 <html lang="ko">
 
 <head>
-
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
@@ -638,6 +636,8 @@
             "88023014": { name: "미등록 제품", price: 12000 }
         };
 
+        let cart = [];
+        let html5QrCode = null;
         let isModalOpen = false;
         let isProcessingScan = false;
 
@@ -926,6 +926,11 @@
                 document.getElementById('landing-page').classList.add('hidden');
                 document.getElementById('app-container').style.opacity = '1';
                 render();
+
+                // 스캐너 자동 시작 추가
+                if (typeof startScanner === 'function') {
+                    startScanner();
+                }
 
                 console.log("✅ 로그인 UID:", user.uid);
             } else {
