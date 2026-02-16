@@ -681,8 +681,12 @@
                     await html5QrCode.start(
                         backCamera.id,
                         {
-                            fps: 10,
-                            qrbox: { width: 300, height: 300 }
+                            fps: 15, // FPS 상향
+                            qrbox: { width: 300, height: 150 }, // 가로로 긴 바코드에 최적화
+                            aspectRatio: 1.0,
+                            experimentalFeatures: {
+                                useBarCodeDetectorIfSupported: true
+                            }
                         },
                         (decodedText) => {
                             onScanSuccess(decodedText);
