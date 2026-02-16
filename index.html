@@ -185,6 +185,7 @@
               };
       
               function handleAuthError(error) {
+                  console.error("Authentication Error Details:", error);
                   if (error.code === 'auth/popup-closed-by-user') {
                       alert('로그인 팝업이 닫혔습니다. 다시 시도해주세요.');
                   } else if (error.code === 'auth/account-exists-with-different-credential') {
