@@ -169,8 +169,6 @@
               // Naver Provider
               const naverProvider = new OAuthProvider('oidc.naver');
               naverProvider.addScope('profile');
-              naverProvider.addScope('email');
-              naverProvider.addScope('name');
               naverProvider.setCustomParameters({ auth_type: 'reauthenticate' });
               window.loginWithNaver = async function () {
                   try {
