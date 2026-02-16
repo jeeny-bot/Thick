@@ -167,7 +167,7 @@
         };
 
         // Naver Provider
-        const naverProvider = new OAuthProvider('naver.com');
+        const naverProvider = new OAuthProvider('oidc.naver');
         window.loginWithNaver = async function () {
             try {
                 await signInWithPopup(auth, naverProvider);
