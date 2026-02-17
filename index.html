@@ -232,6 +232,11 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        // Redirect if user is already logged in
+        if (auth.currentUser) {
+            window.location.href = "dashboard.html";
+        }
+
         // Initialize Kakao SDK
         Kakao.init('40173e2de2b82288c08adec5c79dafb5');
 
@@ -249,12 +254,70 @@
             });
         }
 
-        function loginWithKakao() {
-          Kakao.Auth.authorize({
-            redirectUri: `${window.location.origin}/kakao.html`,
-            scope: 'profile_nickname, account_email',
-          });
+        async function loginWithKakao() {
+            try {
+                // 1. Kakao Login using Promise-wrapped popup
+                const authObj = await new Promise((resolve, reject) => {
+                    Kakao.Auth.login({
+                        scope: 'profile_nickname, account_email',
+                        success: resolve,
+                        fail: reject,
+                    });
+                });
+
+                // 2. Set Access Token
+                Kakao.Auth.setAccessToken(authObj.access_token);
+
+                // 3. Get User Info from Kakao
+                const userData = await Kakao.API.request({
+                    url: '/v2/user/me',
+                });
+
+                // 4. Handle Firebase Authentication
+                const kakaoId = String(userData.id);
+                const nickname = userData.kakao_account?.profile?.nickname || '사용자';
+                const email = userData.kakao_account?.email;
+
+                const firebaseEmail = email || `${kakaoId}@kakao.thick.ai`;
+                const firebasePassword = `kakao_${kakaoId}`;
+                
+                try {
+                    // Try to sign in
+                    await auth.signInWithEmailAndPassword(firebaseEmail, firebasePassword);
+                } catch (error) {
+                    // If user does not exist, create a new one
+                    if (error.code === 'auth/user-not-found') {
+                        const userCredential = await auth.createUserWithEmailAndPassword(firebaseEmail, firebasePassword);
+                        await userCredential.user.updateProfile({ displayName: nickname });
+
+                        // Save user info to Firestore
+                        await db.collection('users').doc(userCredential.user.uid).set({
+                            uid: userCredential.user.uid,
+                            nickname: nickname,
+                            email: firebaseEmail,
+                            provider: 'kakao',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                    } else {
+                        // Re-throw other sign-in errors
+                        throw error;
+                    }
+                }
+                
+            } catch (error) {
+                console.error("Kakao login or Firebase auth error:", error);
+                let errorMessage = "카카오 로그인 중 오류가 발생했습니다.";
+                if (typeof error === 'string') {
+                    errorMessage = error;
+                } else if (error.error_description) {
+                    errorMessage = error.error_description;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                alert(errorMessage);
+            }
         }
+
 
         function loginWithNaver() {
             const provider = new firebase.auth.OAuthProvider('oidc.naver');
@@ -294,7 +357,7 @@
         <p>마트 장보기 기능을 통해 직접 구매와 온라인(네이버기준) 가격비교를 실시간으로 지원하여 합리적인 소비를 지원할 수 있으며 소비한 내역을 시계열 데이터로 제공하여 장보기 비용을 아껴드립니다.</p>
         
         <p style="margin-top: 15px;">앞으로 띡(thick)은 장바구니 물가를 모니터링하고 여러분의 비용을 최대한 아껴드릴 수 있도록 발전해나갈거에요</p>
-        <p>또한 여러분이 직접 입력해주신 상품정보에 대한 리워드를 제공하고 이 리워드에 다양한 활용방법을 제공해 드릴 예정입니다.</p>
+        <p>또한 여러분이 직접 입력해주신 상품정보에 대한 리워드를 제공하고 이 리워드에 다양한 활용방법를 제공해 드릴 예정입니다.</p>
         
         <p style="margin-top: 25px; text-align: center; font-weight: 700; color: #fff;">Smart Scanner Pro 띡(thick) 많은 이용 바랍니다!</p>
       </div>
