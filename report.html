@@ -185,13 +185,6 @@ button:hover {
   color: #ff9f43;
 }
 
-.rebuy-item-details {
-    font-size: 0.8rem;
-    color: #bbb;
-    margin-top: 5px;
-}
-
-
 </style>
 
 
@@ -230,11 +223,6 @@ button:hover {
     <div class="big-number" id="month-average">로딩중...</div>
   </div>
 
-  <div class="card clickable" onclick="openRebuyModal()">
-    <h3>재구매 알림</h3>
-    <div class="big-number" id="rebuy-count">분석중...</div>
-  </div>
-
 </div>
 
 <script type="module">
@@ -255,8 +243,7 @@ import {
   collection,
   query,
   where,
-  getDocs,
-  Timestamp
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth,
@@ -268,7 +255,6 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let monthSessions = [];
-let rebuyItems = [];
 
 onAuthStateChanged(auth, async (user) => {
 
@@ -343,68 +329,7 @@ onAuthStateChanged(auth, async (user) => {
     average = Math.floor(total / count);
   }
   document.getElementById("month-average").innerText = average.toLocaleString() + "원";
-
-  analyzePurchasePatterns(user);
-
 });
-
-async function analyzePurchasePatterns(user) {
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-    const sessionsRef = collection(db, "users", user.uid, "sessions");
-    const q = query(sessionsRef, where("createdAt", ">=", Timestamp.fromDate(threeMonthsAgo)));
-
-    const snapshot = await getDocs(q);
-    
-    const itemStats = {};
-
-    snapshot.forEach(doc => {
-        const session = doc.data();
-        if (session.items) {
-            session.items.forEach(item => {
-                if (!itemStats[item.name]) {
-                    itemStats[item.name] = { purchases: [], prices: [] };
-                }
-                itemStats[item.name].purchases.push(session.createdAt.toDate());
-                itemStats[item.name].prices.push(item.price);
-            });
-        }
-    });
-
-    const MIN_PURCHASE_COUNT = 3;
-    const now = new Date();
-    rebuyItems = [];
-
-    for (const itemName in itemStats) {
-        const stats = itemStats[itemName];
-        if (stats.purchases.length >= MIN_PURCHASE_COUNT) {
-            stats.purchases.sort((a, b) => a - b);
-
-            let totalInterval = 0;
-            for (let i = 1; i < stats.purchases.length; i++) {
-                const interval = (stats.purchases[i] - stats.purchases[i - 1]) / (1000 * 60 * 60 * 24);
-                totalInterval += interval;
-            }
-            const avgInterval = totalInterval / (stats.purchases.length - 1);
-
-            const lastPurchaseDate = stats.purchases[stats.purchases.length - 1];
-            const daysSinceLastPurchase = (now - lastPurchaseDate) / (1000 * 60 * 60 * 24);
-
-            if (daysSinceLastPurchase > avgInterval) {
-                rebuyItems.push({
-                    name: itemName,
-                    lastPurchaseDate: lastPurchaseDate,
-                    avgInterval: Math.round(avgInterval),
-                    lastPrice: stats.prices[stats.prices.length - 1]
-                });
-            }
-        }
-    }
-
-    document.getElementById('rebuy-count').innerText = rebuyItems.length + '개';
-}
-
 
 window.goDashboard = function() {
   window.location.href = "dashboard.html";
@@ -600,55 +525,6 @@ window.closeSessionDetailsModal = function() {
   document.getElementById("session-details-modal").classList.add("hidden");
 };
 
-window.openRebuyModal = function() {
-    const modal = document.getElementById('rebuy-modal');
-    modal.classList.remove('hidden');
-
-    const listContainer = document.getElementById('rebuy-list');
-    listContainer.innerHTML = '';
-
-    if (rebuyItems.length === 0) {
-        listContainer.innerHTML = '<p style="text-align:center;color:#ccc;">재구매 추천 상품이 없습니다.</p>';
-        return;
-    }
-
-    rebuyItems.sort((a,b) => a.lastPurchaseDate - b.lastPurchaseDate).forEach(item => {
-        const itemContainer = document.createElement('div');
-        itemContainer.className = 'consumption-item';
-        itemContainer.style.flexDirection = 'column';
-        itemContainer.style.alignItems = 'flex-start';
-
-        const mainInfo = document.createElement('div');
-        mainInfo.style.width = '100%';
-        mainInfo.style.display = 'flex';
-        mainInfo.style.justifyContent = 'space-between';
-
-        const nameSpan = document.createElement('span');
-        nameSpan.innerText = item.name;
-        nameSpan.style.fontWeight = 'bold';
-        nameSpan.style.fontSize = '1.1rem';
-
-        const priceSpan = document.createElement('span');
-        priceSpan.className = 'consumption-price';
-        priceSpan.innerText = item.lastPrice.toLocaleString() + '원 (최근가)';
-
-        mainInfo.appendChild(nameSpan);
-        mainInfo.appendChild(priceSpan);
-
-        const detailInfo = document.createElement('div');
-        detailInfo.className = 'rebuy-item-details';
-        detailInfo.innerText = `마지막 구매: ${item.lastPurchaseDate.toLocaleDateString('ko-KR')} / 평균 ${item.avgInterval}일 주기`;
-
-        itemContainer.appendChild(mainInfo);
-        itemContainer.appendChild(detailInfo);
-        listContainer.appendChild(itemContainer);
-    });
-};
-
-window.closeRebuyModal = function() {
-    document.getElementById('rebuy-modal').classList.add('hidden');
-};
-
 </script>
 
 <!-- Chart Modal -->
@@ -677,17 +553,6 @@ window.closeRebuyModal = function() {
     <h3 class="modal-title" id="session-details-title"></h3>
     <div id="session-details-list" class="consumption-list">
       <!-- Item data for a session will be injected here -->
-    </div>
-  </div>
-</div>
-
-<!-- Re-purchase Reminder Modal -->
-<div id="rebuy-modal" class="chart-modal hidden">
-  <div class="chart-box">
-    <button class="chart-close" onclick="closeRebuyModal()">✕</button>
-    <h3 class="modal-title">재구매 추천 상품</h3>
-    <div id="rebuy-list" class="consumption-list">
-      <!-- Rebuy items will be injected here -->
     </div>
   </div>
 </div>
