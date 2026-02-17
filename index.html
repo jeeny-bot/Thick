@@ -1,3 +1,20 @@
+<script>
+    // CRITICAL: Force-unregister and reload to fix persistent service worker issues on iOS.
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            if (registrations.length > 0) {
+                console.log('Found active service workers, unregistering and reloading...');
+                let unregisterPromises = registrations.map(registration => registration.unregister());
+                Promise.all(unregisterPromises).then(() => {
+                    // Force a hard reload from the network, bypassing the cache.
+                    window.location.reload(true);
+                });
+            }
+        }).catch(function(err) {
+            console.error('Service Worker unregistration failed: ', err);
+        });
+    }
+</script>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
