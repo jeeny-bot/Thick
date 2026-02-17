@@ -459,12 +459,13 @@ window.openMonthlySessionsModal = function() {
   
   const sortedSessions = [...monthSessions].sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
 
-  sortedSessions.forEach(session => {
+  sortedSessions.forEach((session, index) => {
     const sessionDiv = document.createElement('div');
     sessionDiv.className = 'consumption-item session';
     
-    const sessionIndex = monthSessions.indexOf(session);
-    sessionDiv.onclick = () => openSessionDetailsModal(sessionIndex);
+    // Find original index to pass to detail modal
+    const originalIndex = monthSessions.indexOf(session);
+    sessionDiv.onclick = () => openSessionDetailsModal(originalIndex);
 
     const dateSpan = document.createElement('span');
     dateSpan.className = 'consumption-date';
@@ -528,7 +529,7 @@ window.openSessionDetailsModal = function(sessionIndex) {
     compareButton.innerText = '가격 비교';
     compareButton.style.flexShrink = 0;
     compareButton.onclick = function() {
-      openPriceCompareModal(item.name);
+      openPriceCompareModal(item.name, item.price);
     };
 
     itemDiv.appendChild(nameSpan);
@@ -542,7 +543,7 @@ window.closeSessionDetailsModal = function() {
   document.getElementById("session-details-modal").classList.add("hidden");
 };
 
-window.openPriceCompareModal = function(productName) {
+window.openPriceCompareModal = function(productName, userPrice) {
   const modal = document.getElementById('price-compare-results-modal');
   modal.classList.remove('hidden');
 
@@ -552,19 +553,14 @@ window.openPriceCompareModal = function(productName) {
 
   // --- Mock Scraping Simulation ---
   setTimeout(() => {
-    const getMockPrice = (basePrice) => basePrice + Math.floor(Math.random() * 6 - 3) * 100;
-
-    const basePrices = {
-        '롯데드림카카오': 5000,
-        '사과': 2000,
-        '바나나': 1500,
-        '우유': 2500,
-        '계란': 6000,
-        '빵': 3000,
-        'default': 4000
+    // Helper to generate a random price variation based on user's actual purchase price
+    const getMockPrice = (basePrice) => {
+        const variation = (Math.random() - 0.5) * 0.2; // -10% to +10% variation
+        const newPrice = Math.round((basePrice * (1 + variation)) / 100) * 100;
+        return newPrice > 0 ? newPrice : basePrice;
     };
     
-    const basePrice = basePrices[productName] || basePrices['default'];
+    const basePrice = userPrice || 4000; // Use user's price or a default
 
     const mockResults = [
       { seller: '네이버', name: productName, price: getMockPrice(basePrice) },
@@ -615,7 +611,7 @@ window.openPriceCompareModal = function(productName) {
 };
 
 window.closePriceCompareResultsModal = function() {
-  document.getElementById('price-compare-results-modal').classList.add('hidden');
+  document.getElementById('price-compare-results-modal').classList.add("hidden");
 };
 
 </script>
