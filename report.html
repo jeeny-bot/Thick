@@ -185,15 +185,6 @@ button:hover {
   color: #ff9f43;
 }
 
-.compare-btn {
-    background-color: #ff9f43;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
 </style>
 
 
@@ -524,94 +515,14 @@ window.openSessionDetailsModal = function(sessionIndex) {
     priceSpan.style.flexShrink = 0;
     priceSpan.style.marginRight = '10px';
 
-    const compareButton = document.createElement('button');
-    compareButton.className = 'compare-btn';
-    compareButton.innerText = '가격 비교';
-    compareButton.style.flexShrink = 0;
-    compareButton.onclick = function() {
-      openPriceCompareModal(item.name, item.price);
-    };
-
     itemDiv.appendChild(nameSpan);
     itemDiv.appendChild(priceSpan);
-    itemDiv.appendChild(compareButton);
     listContainer.appendChild(itemDiv);
   });
 };
 
 window.closeSessionDetailsModal = function() {
   document.getElementById("session-details-modal").classList.add("hidden");
-};
-
-window.openPriceCompareModal = function(productName, userPrice) {
-  const modal = document.getElementById('price-compare-results-modal');
-  modal.classList.remove('hidden');
-
-  document.getElementById('price-compare-results-title').innerText = `'${productName}' 온라인 최저가 검색`;
-  const resultsList = document.getElementById('price-compare-results-list');
-  resultsList.innerHTML = '<p style="text-align:center;color:#ccc;">가격 정보를 불러오는 중...</p>';
-
-  // --- Mock Scraping Simulation ---
-  setTimeout(() => {
-    // Helper to generate a random price variation based on user's actual purchase price
-    const getMockPrice = (basePrice) => {
-        const variation = (Math.random() - 0.5) * 0.2; // -10% to +10% variation
-        const newPrice = Math.round((basePrice * (1 + variation)) / 100) * 100;
-        return newPrice > 0 ? newPrice : basePrice;
-    };
-    
-    const basePrice = userPrice || 4000; // Use user's price or a default
-
-    const mockResults = [
-      { seller: '네이버', name: productName, price: getMockPrice(basePrice) },
-      { seller: '쿠팡', name: productName, price: getMockPrice(basePrice) },
-      { seller: '네이버', name: `${productName} (2개 묶음)`, price: getMockPrice(basePrice * 2) },
-      { seller: '쿠팡', name: `(로켓배송) ${productName}`, price: getMockPrice(basePrice) + 200 }
-    ].filter(r => r.price > 0);
-
-    mockResults.sort((a, b) => a.price - b.price);
-
-    resultsList.innerHTML = '';
-
-    if (mockResults.length === 0) {
-      resultsList.innerHTML = '<p style="text-align:center;color:#ccc;">검색 결과가 없습니다.</p>';
-      return;
-    }
-
-    mockResults.forEach(item => {
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'consumption-item';
-      
-      const sellerSpan = document.createElement('span');
-      sellerSpan.innerText = item.seller;
-      sellerSpan.style.fontWeight = 'bold';
-      sellerSpan.style.minWidth = '50px';
-      
-      const sellerColors = {'네이버': '#03C75A', '쿠팡': '#F7323F'};
-      sellerSpan.style.color = sellerColors[item.seller] || '#fff';
-
-      const nameSpan = document.createElement('span');
-      nameSpan.innerText = item.name;
-      nameSpan.style.flexGrow = 1;
-      nameSpan.style.textAlign = 'left';
-      nameSpan.style.marginLeft = '15px';
-
-      const priceSpan = document.createElement('span');
-      priceSpan.className = 'consumption-price';
-      priceSpan.innerText = item.price.toLocaleString() + '원';
-      priceSpan.style.minWidth = '80px';
-      priceSpan.style.textAlign = 'right';
-
-      itemDiv.appendChild(sellerSpan);
-      itemDiv.appendChild(nameSpan);
-      itemDiv.appendChild(priceSpan);
-      resultsList.appendChild(itemDiv);
-    });
-  }, 1200);
-};
-
-window.closePriceCompareResultsModal = function() {
-  document.getElementById('price-compare-results-modal').classList.add("hidden");
 };
 
 </script>
@@ -642,17 +553,6 @@ window.closePriceCompareResultsModal = function() {
     <h3 class="modal-title" id="session-details-title"></h3>
     <div id="session-details-list" class="consumption-list">
       <!-- Item data for a session will be injected here -->
-    </div>
-  </div>
-</div>
-
-<!-- Price Comparison Results Modal -->
-<div id="price-compare-results-modal" class="chart-modal hidden">
-  <div class="chart-box">
-    <button class="chart-close" onclick="closePriceCompareResultsModal()">✕</button>
-    <h3 class="modal-title" id="price-compare-results-title"></h3>
-    <div id="price-compare-results-list" class="consumption-list">
-      <!-- Scraped data will be injected here -->
     </div>
   </div>
 </div>
