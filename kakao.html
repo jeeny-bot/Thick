@@ -1,0 +1,99 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>카카오 로그인 처리 중...</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js"></script>
+</head>
+<body>
+    <p>로그인 처리 중입니다. 잠시만 기다려주세요...</p>
+
+    <script>
+        // 1. Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
+            authDomain: "thick-fdd38.firebaseapp.com",
+            projectId: "thick-fdd38",
+            storageBucket: "thick-fdd38.appspot.com",
+            messagingSenderId: "109235677950",
+            appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
+            measurementId: "G-LH61G4J09W"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // 2. Initialize Kakao SDK
+        Kakao.init('40173e2de2b82288c08adec5c79dafb5');
+
+        // 3. Main Logic
+        (async () => {
+            try {
+                // The SDK automatically handles the authorization code from the redirect
+                // and sets the access token. We just need to get the user info.
+                
+                // Get User Info from Kakao
+                const userData = await Kakao.API.request({
+                    url: '/v2/user/me',
+                });
+
+                // Handle Firebase Authentication
+                const kakaoId = String(userData.id);
+                const nickname = userData.kakao_account?.profile?.nickname || '사용자';
+                const email = userData.kakao_account?.email;
+
+                // Use a consistent email format for Firebase
+                const firebaseEmail = email || `${kakaoId}@kakao.thick.ai`;
+                // Use a consistent and secure (though deterministic) password
+                const firebasePassword = `kakao_${kakaoId}`; 
+                
+                try {
+                    // Try to sign in the user
+                    await auth.signInWithEmailAndPassword(firebaseEmail, firebasePassword);
+                
+                } catch (error) {
+                    // If the user is not found, create a new account
+                    if (error.code === 'auth/user-not-found') {
+                        const userCredential = await auth.createUserWithEmailAndPassword(firebaseEmail, firebasePassword);
+                        await userCredential.user.updateProfile({ displayName: nickname });
+
+                        // Save new user's info to Firestore
+                        await db.collection('users').doc(userCredential.user.uid).set({
+                            uid: userCredential.user.uid,
+                            nickname: nickname,
+                            email: firebaseEmail,
+                            provider: 'kakao',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+
+                    } else {
+                        // For other sign-in errors, re-throw to be caught by the outer catch
+                        throw error;
+                    }
+                }
+
+                // On successful login/signup, redirect to dashboard
+                window.location.href = 'dashboard.html';
+
+            } catch (error) {
+                console.error("Kakao login or Firebase auth error:", error);
+                let errorMessage = "카카오 로그인 중 오류가 발생했습니다.";
+                 if (typeof error === 'string') {
+                    errorMessage = error;
+                } else if (error.responseJSON && error.responseJSON.error_description) {
+                    errorMessage = error.responseJSON.error_description;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                alert(errorMessage);
+                // Redirect back to login page on failure
+                window.location.href = 'index.html';
+            }
+        })();
+    </script>
+</body>
+</html>
