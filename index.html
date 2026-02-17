@@ -239,51 +239,56 @@ async function handleKakaoRedirect() {
     }
 
     try {
-        const tokenRes = await fetch('https://kauth.kakao.com/oauth/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                grant_type: 'authorization_code',
-                client_id: '59a505a5ec0a9e52fb807e5ef6c0f7ea',
-                redirect_uri: 'https://thick.ai.kr/index.html',
-                code: code
-            })
-        });
-        const tokenData = await tokenRes.json();
+        await new Promise((resolve, reject) => {
+            Kakao.Auth.login({
+                throughTalk: false,
+                success: function(authObj) {
+                    Kakao.API.request({
+                        url: '/v2/user/me',
+                        success: async function(userData) {
+                            try {
+                                const kakaoId = String(userData.id);
+                                const nickname = userData.kakao_account?.profile?.nickname || '사용자';
+                                const email = userData.kakao_account?.email || null;
 
-        const userRes = await fetch('https://kapi.kakao.com/v2/user/me', {
-            headers: { Authorization: 'Bearer ' + tokenData.access_token }
-        });
-        const userData = await userRes.json();
+                                // 이메일이 있으면 이메일로, 없으면 kakaoId 기반으로
+                                const loginEmail = email || (kakaoId + '@kakao.thick.ai');
+                                const password = 'kakao_' + kakaoId;
 
-        const uid = 'kakao:' + userData.id;
-        const email = (userData.kakao_account && userData.kakao_account.email)
-                      ? userData.kakao_account.email
-                      : uid + '@kakao.com';
-        const nickname = userData.kakao_account?.profile?.nickname || '사용자';
+                                await auth.signInWithEmailAndPassword(loginEmail, password)
+                                    .catch(async () => {
+                                        await auth.createUserWithEmailAndPassword(loginEmail, password);
+                                        await auth.currentUser.updateProfile({ displayName: nickname });
+                                    });
 
-        await auth.signInWithEmailAndPassword(email, uid)
-            .catch(async () => {
-                await auth.createUserWithEmailAndPassword(email, uid);
-                await auth.currentUser.updateProfile({ displayName: nickname });
+                                const db = firebase.firestore();
+                                await db.collection('users').doc(auth.currentUser.uid).set({
+                                    uid: auth.currentUser.uid,
+                                    nickname: nickname,
+                                    email: loginEmail,
+                                    provider: 'kakao',
+                                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                }, { merge: true });
+
+                                window.location.href = 'dashboard.html';
+                                resolve();
+                            } catch(e) {
+                                reject(e);
+                            }
+                        },
+                        fail: reject
+                    });
+                },
+                fail: reject
             });
-
-        const db = firebase.firestore();
-        await db.collection('users').doc(auth.currentUser.uid).set({
-            uid: auth.currentUser.uid,
-            nickname: nickname,
-            email: email,
-            provider: 'kakao',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        window.location.href = 'dashboard.html';
-
+        });
     } catch (e) {
         console.error('카카오 처리 오류:', e);
         alert('로그인 처리 중 오류가 발생했습니다.');
     }
 }
+
+handleKakaoRedirect();
 
 handleKakaoRedirect();
         //수정한 부분
