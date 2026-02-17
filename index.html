@@ -229,66 +229,56 @@
         redirectUri: 'https://thick.ai.kr/index.html'
     });
 }
-async function handleKakaoRedirect() {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    if (!code) return;
-
+function loginWithKakao() {
     if (!Kakao.isInitialized()) {
         Kakao.init('40173e2de2b82288c08adec5c79dafb5');
     }
+    Kakao.Auth.login({
+        success: async function(authObj) {
+            try {
+                Kakao.API.request({
+                    url: '/v2/user/me',
+                    success: async function(userData) {
+                        const kakaoId = String(userData.id);
+                        const nickname = userData.kakao_account?.profile?.nickname || '사용자';
+                        const email = userData.kakao_account?.email || null;
+                        const loginEmail = email || (kakaoId + '@kakao.thick.ai');
+                        const password = 'kakao_' + kakaoId;
 
-    try {
-        await new Promise((resolve, reject) => {
-            Kakao.Auth.login({
-                throughTalk: false,
-                success: function(authObj) {
-                    Kakao.API.request({
-                        url: '/v2/user/me',
-                        success: async function(userData) {
-                            try {
-                                const kakaoId = String(userData.id);
-                                const nickname = userData.kakao_account?.profile?.nickname || '사용자';
-                                const email = userData.kakao_account?.email || null;
+                        await auth.signInWithEmailAndPassword(loginEmail, password)
+                            .catch(async () => {
+                                await auth.createUserWithEmailAndPassword(loginEmail, password);
+                                await auth.currentUser.updateProfile({ displayName: nickname });
+                            });
 
-                                // 이메일이 있으면 이메일로, 없으면 kakaoId 기반으로
-                                const loginEmail = email || (kakaoId + '@kakao.thick.ai');
-                                const password = 'kakao_' + kakaoId;
+                        const db = firebase.firestore();
+                        await db.collection('users').doc(auth.currentUser.uid).set({
+                            uid: auth.currentUser.uid,
+                            nickname: nickname,
+                            email: loginEmail,
+                            provider: 'kakao',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
 
-                                await auth.signInWithEmailAndPassword(loginEmail, password)
-                                    .catch(async () => {
-                                        await auth.createUserWithEmailAndPassword(loginEmail, password);
-                                        await auth.currentUser.updateProfile({ displayName: nickname });
-                                    });
-
-                                const db = firebase.firestore();
-                                await db.collection('users').doc(auth.currentUser.uid).set({
-                                    uid: auth.currentUser.uid,
-                                    nickname: nickname,
-                                    email: loginEmail,
-                                    provider: 'kakao',
-                                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                                }, { merge: true });
-
-                                window.location.href = 'dashboard.html';
-                                resolve();
-                            } catch(e) {
-                                reject(e);
-                            }
-                        },
-                        fail: reject
-                    });
-                },
-                fail: reject
-            });
-        });
-    } catch (e) {
-        console.error('카카오 처리 오류:', e);
-        alert('로그인 처리 중 오류가 발생했습니다.');
-    }
+                        window.location.href = 'dashboard.html';
+                    },
+                    fail: function(err) {
+                        console.error(err);
+                        alert('사용자 정보를 가져오지 못했습니다.');
+                    }
+                });
+            } catch(e) {
+                console.error(e);
+                alert('로그인 처리 중 오류가 발생했습니다.');
+            }
+        },
+        fail: function(err) {
+            console.error(err);
+            alert('카카오 로그인에 실패했습니다.');
+        }
+    });
 }
 
-handleKakaoRedirect();
 
 handleKakaoRedirect();
         //수정한 부분
