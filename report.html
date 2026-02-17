@@ -176,6 +176,15 @@ button:hover {
   color: #ff9f43;
 }
 
+.compare-btn {
+    background-color: #ff9f43;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
 </style>
 
 
@@ -213,13 +222,6 @@ button:hover {
     <h3>평균 장보기 금액</h3>
     <div class="big-number" id="month-average">로딩중...</div>
   </div>
-
-  <div class="card clickable" onclick="openPriceCompareModal()">
-    <h3>온라인 최저가 비교</h3>
-    
-    <div class="big-number" id="price-compare">기능 준비중</div>
-  </div>
-
 
 </div>
 
@@ -446,34 +448,32 @@ window.openTotalConsumptionModal = function() {
     return;
   }
 
-  const dailyTotals = monthSessions.reduce((acc, session) => {
-    const date = session.createdAt.toDate().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
-    if (!acc[date]) {
-      acc[date] = 0;
+  monthSessions.forEach(session => {
+    if (session.items) {
+      session.items.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'consumption-item';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.innerText = item.name;
+
+        const priceSpan = document.createElement('span');
+        priceSpan.className = 'consumption-price';
+        priceSpan.innerText = item.price.toLocaleString() + '원';
+
+        const compareButton = document.createElement('button');
+        compareButton.className = 'compare-btn';
+        compareButton.innerText = '가격 비교';
+        compareButton.onclick = function() {
+          openPriceCompareModal(item.name);
+        };
+
+        itemDiv.appendChild(nameSpan);
+        itemDiv.appendChild(priceSpan);
+        itemDiv.appendChild(compareButton);
+        detailsContainer.appendChild(itemDiv);
+      });
     }
-    acc[date] += session.totalPrice;
-    return acc;
-  }, {});
-
-  const sortedDates = Object.keys(dailyTotals).sort((a, b) => {
-      return new Date(monthSessions.find(s => s.createdAt.toDate().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) === a).createdAt.toDate()) - new Date(monthSessions.find(s => s.createdAt.toDate().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) === b).createdAt.toDate());
-  });
-
-  sortedDates.forEach(date => {
-    const itemDiv = document.createElement('div');
-    itemDiv.className = 'consumption-item';
-
-    const dateSpan = document.createElement('span');
-    dateSpan.className = 'consumption-date';
-    dateSpan.innerText = date;
-
-    const priceSpan = document.createElement('span');
-    priceSpan.className = 'consumption-price';
-    priceSpan.innerText = dailyTotals[date].toLocaleString() + '원';
-
-    itemDiv.appendChild(dateSpan);
-    itemDiv.appendChild(priceSpan);
-    detailsContainer.appendChild(itemDiv);
   });
 };
 
@@ -481,11 +481,84 @@ window.closeConsumptionModal = function() {
   document.getElementById("consumption-modal").classList.add("hidden");
 };
 
-window.openPriceCompareModal = function() {
-  document.getElementById("price-compare-modal").classList.remove("hidden");
+window.openPriceCompareModal = function(productName) {
+  const modal = document.getElementById('price-compare-results-modal');
+  modal.classList.remove('hidden');
+
+  document.getElementById('price-compare-results-title').innerText = `'${productName}' 온라인 최저가 검색`;
+  const resultsList = document.getElementById('price-compare-results-list');
+  resultsList.innerHTML = '<p style="text-align:center;color:#ccc;">가격 정보를 불러오는 중...</p>';
+
+  // --- Mock Scraping Simulation ---
+  setTimeout(() => {
+    // Helper to generate a random price variation
+    const getMockPrice = (basePrice) => basePrice + Math.floor(Math.random() * 6 - 3) * 100;
+
+    const basePrices = {
+        '롯데드림카카오': 5000,
+        '사과': 2000,
+        '바나나': 1500,
+        '우유': 2500,
+        '계란': 6000,
+        '빵': 3000,
+        'default': 4000
+    };
+    
+    const basePrice = basePrices[productName] || basePrices['default'];
+
+    const mockResults = [
+      { seller: '네이버', name: productName, price: getMockPrice(basePrice) },
+      { seller: '쿠팡', name: productName, price: getMockPrice(basePrice) },
+      { seller: '네이버', name: `${productName} (2개 묶음)`, price: getMockPrice(basePrice * 2) },
+      { seller: '쿠팡', name: `(로켓배송) ${productName}`, price: getMockPrice(basePrice) + 200 },
+      { seller: '11번가', name: productName, price: getMockPrice(basePrice) - 100 },
+      { seller: 'G마켓', name: productName, price: getMockPrice(basePrice) + 100 }
+    ].filter(r => r.price > 0);
+
+    mockResults.sort((a, b) => a.price - b.price);
+
+    resultsList.innerHTML = '';
+
+    if (mockResults.length === 0) {
+      resultsList.innerHTML = '<p style="text-align:center;color:#ccc;">검색 결과가 없습니다.</p>';
+      return;
+    }
+
+    mockResults.forEach(item => {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'consumption-item';
+      
+      const sellerSpan = document.createElement('span');
+      sellerSpan.innerText = item.seller;
+      sellerSpan.style.fontWeight = 'bold';
+      sellerSpan.style.minWidth = '50px';
+      
+      // Simple color coding for sellers
+      const sellerColors = {'네이버': '#03C75A', '쿠팡': '#F7323F', '11번가': '#FF7C2C', 'G마켓': '#00AEEF'};
+      sellerSpan.style.color = sellerColors[item.seller] || '#fff';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.innerText = item.name;
+      nameSpan.style.flexGrow = 1;
+      nameSpan.style.textAlign = 'left';
+      nameSpan.style.marginLeft = '15px';
+
+      const priceSpan = document.createElement('span');
+      priceSpan.className = 'consumption-price';
+      priceSpan.innerText = item.price.toLocaleString() + '원';
+      priceSpan.style.minWidth = '80px';
+      priceSpan.style.textAlign = 'right';
+
+      itemDiv.appendChild(sellerSpan);
+      itemDiv.appendChild(nameSpan);
+      itemDiv.appendChild(priceSpan);
+      resultsList.appendChild(itemDiv);
+    });
+  }, 1200);
 };
-window.closePriceCompareModal = function() {
-  document.getElementById("price-compare-modal").classList.add("hidden");
+
+window.closePriceCompareResultsModal = function() {
+  document.getElementById('price-compare-results-modal').classList.add('hidden');
 };
 
 </script>
@@ -502,21 +575,21 @@ window.closePriceCompareModal = function() {
 <div id="consumption-modal" class="chart-modal hidden">
   <div class="chart-box">
     <button class="chart-close" onclick="closeConsumptionModal()">✕</button>
-    <h3 class="modal-title">날짜별 구매 내역</h3>
+    <h3 class="modal-title">이번 달 구매 내역</h3>
     <div id="consumption-details" class="consumption-list">
-      <!-- Daily data will be injected here -->
+      <!-- Item data will be injected here -->
     </div>
   </div>
 </div>
 
-<!-- Price Compare Modal -->
-<div id="price-compare-modal" class="chart-modal hidden">
+<!-- Price Comparison Results Modal -->
+<div id="price-compare-results-modal" class="chart-modal hidden">
   <div class="chart-box">
-    <button class="chart-close" onclick="closePriceCompareModal()">✕</button>
-    <h3 class="modal-title">온라인 최저가 비교</h3>
-    <p style="text-align: center; color: #ccc; padding: 20px;">
-      온라인 가격 정보가 연동되면, 구매하신 상품들의 최저가를 비교하여 절약 가능 금액을 계산해 드립니다.<br><br>(현재 기능 준비중입니다.)
-    </p>
+    <button class="chart-close" onclick="closePriceCompareResultsModal()">✕</button>
+    <h3 class="modal-title" id="price-compare-results-title"></h3>
+    <div id="price-compare-results-list" class="consumption-list">
+      <!-- Scraped data will be injected here -->
+    </div>
   </div>
 </div>
 
