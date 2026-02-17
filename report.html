@@ -167,6 +167,15 @@ button:hover {
   border-radius: 12px;
   margin-bottom: 10px;
 }
+
+.consumption-item.session {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.consumption-item.session:hover {
+  background: rgba(255,255,255,0.08);
+}
+
 .consumption-date {
   font-weight: 600;
   color: #eee;
@@ -202,7 +211,7 @@ button:hover {
 
 <div class="title">이번 달 소비 리포트</div>
 
-<div class="hero-card clickable" onclick="openTotalConsumptionModal()">
+<div class="hero-card clickable" onclick="openMonthlySessionsModal()">
   <h3>이번 달 총 소비</h3>
   <div class="hero-value" id="month-total">로딩중...</div>
 </div>
@@ -436,49 +445,101 @@ window.closeChartModal = function() {
   document.getElementById("chart-modal").classList.add("hidden");
 };
 
-window.openTotalConsumptionModal = function() {
-  const modal = document.getElementById("consumption-modal");
+window.openMonthlySessionsModal = function() {
+  const modal = document.getElementById("monthly-sessions-modal");
   modal.classList.remove("hidden");
 
-  const detailsContainer = document.getElementById("consumption-details");
-  detailsContainer.innerHTML = ''; 
+  const listContainer = document.getElementById("monthly-sessions-list");
+  listContainer.innerHTML = ''; 
 
   if (monthSessions.length === 0) {
-    detailsContainer.innerHTML = '<p style="text-align:center;color:#ccc;">이번 달 구매 내역이 없습니다.</p>';
+    listContainer.innerHTML = '<p style="text-align:center;color:#ccc;">이번 달 구매 내역이 없습니다.</p>';
     return;
   }
+  
+  const sortedSessions = [...monthSessions].sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
 
-  monthSessions.forEach(session => {
-    if (session.items) {
-      session.items.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'consumption-item';
+  sortedSessions.forEach(session => {
+    const sessionDiv = document.createElement('div');
+    sessionDiv.className = 'consumption-item session';
+    
+    const sessionIndex = monthSessions.indexOf(session);
+    sessionDiv.onclick = () => openSessionDetailsModal(sessionIndex);
 
-        const nameSpan = document.createElement('span');
-        nameSpan.innerText = item.name;
+    const dateSpan = document.createElement('span');
+    dateSpan.className = 'consumption-date';
+    dateSpan.innerText = session.createdAt.toDate().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        const priceSpan = document.createElement('span');
-        priceSpan.className = 'consumption-price';
-        priceSpan.innerText = item.price.toLocaleString() + '원';
+    const priceSpan = document.createElement('span');
+    priceSpan.className = 'consumption-price';
+    priceSpan.innerText = (session.totalPrice || 0).toLocaleString() + '원';
+    
+    const arrowSpan = document.createElement('span');
+    arrowSpan.innerText = '›';
+    arrowSpan.style.color = '#ccc';
+    arrowSpan.style.fontWeight = 'bold';
 
-        const compareButton = document.createElement('button');
-        compareButton.className = 'compare-btn';
-        compareButton.innerText = '가격 비교';
-        compareButton.onclick = function() {
-          openPriceCompareModal(item.name);
-        };
-
-        itemDiv.appendChild(nameSpan);
-        itemDiv.appendChild(priceSpan);
-        itemDiv.appendChild(compareButton);
-        detailsContainer.appendChild(itemDiv);
-      });
-    }
+    sessionDiv.appendChild(dateSpan);
+    sessionDiv.appendChild(priceSpan);
+    sessionDiv.appendChild(arrowSpan);
+    listContainer.appendChild(sessionDiv);
   });
 };
 
-window.closeConsumptionModal = function() {
-  document.getElementById("consumption-modal").classList.add("hidden");
+window.closeMonthlySessionsModal = function() {
+  document.getElementById("monthly-sessions-modal").classList.add("hidden");
+};
+
+window.openSessionDetailsModal = function(sessionIndex) {
+  const session = monthSessions[sessionIndex];
+  if (!session) return;
+
+  const modal = document.getElementById("session-details-modal");
+  modal.classList.remove("hidden");
+
+  const title = document.getElementById("session-details-title");
+  title.innerText = `${session.createdAt.toDate().toLocaleDateString('ko-KR')} 구매 내역`;
+
+  const listContainer = document.getElementById("session-details-list");
+  listContainer.innerHTML = ''; 
+
+  if (!session.items || session.items.length === 0) {
+    listContainer.innerHTML = '<p style="text-align:center;color:#ccc;">해당 일자의 구매 상품이 없습니다.</p>';
+    return;
+  }
+
+  session.items.forEach(item => {
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'consumption-item';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.innerText = item.name;
+    nameSpan.style.flexGrow = 1;
+    nameSpan.style.marginRight = '10px';
+
+    const priceSpan = document.createElement('span');
+    priceSpan.className = 'consumption-price';
+    priceSpan.innerText = item.price.toLocaleString() + '원';
+    priceSpan.style.flexShrink = 0;
+    priceSpan.style.marginRight = '10px';
+
+    const compareButton = document.createElement('button');
+    compareButton.className = 'compare-btn';
+    compareButton.innerText = '가격 비교';
+    compareButton.style.flexShrink = 0;
+    compareButton.onclick = function() {
+      openPriceCompareModal(item.name);
+    };
+
+    itemDiv.appendChild(nameSpan);
+    itemDiv.appendChild(priceSpan);
+    itemDiv.appendChild(compareButton);
+    listContainer.appendChild(itemDiv);
+  });
+};
+
+window.closeSessionDetailsModal = function() {
+  document.getElementById("session-details-modal").classList.add("hidden");
 };
 
 window.openPriceCompareModal = function(productName) {
@@ -491,7 +552,6 @@ window.openPriceCompareModal = function(productName) {
 
   // --- Mock Scraping Simulation ---
   setTimeout(() => {
-    // Helper to generate a random price variation
     const getMockPrice = (basePrice) => basePrice + Math.floor(Math.random() * 6 - 3) * 100;
 
     const basePrices = {
@@ -510,9 +570,7 @@ window.openPriceCompareModal = function(productName) {
       { seller: '네이버', name: productName, price: getMockPrice(basePrice) },
       { seller: '쿠팡', name: productName, price: getMockPrice(basePrice) },
       { seller: '네이버', name: `${productName} (2개 묶음)`, price: getMockPrice(basePrice * 2) },
-      { seller: '쿠팡', name: `(로켓배송) ${productName}`, price: getMockPrice(basePrice) + 200 },
-      { seller: '11번가', name: productName, price: getMockPrice(basePrice) - 100 },
-      { seller: 'G마켓', name: productName, price: getMockPrice(basePrice) + 100 }
+      { seller: '쿠팡', name: `(로켓배송) ${productName}`, price: getMockPrice(basePrice) + 200 }
     ].filter(r => r.price > 0);
 
     mockResults.sort((a, b) => a.price - b.price);
@@ -533,8 +591,7 @@ window.openPriceCompareModal = function(productName) {
       sellerSpan.style.fontWeight = 'bold';
       sellerSpan.style.minWidth = '50px';
       
-      // Simple color coding for sellers
-      const sellerColors = {'네이버': '#03C75A', '쿠팡': '#F7323F', '11번가': '#FF7C2C', 'G마켓': '#00AEEF'};
+      const sellerColors = {'네이버': '#03C75A', '쿠팡': '#F7323F'};
       sellerSpan.style.color = sellerColors[item.seller] || '#fff';
 
       const nameSpan = document.createElement('span');
@@ -571,13 +628,24 @@ window.closePriceCompareResultsModal = function() {
   </div>
 </div>
 
-<!-- Total Consumption Modal -->
-<div id="consumption-modal" class="chart-modal hidden">
+<!-- Monthly Sessions Modal -->
+<div id="monthly-sessions-modal" class="chart-modal hidden">
   <div class="chart-box">
-    <button class="chart-close" onclick="closeConsumptionModal()">✕</button>
-    <h3 class="modal-title">이번 달 구매 내역</h3>
-    <div id="consumption-details" class="consumption-list">
-      <!-- Item data will be injected here -->
+    <button class="chart-close" onclick="closeMonthlySessionsModal()">✕</button>
+    <h3 class="modal-title">이번 달 구매 내역 (일자별)</h3>
+    <div id="monthly-sessions-list" class="consumption-list">
+      <!-- Daily session data will be injected here -->
+    </div>
+  </div>
+</div>
+
+<!-- Session Details Modal -->
+<div id="session-details-modal" class="chart-modal hidden">
+  <div class="chart-box">
+    <button class="chart-close" onclick="closeSessionDetailsModal()">✕</button>
+    <h3 class="modal-title" id="session-details-title"></h3>
+    <div id="session-details-list" class="consumption-list">
+      <!-- Item data for a session will be injected here -->
     </div>
   </div>
 </div>
