@@ -158,7 +158,6 @@
              align-items: center;
              justify-content: center;
              border: 1px solid #222;
-             height: 220px;   /* 추가 */
           }
 
         
@@ -335,7 +334,7 @@
                     const backCamera = cameras[cameras.length - 1];
                     await html5QrCode.start(
                         backCamera.id,
-                        { fps: 10, qrbox: { width: 300, height: 300 } },
+                        { fps: 10 },
                         (decodedText) => { onScanSuccess(decodedText); }
                     );
                 }
