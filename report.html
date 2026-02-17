@@ -185,6 +185,29 @@ button:hover {
   color: #ff9f43;
 }
 
+.item-details {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.item-name {
+  font-weight: 600;
+  color: #eee;
+  margin-bottom: 4px;
+}
+
+.item-calculation {
+  font-size: 0.85rem;
+  color: #bbb;
+}
+
+.item-total-price {
+  font-weight: 700;
+  color: #ff9f43;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
 </style>
 
 
@@ -489,7 +512,7 @@ window.openSessionDetailsModal = function(sessionIndex) {
   modal.classList.remove("hidden");
 
   const title = document.getElementById("session-details-title");
-  title.innerText = `${session.createdAt.toDate().toLocaleDateString('ko-KR')} 구매 내역 (원본 데이터)`;
+  title.innerText = `${session.createdAt.toDate().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 구매 내역`;
 
   const listContainer = document.getElementById("session-details-list");
   listContainer.innerHTML = ''; 
@@ -503,13 +526,26 @@ window.openSessionDetailsModal = function(sessionIndex) {
     const itemDiv = document.createElement('div');
     itemDiv.className = 'consumption-item';
 
-    const debugSpan = document.createElement('span');
-    debugSpan.innerText = JSON.stringify(item, null, 2);
-    debugSpan.style.whiteSpace = 'pre-wrap';
-    debugSpan.style.fontSize = '0.8rem';
-    debugSpan.style.color = '#ffc107';
+    const detailsDiv = document.createElement('div');
+    detailsDiv.className = 'item-details';
 
-    itemDiv.appendChild(debugSpan);
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'item-name';
+    nameDiv.innerText = item.name;
+
+    const calculationDiv = document.createElement('div');
+    calculationDiv.className = 'item-calculation';
+    calculationDiv.innerText = `${item.price.toLocaleString()}원 x ${item.qty}`;
+    
+    detailsDiv.appendChild(nameDiv);
+    detailsDiv.appendChild(calculationDiv);
+
+    const totalPriceSpan = document.createElement('span');
+    totalPriceSpan.className = 'item-total-price';
+    totalPriceSpan.innerText = (item.price * item.qty).toLocaleString() + '원';
+
+    itemDiv.appendChild(detailsDiv);
+    itemDiv.appendChild(totalPriceSpan);
     listContainer.appendChild(itemDiv);
   });
 };
