@@ -18,7 +18,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
@@ -220,8 +220,42 @@
         }
 
         function loginWithKakao() {
-            alert("카카오 로그인은 현재 준비중입니다.");
+    if (!Kakao.isInitialized()) {
+        Kakao.init('40173e2de2b82288c08adec5c79dafb5');
+    }
+    Kakao.Auth.login({
+        success: function(authObj) {
+            Kakao.API.request({
+                url: '/v2/user/me',
+                success: function(res) {
+                    const uid = 'kakao:' + res.id;
+                    const email = (res.kakao_account && res.kakao_account.email)
+                                  ? res.kakao_account.email
+                                  : uid + '@kakao.com';
+                    const nickname = res.kakao_account.profile.nickname || '사용자';
+                    auth.signInWithEmailAndPassword(email, uid)
+                        .catch(() => {
+                            auth.createUserWithEmailAndPassword(email, uid)
+                                .then((result) => {
+                                    return result.user.updateProfile({ displayName: nickname });
+                                })
+                                .then(() => {
+                                    window.location.href = 'dashboard.html';
+                                })
+                                .catch(e => {
+                                    console.error(e);
+                                    alert('로그인 처리 중 오류가 발생했습니다.');
+                                });
+                        });
+                }
+            });
+        },
+        fail: function(err) {
+            console.error(err);
+            alert('카카오 로그인에 실패했습니다.');
         }
+    });
+}
 
         function loginWithNaver() {
             const provider = new firebase.auth.OAuthProvider('oidc.naver');
