@@ -184,7 +184,8 @@ body {
 
 #rebuy-container h3 {
     margin-top: 0;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    line-height: 1.5;
     color: var(--orange-light);
 }
 
@@ -235,9 +236,9 @@ body {
   <div class="menu-container">
 
     <div id="rebuy-container">
-      <h3>재구매 추천 🛒</h3>
+      <h3>회원님이 지난 한달동안<br>두번 이상 구매한 내역입니다</h3>
       <div id="rebuy-list">
-        <p>재구매 추천 상품을 불러오는 중입니다...</p>
+        <p>구매 내역을 불러오는 중입니다...</p>
       </div>
     </div>
 
@@ -348,74 +349,67 @@ onAuthStateChanged(auth, async (user) => {
       }
   }
 
-  //-- Start Purchase Pattern Analysis --//
-  analyzePurchasePatterns(user);
+  //-- Start Frequent Purchase Analysis --//
+  analyzeFrequentPurchases(user);
 
 });
 
-async function analyzePurchasePatterns(user) {
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+async function analyzeFrequentPurchases(user) {
+    // 1. Set the timeframe to the last 30 days
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
 
     const sessionsRef = collection(db, "users", user.uid, "sessions");
-    const q = query(sessionsRef, where("createdAt", ">=", Timestamp.fromDate(threeMonthsAgo)));
+    const q = query(sessionsRef, where("createdAt", ">=", Timestamp.fromDate(oneMonthAgo)));
 
     const snapshot = await getDocs(q);
     
-    const itemStats = {};
+    // 2. Count purchase frequency for each item across different sessions
+    const itemPurchaseEvents = {}; 
 
     snapshot.forEach(doc => {
         const session = doc.data();
         if (session.items) {
-            session.items.forEach(item => {
-                if (!itemStats[item.name]) {
-                    itemStats[item.name] = { purchases: [], prices: [] };
+            // Use a Set to count an item only once per session
+            const distinctItemsInSession = new Set(session.items.map(item => item.name));
+            
+            distinctItemsInSession.forEach(itemName => {
+                const item = session.items.find(i => i.name === itemName);
+
+                if (!itemPurchaseEvents[itemName]) {
+                    itemPurchaseEvents[itemName] = { dates: [], lastPrice: 0 };
                 }
-                itemStats[item.name].purchases.push(session.createdAt.toDate());
-                itemStats[item.name].prices.push(item.price);
+                itemPurchaseEvents[itemName].dates.push(session.createdAt.toDate());
+                itemPurchaseEvents[itemName].lastPrice = item.price;
             });
         }
     });
 
-    const MIN_PURCHASE_COUNT = 3;
-    const now = new Date();
-    let rebuyItems = [];
-
-    for (const itemName in itemStats) {
-        const stats = itemStats[itemName];
-        if (stats.purchases.length >= MIN_PURCHASE_COUNT) {
-            stats.purchases.sort((a, b) => a - b);
-
-            let totalInterval = 0;
-            for (let i = 1; i < stats.purchases.length; i++) {
-                const interval = (stats.purchases[i] - stats.purchases[i - 1]) / (1000 * 60 * 60 * 24);
-                totalInterval += interval;
-            }
-            const avgInterval = totalInterval / (stats.purchases.length - 1);
-
-            const lastPurchaseDate = stats.purchases[stats.purchases.length - 1];
-            const daysSinceLastPurchase = (now - lastPurchaseDate) / (1000 * 60 * 60 * 24);
-
-            if (daysSinceLastPurchase > avgInterval) {
-                rebuyItems.push({
-                    name: itemName,
-                    lastPurchaseDate: lastPurchaseDate,
-                    avgInterval: Math.round(avgInterval),
-                    lastPrice: stats.prices[stats.prices.length - 1]
-                });
-            }
+    // 3. Filter for items purchased 2 or more times
+    const frequentItems = [];
+    for (const itemName in itemPurchaseEvents) {
+        if (itemPurchaseEvents[itemName].dates.length >= 2) {
+            frequentItems.push({
+                name: itemName,
+                count: itemPurchaseEvents[itemName].dates.length,
+                lastPrice: itemPurchaseEvents[itemName].lastPrice
+            });
         }
     }
 
+    // 4. Display the results
     const listContainer = document.getElementById('rebuy-list');
     listContainer.innerHTML = '';
 
-    if (rebuyItems.length === 0) {
-        listContainer.innerHTML = '<p style="font-size:0.9rem; color:#ccc;">아직 재구매 추천 상품이 없습니다.<br><small>(최근 3개월, 3회 이상 구매 기준)</small></p>';
+    if (frequentItems.length === 0) {
+        listContainer.innerHTML = '<p style="font-size:0.9rem; color:#ccc; text-align:center;">지난 한 달 동안 2회 이상<br>구매한 상품이 없습니다.</p>';
         return;
     }
 
-    rebuyItems.sort((a,b) => a.lastPurchaseDate - b.lastPurchaseDate).forEach(item => {
+    // Sort by most frequently purchased
+    frequentItems.sort((a, b) => b.count - a.count);
+
+    frequentItems.forEach(item => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'rebuy-item';
 
@@ -425,7 +419,7 @@ async function analyzePurchasePatterns(user) {
 
         const detailsSpan = document.createElement('span');
         detailsSpan.className = 'rebuy-item-details';
-        detailsSpan.innerText = `${item.avgInterval}일 주기 / ${item.lastPrice.toLocaleString()}원`;
+        detailsSpan.innerText = `총 ${item.count}회 구매 / 최근 ${item.lastPrice.toLocaleString()}원`;
 
         itemDiv.appendChild(nameSpan);
         itemDiv.appendChild(detailsSpan);
@@ -441,7 +435,7 @@ window.goScan = function() {
   window.location.href = "scan.html";
 };
 
-window.logout = async function() {
+window.window.logout = async function() {
   await signOut(auth);
   window.location.href = "index.html";
 };
