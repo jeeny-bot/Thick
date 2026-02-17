@@ -1,16 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-// 🔥 Firebase 설정값 (당신이 콘솔에서 복사한 값 그대로 유지)
-const firebaseConfig = {
-    apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
-    authDomain: "thick-fdd38.firebaseapp.com",
-    projectId: "thick-fdd38",
-    storageBucket: "thick-fdd38.firebasestorage.app",
-    messagingSenderId: "109235677950",
-    appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
-    measurementId: "G-LH61G4J09W"
-  };
+import "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);

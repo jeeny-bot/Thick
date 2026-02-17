@@ -1,15 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-// 🔥 main.js에 쓴 것과 동일한 firebaseConfig 사용
-const firebaseConfig = {
-  apiKey: "복사한값",
-  authDomain: "복사한값",
-  projectId: "복사한값",
-  storageBucket: "복사한값",
-  messagingSenderId: "복사한값",
-  appId: "복사한값"
-};
+import "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -55,7 +46,7 @@ async function loadReport() {
 
   });
 
-  document.getElementById("monthlyTotal").innerText = monthlyTotal.toLocaleString();
+  document.getElementById("month-total").innerText = monthlyTotal.toLocaleString();
   document.getElementById("yearlyTotal").innerText = yearlyTotal.toLocaleString();
   document.getElementById("yearlySaving").innerText = Math.round(yearlyTotal * 0.1).toLocaleString();
 
