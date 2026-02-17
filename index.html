@@ -232,9 +232,9 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        if (!Kakao.isInitialized()) {
-            Kakao.init('40173e2de2b82288c08adec5c79dafb5');
-        }
+        // Initialize Kakao SDK
+        Kakao.init('40173e2de2b82288c08adec5c79dafb5');
+        console.log("Kakao SDK Initialized:", Kakao.isInitialized());
 
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -252,11 +252,15 @@
 
         async function loginWithKakao() {
             try {
-                // 1. Kakao Login Popup
-                const authObj = await Kakao.Auth.login({
-                    scope: 'profile_nickname, account_email',
+                // 1. Kakao Login using Promise-wrapped popup
+                const authObj = await new Promise((resolve, reject) => {
+                    Kakao.Auth.login({
+                        scope: 'profile_nickname, account_email',
+                        success: resolve,
+                        fail: reject,
+                    });
                 });
-                
+
                 // 2. Set Access Token
                 Kakao.Auth.setAccessToken(authObj.access_token);
 
@@ -298,11 +302,15 @@
                 
             } catch (error) {
                 console.error("Kakao login or Firebase auth error:", error);
-                if (error.responseJSON) {
-                     alert(`카카오 로그인 오류: ${error.responseJSON.error_description}`);
-                } else {
-                     alert("카카오 로그인 중 오류가 발생했습니다.");
+                let errorMessage = "카카오 로그인 중 오류가 발생했습니다.";
+                if (typeof error === 'string') {
+                    errorMessage = error;
+                } else if (error.error_description) {
+                    errorMessage = error.error_description;
+                } else if (error.message) {
+                    errorMessage = error.message;
                 }
+                alert(errorMessage);
             }
         }
 
