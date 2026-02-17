@@ -454,7 +454,6 @@ window.openMonthlySessionsModal = function() {
     const sessionDiv = document.createElement('div');
     sessionDiv.className = 'consumption-item session';
     
-    // Find original index to pass to detail modal
     const originalIndex = monthSessions.indexOf(session);
     sessionDiv.onclick = () => openSessionDetailsModal(originalIndex);
 
@@ -490,7 +489,7 @@ window.openSessionDetailsModal = function(sessionIndex) {
   modal.classList.remove("hidden");
 
   const title = document.getElementById("session-details-title");
-  title.innerText = `${session.createdAt.toDate().toLocaleDateString('ko-KR')} 구매 내역`;
+  title.innerText = `${session.createdAt.toDate().toLocaleDateString('ko-KR')} 구매 내역 (원본 데이터)`;
 
   const listContainer = document.getElementById("session-details-list");
   listContainer.innerHTML = ''; 
@@ -504,19 +503,13 @@ window.openSessionDetailsModal = function(sessionIndex) {
     const itemDiv = document.createElement('div');
     itemDiv.className = 'consumption-item';
 
-    const nameSpan = document.createElement('span');
-    nameSpan.innerText = item.name;
-    nameSpan.style.flexGrow = 1;
-    nameSpan.style.marginRight = '10px';
+    const debugSpan = document.createElement('span');
+    debugSpan.innerText = JSON.stringify(item, null, 2);
+    debugSpan.style.whiteSpace = 'pre-wrap';
+    debugSpan.style.fontSize = '0.8rem';
+    debugSpan.style.color = '#ffc107';
 
-    const priceSpan = document.createElement('span');
-    priceSpan.className = 'consumption-price';
-    priceSpan.innerText = item.price.toLocaleString() + '원';
-    priceSpan.style.flexShrink = 0;
-    priceSpan.style.marginRight = '10px';
-
-    itemDiv.appendChild(nameSpan);
-    itemDiv.appendChild(priceSpan);
+    itemDiv.appendChild(debugSpan);
     listContainer.appendChild(itemDiv);
   });
 };
