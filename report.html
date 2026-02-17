@@ -32,6 +32,7 @@ body {
   padding: 35px 25px;
   margin-bottom: 35px;
   box-shadow: 0 25px 60px rgba(230,126,34,0.35);
+  transition: transform 0.2s ease;
 }
 
 .hero-card h3 {
@@ -46,12 +47,6 @@ body {
   font-weight: 900;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-}
-
 .card {
   background: #ffffff;
   color: #000;
@@ -59,6 +54,7 @@ body {
   padding: 22px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.25);
   transition: transform 0.2s ease;
+  margin-bottom: 18px;
 }
 
 .card:hover {
@@ -76,10 +72,6 @@ body {
   font-size: 1.3rem;
   font-weight: 900;
   color: #e67e22;
-}
-
-.wide-card {
-  margin-top: 25px;
 }
 
 button {
@@ -150,9 +142,38 @@ button:hover {
   box-shadow: 0 8px 20px rgba(255,140,42,0.5);
 }
 
-
 .hidden {
   display: none;
+}
+
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 25px;
+  text-align: center;
+  color: #fff;
+}
+.consumption-list {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+.consumption-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+.consumption-date {
+  font-weight: 600;
+  color: #eee;
+}
+.consumption-price {
+  font-weight: 700;
+  color: #ff9f43;
 }
 
 </style>
@@ -168,55 +189,37 @@ button:hover {
   ← 나가기
 </button>
 
-
-
 <div class="wrapper">
 
 <div class="title">이번 달 소비 리포트</div>
 
-<div class="hero-card">
+<div class="hero-card clickable" onclick="openTotalConsumptionModal()">
   <h3>이번 달 총 소비</h3>
   <div class="hero-value" id="month-total">로딩중...</div>
 </div>
 
-<div class="grid">
 
   <div class="card clickable" onclick="openChartModal('diff')">
-
     <h3>지난달 대비 변화</h3>
     <div class="big-number" id="month-diff">로딩중...</div>
   </div>
 
   <div class="card clickable" onclick="openChartModal('count')">
-
     <h3>이번 달 구매 횟수</h3>
     <div class="big-number" id="month-count">로딩중...</div>
   </div>
 
   <div class="card clickable" onclick="openChartModal('average')">
-
     <h3>평균 장보기 금액</h3>
     <div class="big-number" id="month-average">로딩중...</div>
   </div>
 
-  <div class="card clickable" onclick="openChartModal('category')">
-
-    <h3>최다 소비 카테고리</h3>
-    <div class="big-number" id="top-category">로딩중...</div>
+  <div class="card clickable" onclick="openPriceCompareModal()">
+    <h3>온라인 최저가 비교</h3>
+    <div class="big-number" id="price-compare">기능 준비중</div>
   </div>
 
-</div>
 
-<div class="card wide-card clickable" onclick="openChartModal('savingMonth')">
-
-  <h3>이번 달 절약 가능 금액</h3>
-  <div class="big-number" id="saving-month">로딩중...</div>
-</div>
-
-<div class="card wide-card clickable" onclick="openChartModal('savingYear')">
-
-  <h3>연간 절약 예상</h3>
-  <div class="big-number" id="saving-year">로딩중...</div>
 </div>
 
 <script type="module">
@@ -248,6 +251,8 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+let monthSessions = [];
+
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) {
@@ -258,18 +263,16 @@ onAuthStateChanged(auth, async (user) => {
   const now = new Date();
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastMonthFirstDay = new Date(
-  now.getFullYear(),
-  now.getMonth() - 1,
-  1
-);
-
-const lastMonthLastDay = new Date(
-  now.getFullYear(),
-  now.getMonth(),
-  0,
-  23, 59, 59
-);
-
+    now.getFullYear(),
+    now.getMonth() - 1,
+    1
+  );
+  const lastMonthLastDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    0,
+    23, 59, 59
+  );
 
   const sessionsRef = collection(db, "users", user.uid, "sessions");
 
@@ -278,106 +281,53 @@ const lastMonthLastDay = new Date(
     where("createdAt", ">=", firstDay)
   );
   const lastMonthQuery = query(
-  sessionsRef,
-  where("createdAt", ">=", lastMonthFirstDay),
-  where("createdAt", "<=", lastMonthLastDay)
-);
-
+    sessionsRef,
+    where("createdAt", ">=", lastMonthFirstDay),
+    where("createdAt", "<=", lastMonthLastDay)
+  );
 
   const snapshot = await getDocs(q);
 
   let total = 0;
   let count = 0;
+  monthSessions = []; 
 
-  let categoryMap = {};
-
-snapshot.forEach(doc => {
-  const data = doc.data();
-  total += data.totalPrice || 0;
-  count++;
-
-  if (data.items) {
-    data.items.forEach(item => {
-
-      let category = "기타";
-
-      if (item.name.includes("라면") || item.name.includes("햇반")) {
-        category = "식품";
-      } else if (item.name.includes("사이다") || item.name.includes("콜라")) {
-        category = "음료";
-      }
-
-      if (!categoryMap[category]) {
-        categoryMap[category] = 0;
-      }
-
-      categoryMap[category] += item.price * item.qty;
-    });
-  }
-});
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    total += data.totalPrice || 0;
+    count++;
+    monthSessions.push(data);
+  });
 
   const lastSnapshot = await getDocs(lastMonthQuery);
+  let lastTotal = 0;
+  lastSnapshot.forEach(doc => {
+    lastTotal += doc.data().totalPrice || 0;
+  });
 
-let lastTotal = 0;
+  document.getElementById("month-total").innerText = total.toLocaleString() + "원";
+  
+  let diff = total - lastTotal;
+  let diffText = "";
 
-lastSnapshot.forEach(doc => {
-  const data = doc.data();
-  lastTotal += data.totalPrice || 0;
-});
-
-
-  document.getElementById("month-total").innerText =
-    total.toLocaleString() + "원";
-    let diff = total - lastTotal;
-let diffText = "";
-
-if (diff > 0) {
-  diffText = `+${diff.toLocaleString()}원 증가`;
-} else if (diff < 0) {
-  diffText = `${diff.toLocaleString()}원 절약`;
-} else {
-  diffText = "변화 없음";
-}
-
-document.getElementById("month-diff").innerText = diffText;
-
-
-  document.getElementById("month-count").innerText =
-    count + "회";
-    let average = 0;
-
-if (count > 0) {
-  average = Math.floor(total / count);
-}
-
-document.getElementById("month-average").innerText =
-  average.toLocaleString() + "원";
-  let topCategory = "없음";
-let topValue = 0;
-
-for (const key in categoryMap) {
-  if (categoryMap[key] > topValue) {
-    topValue = categoryMap[key];
-    topCategory = key;
+  if (diff > 0) {
+    diffText = `+${diff.toLocaleString()}원 증가`;
+  } else if (diff < 0) {
+    diffText = `${diff.toLocaleString()}원 절약`;
+  } else {
+    diffText = "변화 없음";
   }
-}
+  document.getElementById("month-diff").innerText = diffText;
 
-document.getElementById("top-category").innerText =
-  `${topCategory} · ${topValue.toLocaleString()}원`;
-
-// 🔥 절약 가능 금액 계산 (8% 기준)
-let savingMonth = Math.floor(total * 0.08);
-let savingYear = savingMonth * 12;
-
-document.getElementById("saving-month").innerText =
-  savingMonth.toLocaleString() + "원";
-
-document.getElementById("saving-year").innerText =
-  savingYear.toLocaleString() + "원";
-
-
-
+  document.getElementById("month-count").innerText = count + "회";
+  
+  let average = 0;
+  if (count > 0) {
+    average = Math.floor(total / count);
+  }
+  document.getElementById("month-average").innerText = average.toLocaleString() + "원";
 });
+
 window.goDashboard = function() {
   window.location.href = "dashboard.html";
 };
@@ -432,10 +382,6 @@ window.openChartModal = async function(type) {
       values.push(count);
     } else if (type === "average") {
       values.push(count > 0 ? Math.floor(total / count) : 0);
-    } else if (type === "savingMonth") {
-      values.push(Math.floor(total * 0.08));
-    } else if (type === "savingYear") {
-      values.push(Math.floor(total * 0.08) * 12);
     } else {
       values.push(total);
     }
@@ -483,16 +429,93 @@ window.openChartModal = async function(type) {
   });
 };
 
-
 window.closeChartModal = function() {
   document.getElementById("chart-modal").classList.add("hidden");
 };
 
+window.openTotalConsumptionModal = function() {
+  const modal = document.getElementById("consumption-modal");
+  modal.classList.remove("hidden");
+
+  const detailsContainer = document.getElementById("consumption-details");
+  detailsContainer.innerHTML = ''; 
+
+  if (monthSessions.length === 0) {
+    detailsContainer.innerHTML = '<p style="text-align:center;color:#ccc;">이번 달 구매 내역이 없습니다.</p>';
+    return;
+  }
+
+  const dailyTotals = monthSessions.reduce((acc, session) => {
+    const date = session.createdAt.toDate().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+    if (!acc[date]) {
+      acc[date] = 0;
+    }
+    acc[date] += session.totalPrice;
+    return acc;
+  }, {});
+
+  const sortedDates = Object.keys(dailyTotals).sort((a, b) => {
+      return new Date(monthSessions.find(s => s.createdAt.toDate().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) === a).createdAt.toDate()) - new Date(monthSessions.find(s => s.createdAt.toDate().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) === b).createdAt.toDate());
+  });
+
+  sortedDates.forEach(date => {
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'consumption-item';
+
+    const dateSpan = document.createElement('span');
+    dateSpan.className = 'consumption-date';
+    dateSpan.innerText = date;
+
+    const priceSpan = document.createElement('span');
+    priceSpan.className = 'consumption-price';
+    priceSpan.innerText = dailyTotals[date].toLocaleString() + '원';
+
+    itemDiv.appendChild(dateSpan);
+    itemDiv.appendChild(priceSpan);
+    detailsContainer.appendChild(itemDiv);
+  });
+};
+
+window.closeConsumptionModal = function() {
+  document.getElementById("consumption-modal").classList.add("hidden");
+};
+
+window.openPriceCompareModal = function() {
+  document.getElementById("price-compare-modal").classList.remove("hidden");
+};
+window.closePriceCompareModal = function() {
+  document.getElementById("price-compare-modal").classList.add("hidden");
+};
+
 </script>
+
+<!-- Chart Modal -->
 <div id="chart-modal" class="chart-modal hidden">
   <div class="chart-box">
     <button class="chart-close" onclick="closeChartModal()">✕</button>
     <canvas id="chartCanvas"></canvas>
+  </div>
+</div>
+
+<!-- Total Consumption Modal -->
+<div id="consumption-modal" class="chart-modal hidden">
+  <div class="chart-box">
+    <button class="chart-close" onclick="closeConsumptionModal()">✕</button>
+    <h3 class="modal-title">날짜별 구매 내역</h3>
+    <div id="consumption-details" class="consumption-list">
+      <!-- Daily data will be injected here -->
+    </div>
+  </div>
+</div>
+
+<!-- Price Compare Modal -->
+<div id="price-compare-modal" class="chart-modal hidden">
+  <div class="chart-box">
+    <button class="chart-close" onclick="closePriceCompareModal()">✕</button>
+    <h3 class="modal-title">온라인 최저가 비교</h3>
+    <p style="text-align: center; color: #ccc; padding: 20px;">
+      온라인 가격 정보가 연동되면, 구매하신 상품들의 최저가를 비교하여 절약 가능 금액을 계산해 드립니다.<br><br>(현재 기능 준비중입니다.)
+    </p>
   </div>
 </div>
 
