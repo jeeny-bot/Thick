@@ -1,207 +1,184 @@
-      <!DOCTYPE html>
-      <html lang="ko">
-      
-      <head>
-          <!-- Google Analytics 유지 -->
-          <script async src="https://www.googletagmanager.com/gtag/js?id=G-TZ5LFV948V"></script>
-          <script>
-              window.dataLayer = window.dataLayer || [];
-              function gtag() { dataLayer.push(arguments); }
-              gtag('js', new Date());
-              gtag('config', 'G-TZ5LFV948V');
-          </script>
-      
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-          <meta name="mobile-web-app-capable" content="yes">
-          <meta name="format-detection" content="telephone=no">
-          <title>띡! Thick - Smart Scanner Pro</title>
-      
-          <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
-      
-          <style>
-              :root {
-                  --bg-main: linear-gradient(160deg, #0f0f0f 0%, #1c1c1e 100%);
-                  --orange-main: #e67e22;
-                  --orange-light: #ff9f43;
-                  --text-sub: rgba(255,255,255,0.6);
-              }
-      
-              * {
-                  box-sizing: border-box;
-                  margin: 0;
-                  padding: 0;
-                  font-family: 'Noto Sans KR', sans-serif;
-                  -webkit-tap-highlight-color: transparent;
-              }
-      
-              body {
-                  margin: 0;
-                  background: var(--bg-main);
-                  font-family: 'Noto Sans KR', sans-serif;
-                  color: #fff;
-              }
-      
-              #landing-page {
-                  position: fixed;
-                  top: 0; left: 0; width: 100%; height: 100vh;
-                  background: #000;
-                  display: flex; flex-direction: column; align-items: center; justify-content: center;
-                  z-index: 1000; text-align: center; color: white; padding: 24px;
-              }
-      
-              .hero-logo { border: 4px solid white; padding: 4px 18px; font-weight: 900; font-size: 2.5rem; margin-bottom: 30px; }
-              .hero-title { font-size: 3.2rem; font-weight: 900; line-height: 1.1; margin-bottom: 20px; }
-              .hero-title span { color: var(--orange-main); }
-              .hero-desc { font-size: 1.1rem; opacity: 0.8; line-height: 1.6; margin-bottom: 50px; }
-      
-              .login-buttons-container {
-                  display: flex;
-                  flex-direction: column;
-                  gap: 12px;
-                  width: 100%;
-                  max-width: 300px;
-              }
-      
-              .btn-social {
-                  border: none;
-                  padding: 16px;
-                  border-radius: 12px;
-                  font-size: 1rem;
-                  font-weight: 700;
-                  cursor: pointer;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  gap: 10px;
-                  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-                  transition: transform 0.2s ease;
-              }
-      
-              .btn-social:active {
-                  transform: scale(0.96);
-              }
-              
-              .btn-social .icon {
-                  width: 22px;
-                  height: 22px;
-              }
-      
-              .btn-google {
-                  background: #ffffff;
-                  color: #000;
-              }
-      
-              .btn-kakao {
-                  background: #FEE500;
-                  color: #191919;
-              }
-      
-              .btn-naver {
-                  background: #03C75A;
-                  color: #FFF;
-              }
-          </style>
-      </head>
-      
-      <body>
-      
-          <section id="landing-page">
-              <div class="hero-logo">III</div>
-              <h1 class="hero-title">쇼핑이<br><span>가벼워진다</span></h1>
-              <p class="hero-desc">
-                  지금 내가 산 물건의 전체가격은? <br>
-                  띡 스캐너로 확인하세요
-              </p>
-      
-              <div class="login-buttons-container">
-                  <button class="btn-social btn-google" onclick="loginWithGoogle()">
-                      <img class="icon" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon">
-                      구글로 시작하기
-                  </button>
-                  <button class="btn-social btn-kakao" onclick="loginWithKakao()">
-                      <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 4C7.029 4 3 7.582 3 11.5c0 2.552 1.573 4.807 3.903 5.952L6 20l3.827-2.332A8.002 8.002 0 0 0 12 18c4.971 0 9-3.582 9-7.5S16.971 4 12 4z" fill="#000000"></path></svg>
-                      카카오로 시작하기
-                  </button>
-                  <button class="btn-social btn-naver" onclick="loginWithNaver()">
-                       <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.273 12.845V24H7.727V0h8.546v11.155H7.727v1.69h8.546z" fill="#fff"></path></svg>
-                      네이버로 시작하기
-                  </button>
-              </div>
-      
-              <p style="margin-top: 40px; font-size: 0.8rem; opacity: 0.6;">thick.ai.kr - Smart Shopping Helper</p>
-          </section>
-      
-          <script type="module">
-              import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-              import { 
-                  getAuth,
-                  onAuthStateChanged,
-                  signInWithPopup,
-                  GoogleAuthProvider,
-                  OAuthProvider
-              } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-      
-              const firebaseConfig = {
-                 apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
-                 authDomain: "thick-fdd38.firebaseapp.com",
-                 projectId: "thick-fdd38",
-                 storageBucket: "thick-fdd38.firebasestorage.app",
-                 messagingSenderId: "109235677950",
-                 appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
-                 measurementId: "G-LH61G4J09W"
-              };
-      
-              const app = initializeApp(firebaseConfig);
-              const auth = getAuth(app);
-      
-              // Google Provider
-              const googleProvider = new GoogleAuthProvider();
-              window.loginWithGoogle = async function () {
-                  try {
-                      await signInWithPopup(auth, googleProvider);
-                  } catch (e) {
-                      console.error("Google 로그인 실패:", e);
-                      handleAuthError(e);
-                  }
-              };
-      
-              // Naver Provider
-              const naverProvider = new OAuthProvider('oidc.naver');
-              naverProvider.addScope('profile');
-              naverProvider.setCustomParameters({ auth_type: 'reauthenticate' });
-              window.loginWithNaver = async function () {
-                  try {
-                      await signInWithPopup(auth, naverProvider);
-                  } catch (e) {
-                      console.error("Naver 로그인 실패:", e);
-                      handleAuthError(e);
-                  }
-              };
-      
-              // Kakao (Placeholder)
-              window.loginWithKakao = function () {
-                  alert("카카오 로그인은 현재 준비 중입니다. 이용에 불편을 드려 죄송합니다.");
-              };
-      
-              function handleAuthError(error) {
-                  console.error("Authentication Error Details:", error);
-                  if (error.code === 'auth/popup-closed-by-user') {
-                      alert('로그인 팝업이 닫혔습니다. 다시 시도해주세요.');
-                  } else if (error.code === 'auth/account-exists-with-different-credential') {
-                      alert('이미 다른 소셜 계정으로 가입된 이메일입니다. 기존에 사용하셨던 계정으로 로그인해주세요.');
-                  } else {
-                      alert("로그인에 실패했습니다. 잠시 후 다시 시도해주시거나, 팝업 차단 설정을 확인해주세요.");
-                  }
-              }
-      
-              // Redirect on successful login
-              onAuthStateChanged(auth, (user) => {
-                  if (user) {
-                      window.location.href = "dashboard.html";
-                  }
-              });
-          </script>
-      
-      </body>
-      </html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TZ5LFV948V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-TZ5LFV948V');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <title>띡! Thick - Smart Scanner Pro</title>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: linear-gradient(160deg, #0f0f0f 0%, #1c1c1e 100%);
+            --orange-main: #e67e22;
+            --orange-light: #ff9f43;
+            --text-sub: rgba(255,255,255,0.6);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            margin: 0;
+            background: var(--bg-main);
+            font-family: 'Noto Sans KR', sans-serif;
+            color: #fff;
+        }
+        #landing-page {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100vh;
+            background: #000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000; text-align: center; color: white; padding: 24px;
+        }
+        .hero-logo { border: 4px solid white; padding: 4px 18px; font-weight: 900; font-size: 2.5rem; margin-bottom: 30px; }
+        .hero-title { font-size: 3.2rem; font-weight: 900; line-height: 1.1; margin-bottom: 20px; }
+        .hero-title span { color: var(--orange-main); }
+        .hero-desc { font-size: 1.1rem; opacity: 0.8; line-height: 1.6; margin-bottom: 50px; }
+        .login-buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .btn-social {
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
+        }
+        .btn-social:active {
+            transform: scale(0.96);
+        }
+        .btn-social .icon {
+            width: 22px;
+            height: 22px;
+        }
+        .btn-google {
+            background: #ffffff;
+            color: #000;
+        }
+        .btn-kakao {
+            background: #FEE500;
+            color: #191919;
+        }
+        .btn-naver {
+            background: #03C75A;
+            color: #FFF;
+        }
+    </style>
+</head>
+
+<body>
+
+    <section id="landing-page">
+        <div class="hero-logo">III</div>
+        <h1 class="hero-title">쇼핑이<br><span>가벼워진다</span></h1>
+        <p class="hero-desc">
+            지금 내가 산 물건의 전체가격은? <br>
+            띡 스캐너로 확인하세요
+        </p>
+
+        <div class="login-buttons-container">
+            <button class="btn-social btn-google" onclick="loginWithGoogle()">
+                <img class="icon" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon">
+                구글로 시작하기
+            </button>
+            <button class="btn-social btn-kakao" onclick="loginWithKakao()">
+                <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 4C7.029 4 3 7.582 3 11.5c0 2.552 1.573 4.807 3.903 5.952L6 20l3.827-2.332A8.002 8.002 0 0 0 12 18c4.971 0 9-3.582 9-7.5S16.971 4 12 4z" fill="#000000"></path></svg>
+                카카오로 시작하기
+            </button>
+            <button class="btn-social btn-naver" onclick="loginWithNaver()">
+                 <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.273 12.845V24H7.727V0h8.546v11.155H7.727v1.69h8.546z" fill="#fff"></path></svg>
+                네이버로 시작하기
+            </button>
+        </div>
+
+        <p style="margin-top: 40px; font-size: 0.8rem; opacity: 0.6;">thick.ai.kr - Smart Shopping Helper</p>
+    </section>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
+            authDomain: "thick-fdd38.firebaseapp.com",
+            projectId: "thick-fdd38",
+            storageBucket: "thick-fdd38.appspot.com",
+            messagingSenderId: "109235677950",
+            appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
+            measurementId: "G-LH61G4J09W"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                window.location.href = "dashboard.html";
+            }
+        });
+
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => {
+                console.error("Google login error:", error);
+                alert("구글 로그인 중 오류가 발생했습니다.");
+            });
+        }
+
+        function loginWithKakao() {
+            alert("카카오 로그인은 현재 준비중입니다.");
+        }
+
+        function loginWithNaver() {
+            const provider = new firebase.auth.OAuthProvider('oidc.naver');
+            auth.signInWithPopup(provider)
+            .then((result) => {
+                // This gives you a Naver Access Token. You can use it to access the Naver API.
+                const credential = result.credential;
+                const token = credential.accessToken;
+                // The signed-in user info.
+                const user = result.user;
+                console.log(user);
+            })
+            .catch((error) => {
+                console.error("Naver login error:", error);
+                // Handle Errors here.
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                // The email of the user's account used.
+                const email = error.email;
+                // The firebase.auth.AuthCredential type that was used.
+                const credential = error.credential;
+                alert("네이버 로그인 중 오류가 발생했습니다: " + errorMessage);
+            });
+        }
+    </script>
+
+</body>
+</html>
