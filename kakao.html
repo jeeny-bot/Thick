@@ -28,7 +28,7 @@
         const db = firebase.firestore();
 
         // 2. Initialize Kakao SDK
-        Kakao.init('YOUR_JAVASCRIPT_KEY'); // <-- IMPORTANT: Replace with your Javascript Key
+        Kakao.init('40173e2de2b82288c08adec5c79dafb5'); // JAVASCRIPT KEY
 
         // 3. Main Logic
         (async () => {
@@ -46,7 +46,7 @@
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
                     body: new URLSearchParams({
                         grant_type: 'authorization_code',
-                        client_id: '40173e2de2b82288c08adec5c79dafb5', // REST API key
+                        client_id: '40173e2de2b82288c08adec5c79dafb5', // This should be your REST API key
                         redirect_uri: `${window.location.origin}/kakao.html`,
                         code: code,
                     })
@@ -61,19 +61,22 @@
                 
                 const userData = await Kakao.API.request({ url: '/v2/user/me' });
 
-                // --- Added Validation --- 
                 const kakaoId = userData && userData.id ? String(userData.id) : null;
                 if (!kakaoId) {
                     throw new Error('카카오 사용자 ID를 가져오지 못했습니다.');
                 }
 
-                // Handle Firebase Authentication
                 const nickname = userData.kakao_account?.profile?.nickname || '사용자';
                 const email = userData.kakao_account?.email;
 
                 const firebaseEmail = email || `${kakaoId}@kakao.thick.ai`;
                 const firebasePassword = `kakao_${kakaoId}`;
-                
+
+                // --- Added for Debugging ---
+                console.log("Attempting Firebase auth with:");
+                console.log("Email:", firebaseEmail);
+                console.log("Password:", firebasePassword);
+
                 try {
                     await auth.signInWithEmailAndPassword(firebaseEmail, firebasePassword);
                 } catch (error) {
@@ -89,8 +92,6 @@
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         }, { merge: true });
                     } else {
-                        // Re-throw other sign-in errors to be caught by the outer catch, 
-                        // providing more specific details if available.
                         const specificError = new Error(`Firebase 로그인 실패: ${error.message} (코드: ${error.code})`);
                         specificError.original = error;
                         throw specificError;
