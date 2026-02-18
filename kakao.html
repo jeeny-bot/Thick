@@ -1,4 +1,4 @@
-
+gownj
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -40,31 +40,24 @@
             }
             
             try {
-                // Exchange authorization code for access token
                 const tokenResponse = await fetch('https://kauth.kakao.com/oauth/token', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
                     body: new URLSearchParams({
                         grant_type: 'authorization_code',
-                        client_id: '40173e2de2b82288c08adec5c79dafb5', // This should be your REST API key
+                        client_id: '40173e2de2b82288c08adec5c79dafb5',
                         redirect_uri: `${window.location.origin}/kakao.html`,
                         code: code,
                     })
                 });
                 const tokenData = await tokenResponse.json();
 
-                if (tokenData.error) {
-                    throw new Error(tokenData.error_description || '카카오 토큰 발급에 실패했습니다.');
-                }
-
+                if (tokenData.error) throw new Error(tokenData.error_description || '카카오 토큰 발급 실패');
                 Kakao.Auth.setAccessToken(tokenData.access_token);
                 
                 const userData = await Kakao.API.request({ url: '/v2/user/me' });
-
-                const kakaoId = userData && userData.id ? String(userData.id) : null;
-                if (!kakaoId) {
-                    throw new Error('카카오 사용자 ID를 가져오지 못했습니다.');
-                }
+                const kakaoId = userData?.id ? String(userData.id) : null;
+                if (!kakaoId) throw new Error('카카오 사용자 ID를 가져오지 못했습니다.');
 
                 const nickname = userData.kakao_account?.profile?.nickname || '사용자';
                 const email = userData.kakao_account?.email;
@@ -72,47 +65,50 @@
                 const firebaseEmail = email || `${kakaoId}@kakao.thick.ai`;
                 const firebasePassword = `kakao_${kakaoId}`;
 
-                console.log("Attempting Firebase auth with:");
-                console.log("Email:", firebaseEmail);
-                console.log("Password:", firebasePassword);
+                console.log("Attempting Firebase auth with:", { email: firebaseEmail, password: firebasePassword });
 
                 try {
+                    // 1. First, try to sign in
                     await auth.signInWithEmailAndPassword(firebaseEmail, firebasePassword);
-                } catch (error) {
-                    if (error.code === 'auth/user-not-found') {
-                        const userCredential = await auth.createUserWithEmailAndPassword(firebaseEmail, firebasePassword);
-                        await userCredential.user.updateProfile({ displayName: nickname });
+                    console.log("Firebase sign-in successful.");
+                } catch (signInError) {
+                    // 2. If sign-in fails, assume user doesn't exist and try to create a new account
+                    console.warn("Sign-in failed, attempting to create a new user. Reason:", signInError.code);
+                    
+                    if (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential') {
+                        try {
+                            const userCredential = await auth.createUserWithEmailAndPassword(firebaseEmail, firebasePassword);
+                            console.log("Firebase user created successfully.");
+                            await userCredential.user.updateProfile({ displayName: nickname });
 
-                        await db.collection('users').doc(userCredential.user.uid).set({
-                            uid: userCredential.user.uid,
-                            nickname: nickname,
-                            email: firebaseEmail,
-                            provider: 'kakao',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        }, { merge: true });
+                            await db.collection('users').doc(userCredential.user.uid).set({
+                                uid: userCredential.user.uid,
+                                nickname: nickname,
+                                email: firebaseEmail,
+                                provider: 'kakao',
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }, { merge: true });
+                             console.log("User profile and firestore document created.");
+                        } catch (signUpError) {
+                            // 3. If sign-up ALSO fails, then it's a real issue.
+                            console.error("Critical: Sign-up after failed sign-in also failed.", signUpError);
+                            throw new Error(`회원가입 실패. 로그인도 실패했습니다. (가입오류: ${signUpError.message})`);
+                        }
                     } else {
-                        const specificError = new Error(`Firebase 로그인 실패: ${error.message} (코드: ${error.code})`);
-                        specificError.original = error;
-                        throw specificError;
+                        // For other sign-in errors (network, etc.), just throw them.
+                        throw signInError;
                     }
                 }
 
                 window.location.href = 'dashboard.html';
 
             } catch (error) {
-                console.error("--- KAKAO/FIREBASE LOGIN FAILED ---");
-                console.error("Error Code:", error.code);
-                console.error("Error Message:", error.message);
-                console.error("Full Error Object:", error);
-                
-                // Display error on the page itself for easier debugging
+                console.error("--- KAKAO/FIREBASE LOGIN FAILED ---", error);
                 document.body.innerHTML = `
                     <div style="font-family: sans-serif; padding: 20px; background-color: #fff1f1; border: 1px solid #ffbaba; color: #d8000c;">
                         <h1>로그인 오류 발생</h1>
-                        <p>오류가 발생하여 로그인을 중단했습니다. 개발자 도구(F12)의 콘솔 탭에서 더 자세한 정보를 확인해주세요.</p>
-                        <hr style="border: 0; border-top: 1px solid #ffbaba;">
-                        <p><b>에러 코드:</b> ${error.code || 'N/A'}</p>
                         <p><b>에러 메시지:</b> ${error.message || 'N/A'}</p>
+                        <p>F12를 눌러 콘솔을 확인해주세요.</p>
                     </div>
                 `;
             }
