@@ -271,8 +271,8 @@
 
         function loginWithNaver() {
             const provider = new firebase.auth.OAuthProvider('oidc.naver');
-            provider.addScope('email');
-            provider.addScope('name');
+            // provider.addScope('email'); // Relying on Firebase console configuration for scopes
+            // provider.addScope('name');  // to prevent 'invalid_scope' errors.
 
             auth.signInWithPopup(provider)
             .then((result) => {
