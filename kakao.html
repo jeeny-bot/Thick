@@ -28,13 +28,40 @@
         const db = firebase.firestore();
 
         // 2. Initialize Kakao SDK
-        Kakao.init('40173e2de2b82288c08adec5c79dafb5');
+        // The error 'token does not exist' is likely because the Kakao SDK was not initialized with the correct key.
+        // You MUST use your JAVASCRIPT KEY for Kakao.init().
+        Kakao.init('YOUR_JAVASCRIPT_KEY'); // <-- IMPORTANT: Replace with your Javascript Key from the Kakao Developer console.
+
 
         // 3. Main Logic
         (async () => {
+            const code = new URL(window.location.href).searchParams.get("code");
+            if (!code) {
+                alert('인증 코드가 없습니다. 로그인 페이지로 돌아갑니다.');
+                window.location.href = 'index.html';
+                return;
+            }
+            
             try {
-                // The SDK automatically handles the authorization code from the redirect
-                // and sets the access token. We just need to get the user info.
+                // Exchange authorization code for access token
+                const tokenResponse = await fetch('https://kauth.kakao.com/oauth/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
+                    body: new URLSearchParams({
+                        grant_type: 'authorization_code',
+                        client_id: '40173e2de2b82288c08adec5c79dafb5', // This should be your REST API key, which is correct to use here.
+                        redirect_uri: `${window.location.origin}/kakao.html`,
+                        code: code,
+                    })
+                });
+                const tokenData = await tokenResponse.json();
+
+                if (tokenData.error) {
+                    throw new Error(tokenData.error_description || '카카오 토큰 발급에 실패했습니다.');
+                }
+
+                // Set access token for the SDK
+                Kakao.Auth.setAccessToken(tokenData.access_token);
                 
                 // Get User Info from Kakao
                 const userData = await Kakao.API.request({
@@ -46,9 +73,7 @@
                 const nickname = userData.kakao_account?.profile?.nickname || '사용자';
                 const email = userData.kakao_account?.email;
 
-                // Use a consistent email format for Firebase
                 const firebaseEmail = email || `${kakaoId}@kakao.thick.ai`;
-                // Use a consistent and secure (though deterministic) password
                 const firebasePassword = `kakao_${kakaoId}`; 
                 
                 try {
@@ -84,8 +109,6 @@
                 let errorMessage = "카카오 로그인 중 오류가 발생했습니다.";
                  if (typeof error === 'string') {
                     errorMessage = error;
-                } else if (error.responseJSON && error.responseJSON.error_description) {
-                    errorMessage = error.responseJSON.error_description;
                 } else if (error.message) {
                     errorMessage = error.message;
                 }
