@@ -106,10 +106,7 @@ body {
 #user-status-bar {
   position: fixed;
   top: 20px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  left: 20px;
   background: rgba(0,0,0,0.6);
   backdrop-filter: blur(8px);
   padding: 10px 18px;
@@ -117,6 +114,12 @@ body {
   font-weight: 700;
   font-size: 0.8rem;
   border: 1px solid rgba(255,255,255,0.1);
+}
+
+#logout-bar {
+  position: fixed;
+  top: 20px;
+  right: 20px;
 }
 
 #logout-btn {
@@ -247,9 +250,10 @@ body {
 
 <div id="user-status-bar">
   <span id="status-text">로딩중...</span>
+</div>
+
+<div id="logout-bar">
   <button id="logout-btn" onclick="logout()">로그아웃</button>
-
-
 </div>
 
 
