@@ -1,621 +1,365 @@
-<script>
-    // CRITICAL: Force-unregister and reload to fix persistent service worker issues on iOS.
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            if (registrations.length > 0) {
-                console.log('Found active service workers, unregistering and reloading...');
-                let unregisterPromises = registrations.map(registration => registration.unregister());
-                Promise.all(unregisterPromises).then(() => {
-                    // Force a hard reload from the network, bypassing the cache.
-                    window.location.reload(true);
-                });
-            }
-        }).catch(function(err) {
-            console.error('Service Worker unregistration failed: ', err);
-        });
-    }
-</script>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>내 데이터보기</title>
-
-<style>
-body {
-  margin: 0;
-  font-family: 'Noto Sans KR', sans-serif;
-  background: linear-gradient(160deg, #0f0f0f 0%, #1c1c1e 100%);
-  color: #fff;
-}
-
-.wrapper {
-  padding: 80px 20px 60px 20px;
-  max-width: 540px;
-  margin: auto;
-}
-
-.title {
-  font-size: 1.9rem;
-  font-weight: 900;
-  margin-bottom: 35px;
-  text-align: center;
-}
-
-.hero-card {
-  background: linear-gradient(135deg, #e67e22, #ff9f43);
-  border-radius: 28px;
-  padding: 35px 25px;
-  margin-bottom: 35px;
-  box-shadow: 0 25px 60px rgba(230,126,34,0.35);
-  transition: transform 0.2s ease;
-}
-
-.hero-card h3 {
-  margin: 0 0 15px 0;
-  font-size: 1rem;
-  font-weight: 600;
-  opacity: 0.9;
-}
-
-.hero-value {
-  font-size: 2.4rem;
-  font-weight: 900;
-}
-
-.card {
-  background: #ffffff;
-  color: #000;
-  border-radius: 22px;
-  padding: 22px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-  transition: transform 0.2s ease;
-  margin-bottom: 18px;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-}
-
-.card h3 {
-  margin: 0 0 12px 0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  opacity: 0.6;
-}
-
-.big-number {
-  font-size: 1.3rem;
-  font-weight: 900;
-  color: #e67e22;
-}
-
-button {
-  transition: 0.2s ease;
-}
-button:hover {
-  opacity: 0.8;
-}
-.exit-btn {
-  position: fixed;
-  top: 30px;
-  left: 20px;
-  padding: 16px 30px;
-  border: none;
-  border-radius: 40px;
-  background: #e67e22;
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 0 12px 30px rgba(230,126,34,0.45);
-  z-index: 9999;
-  transition: 0.2s ease;
-}
-
-.exit-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 40px rgba(230,126,34,0.55);
-}
-.clickable {
-  cursor: pointer;
-}
-
-.chart-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 20000;
-}
-
-.chart-box {
-  background: linear-gradient(145deg, #1e1e22, #111113);
-  width: 90%;
-  max-width: 480px;
-  padding: 35px;
-  border-radius: 28px;
-  position: relative;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-
-.chart-close {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  border: none;
-  background: #ff8c2a;
-  color: #fff;
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(255,140,42,0.5);
-}
-
-.hidden {
-  display: none;
-}
-
-.modal-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 25px;
-  text-align: center;
-  color: #fff;
-}
-.consumption-list {
-  max-height: 400px;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-.consumption-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 10px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 12px;
-  margin-bottom: 10px;
-}
-
-.consumption-item.session {
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-.consumption-item.session:hover {
-  background: rgba(255,255,255,0.08);
-}
-
-.consumption-date {
-  font-weight: 600;
-  color: #eee;
-}
-.consumption-price {
-  font-weight: 700;
-  color: #ff9f43;
-}
-
-.item-details {
-  flex-grow: 1;
-  margin-right: 10px;
-}
-
-.item-name {
-  font-weight: 600;
-  color: #eee;
-  margin-bottom: 4px;
-}
-
-.item-calculation {
-  font-size: 0.85rem;
-  color: #bbb;
-}
-
-.item-total-price {
-  font-weight: 700;
-  color: #ff9f43;
-  flex-shrink: 0;
-  font-size: 1.1rem;
-}
-
-</style>
-
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TZ5LFV948V"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-TZ5LFV948V');
-    </script>
-<script type="text/javascript">
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "vix7j595ui");
-</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>월간 소비 리포트</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-main: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-sub: #a0a0a0;
+            --orange-main: #e67e22;
+            --green-main: #2ecc71;
+            --blue-main: #3498db;
+            --red-main: #e74c3c;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        body {
+            margin: 0;
+            background-color: var(--bg-main);
+            font-family: 'Noto Sans KR', sans-serif;
+            color: var(--text-main);
+            padding-bottom: 80px; 
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background-color: var(--card-bg);
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .main-container {
+            padding: 24px;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+        }
+        .section-header {
+            margin-bottom: 16px;
+        }
+        .section-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            text-align: center;
+        }
+        .summary-item h3 {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            margin: 0 0 8px 0;
+        }
+        .summary-item .amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .amount.positive { color: var(--green-main); }
+        .amount.negative { color: var(--red-main); }
+        .chart-container {
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .consumption-analysis-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+        }
+        .consumption-analysis-item:last-child { border-bottom: none; }
+        .consumption-analysis-item .label { font-weight: 500; }
+        .consumption-analysis-item .amount { font-weight: 700; }
+        .unwise-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+        }
+        .unwise-item:last-child { border-bottom: none; }
+        .unwise-item-thumbnail {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            margin-right: 12px;
+            background-color: #333;
+        }
+        .unwise-item-info {
+            flex-grow: 1;
+        }
+        .unwise-item-info .name { font-weight: 500; }
+        .unwise-item-info .price-info { font-size: 0.8rem; color: var(--text-sub); }
+        .unwise-item-savings {
+            font-weight: 700;
+            color: var(--orange-main);
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            background-color: #1e1e1e;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.4);
+            padding: 10px 0;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            text-decoration: none;
+            flex: 1;
+        }
+        .nav-item.active {
+            color: var(--orange-main);
+        }
+        .nav-item .icon {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+    </style>
 </head>
-
 <body>
 
- <button onclick="goDashboard()" class="exit-btn">
-  ← 나가기
-</button>
+    <header class="header">
+        <div class="header-title">월간 소비 리포트</div>
+    </header>
 
-<div class="wrapper">
+    <div class="main-container" id="report-container">
+        <p>리포트를 생성 중입니다...</p>
+    </div>
 
-<div class="title">이번 달 소비 리포트</div>
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="nav-item"><div class="icon">&#127968;</div><div>홈</div></a>
+        <a href="scan.html" class="nav-item"><div class="icon">&#10133;</div><div>상품등록</div></a>
+        <a href="#" class="nav-item"><div class="icon">&#128220;</div><div>내역</div></a>
+        <a href="report.html" class="nav-item active"><div class="icon">&#128202;</div><div>리포트</div></a>
+        <a href="settings.html" class="nav-item"><div class="icon">&#9881;</div><div>설정</div></a>
+    </nav>
 
-<div class="hero-card clickable" onclick="openMonthlySessionsModal()">
-  <h3>이번 달 총 소비</h3>
-  <div class="hero-value" id="month-total">로딩중...</div>
-</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
+            authDomain: "thick-fdd38.firebaseapp.com",
+            projectId: "thick-fdd38",
+            storageBucket: "thick-fdd38.appspot.com",
+            messagingSenderId: "109235677950",
+            appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
+            measurementId: "G-LH61G4J09W"
+        };
 
-  <div class="card clickable" onclick="openChartModal('diff')">
-    <h3>지난달 대비 변화</h3>
-    <div class="big-number" id="month-diff">로딩중...</div>
-  </div>
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-  <div class="card clickable" onclick="openChartModal('count')">
-    <h3>이번 달 구매 횟수</h3>
-    <div class="big-number" id="month-count">로딩중...</div>
-  </div>
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                generateReport(user);
+            } else {
+                window.location.href = "index.html";
+            }
+        });
 
-  <div class="card clickable" onclick="openChartModal('average')">
-    <h3>평균 장보기 금액</h3>
-    <div class="big-number" id="month-average">로딩중...</div>
-  </div>
+        async function generateReport(user) {
+            const now = new Date();
+            const currentMonthData = await fetchMonthData(user, now);
+            
+            const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const previousMonthData = await fetchMonthData(user, prevMonth);
 
-</div>
-
-<script type="module">
-
-const firebaseConfig = {
-    apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
-    authDomain: "thick-fdd38.firebaseapp.com",
-    projectId: "thick-fdd38",
-    storageBucket: "thick-fdd38.firebasestorage.app",
-    messagingSenderId: "109235677950",
-    appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
-    measurementId: "G-LH61G4J09W"
-};
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-let monthSessions = [];
-
-onAuthStateChanged(auth, async (user) => {
-
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  const now = new Date();
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastMonthFirstDay = new Date(
-    now.getFullYear(),
-    now.getMonth() - 1,
-    1
-  );
-  const lastMonthLastDay = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    0,
-    23, 59, 59
-  );
-
-  const sessionsRef = collection(db, "users", user.uid, "sessions");
-
-  const q = query(
-    sessionsRef,
-    where("createdAt", ">=", firstDay)
-  );
-  const lastMonthQuery = query(
-    sessionsRef,
-    where("createdAt", ">=", lastMonthFirstDay),
-    where("createdAt", "<=", lastMonthLastDay)
-  );
-
-  const snapshot = await getDocs(q);
-
-  let total = 0;
-  let count = 0;
-  monthSessions = []; 
-
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    total += data.totalPrice || 0;
-    count++;
-    monthSessions.push(data);
-  });
-
-  const lastSnapshot = await getDocs(lastMonthQuery);
-  let lastTotal = 0;
-  lastSnapshot.forEach(doc => {
-    lastTotal += doc.data().totalPrice || 0;
-  });
-
-  document.getElementById("month-total").innerText = total.toLocaleString() + "원";
-  
-  let diff = total - lastTotal;
-  let diffText = "";
-
-  if (diff > 0) {
-    diffText = `+${diff.toLocaleString()}원 증가`;
-  } else if (diff < 0) {
-    diffText = `${diff.toLocaleString()}원 절약`;
-  } else {
-    diffText = "변화 없음";
-  }
-  document.getElementById("month-diff").innerText = diffText;
-
-  document.getElementById("month-count").innerText = count + "회";
-  
-  let average = 0;
-  if (count > 0) {
-    average = Math.floor(total / count);
-  }
-  document.getElementById("month-average").innerText = average.toLocaleString() + "원";
-});
-
-window.goDashboard = function() {
-  window.location.href = "dashboard.html";
-};
-
-let chartInstance = null;
-
-window.openChartModal = async function(type) {
-
-  const modal = document.getElementById("chart-modal");
-  modal.classList.remove("hidden");
-
-  const ctx = document.getElementById("chartCanvas");
-
-  if (chartInstance) {
-    chartInstance.destroy();
-  }
-
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const now = new Date();
-  const months = [];
-  const values = [];
-
-  const sessionsRef = collection(db, "users", user.uid, "sessions");
-
-  for (let i = 2; i >= 0; i--) {
-
-    const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
-
-    months.push(start.getMonth() + 1 + "월");
-
-    const q = query(
-      sessionsRef,
-      where("createdAt", ">=", start),
-      where("createdAt", "<=", end)
-    );
-
-    const snapshot = await getDocs(q);
-
-    let total = 0;
-    let count = 0;
-
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      total += data.totalPrice || 0;
-      count++;
-    });
-
-    if (type === "count") {
-      values.push(count);
-    } else if (type === "average") {
-      values.push(count > 0 ? Math.floor(total / count) : 0);
-    } else {
-      values.push(total);
-    }
-  }
-
-  chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: months,
-      datasets: [{
-        data: values,
-        backgroundColor: '#ff8c2a',
-        borderRadius: 12,
-        barThickness: 40
-      }]
-    },
-    options: {
-      responsive: true,
-      animation: {
-        duration: 900,
-        easing: 'easeOutCubic'
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: "rgba(255,255,255,0.08)"
-          },
-          ticks: {
-            color: "#999"
-          }
-        },
-        x: {
-          grid: { display: false },
-          ticks: {
-            color: "#999",
-            font: { weight: '700' }
-          }
+            if (currentMonthData.totalSpending === 0) {
+                document.getElementById('report-container').innerHTML = '<p>이번 달 소비 내역이 없어 리포트를 생성할 수 없습니다.</p>';
+                return;
+            }
+            
+            renderReport(currentMonthData, previousMonthData.totalSpending);
         }
-      },
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  });
-};
 
-window.closeChartModal = function() {
-  document.getElementById("chart-modal").classList.add("hidden");
-};
+        async function fetchMonthData(user, date) {
+            const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+            const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
-window.openMonthlySessionsModal = function() {
-  const modal = document.getElementById("monthly-sessions-modal");
-  modal.classList.remove("hidden");
+            const sessionsRef = collection(db, "users", user.uid, "sessions");
+            const q = query(sessionsRef, 
+                where("createdAt", ">=", Timestamp.fromDate(startOfMonth)),
+                where("createdAt", "<=", Timestamp.fromDate(endOfMonth))
+            );
 
-  const listContainer = document.getElementById("monthly-sessions-list");
-  listContainer.innerHTML = ''; 
+            const snapshot = await getDocs(q);
+            
+            let totalSpending = 0;
+            const spendingByCategory = { '마트': 0, '편의점': 0, '온라인': 0, '기타': 0 };
+            const allItems = [];
 
-  if (monthSessions.length === 0) {
-    listContainer.innerHTML = '<p style="text-align:center;color:#ccc;">이번 달 구매 내역이 없습니다.</p>';
-    return;
-  }
-  
-  const sortedSessions = [...monthSessions].sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+            snapshot.forEach(doc => {
+                const session = doc.data();
+                totalSpending += session.totalPrice || 0;
+                const category = session.marketType || '기타';
+                if(spendingByCategory.hasOwnProperty(category)) {
+                    spendingByCategory[category] += session.totalPrice || 0;
+                } else {
+                    spendingByCategory['기타'] += session.totalPrice || 0;
+                }
+                if(session.items) {
+                    allItems.push(...session.items);
+                }
+            });
 
-  sortedSessions.forEach((session, index) => {
-    const sessionDiv = document.createElement('div');
-    sessionDiv.className = 'consumption-item session';
-    
-    const originalIndex = monthSessions.indexOf(session);
-    sessionDiv.onclick = () => openSessionDetailsModal(originalIndex);
+            return { totalSpending, spendingByCategory, allItems };
+        }
 
-    const dateSpan = document.createElement('span');
-    dateSpan.className = 'consumption-date';
-    dateSpan.innerText = session.createdAt.toDate().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+        function renderReport(currentData, prevMonthTotal) {
+            const { totalSpending, spendingByCategory, allItems } = currentData;
 
-    const priceSpan = document.createElement('span');
-    priceSpan.className = 'consumption-price';
-    priceSpan.innerText = (session.totalPrice || 0).toLocaleString() + '원';
-    
-    const arrowSpan = document.createElement('span');
-    arrowSpan.innerText = '›';
-    arrowSpan.style.color = '#ccc';
-    arrowSpan.style.fontWeight = 'bold';
+            const diff = totalSpending - prevMonthTotal;
+            const diffText = diff > 0 ? `+${diff.toLocaleString()}원` : `${diff.toLocaleString()}원`;
+            const diffClass = diff > 0 ? 'negative' : 'positive';
 
-    sessionDiv.appendChild(dateSpan);
-    sessionDiv.appendChild(priceSpan);
-    sessionDiv.appendChild(arrowSpan);
-    listContainer.appendChild(sessionDiv);
-  });
-};
+            // --- Wise vs Unwise Spending --- //
+            const productStats = {};
+            allItems.forEach(item => {
+                if (!productStats[item.name]) {
+                    productStats[item.name] = { prices: [], total: 0, count: 0, imageUrl: item.imageUrl };
+                }
+                productStats[item.name].prices.push(item.price);
+                productStats[item.name].total += item.price;
+                productStats[item.name].count += 1;
+            });
 
-window.closeMonthlySessionsModal = function() {
-  document.getElementById("monthly-sessions-modal").classList.add("hidden");
-};
+            Object.values(productStats).forEach(stats => {
+                stats.avg = stats.total / stats.count;
+            });
 
-window.openSessionDetailsModal = function(sessionIndex) {
-  const session = monthSessions[sessionIndex];
-  if (!session) return;
+            let wiseSpending = 0;
+            let unwiseSpending = 0;
+            const unwiseItems = [];
 
-  const modal = document.getElementById("session-details-modal");
-  modal.classList.remove("hidden");
+            allItems.forEach(item => {
+                const avgPrice = productStats[item.name].avg;
+                if (item.price <= avgPrice) {
+                    wiseSpending += item.price;
+                } else {
+                    unwiseSpending += item.price;
+                    unwiseItems.push({ 
+                        ...item, 
+                        avgPrice,
+                        diff: item.price - avgPrice
+                    });
+                }
+            });
 
-  const title = document.getElementById("session-details-title");
-  title.innerText = `${session.createdAt.toDate().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 구매 내역`;
+            unwiseItems.sort((a, b) => b.diff - a.diff);
+            const top3Unwise = unwiseItems.slice(0, 3);
 
-  const listContainer = document.getElementById("session-details-list");
-  listContainer.innerHTML = ''; 
+            const container = document.getElementById('report-container');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="section-header"><h2>월간 소비 요약</h2></div>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <h3>이번 달 총 지출</h3>
+                            <div class="amount">${totalSpending.toLocaleString()}원</div>
+                        </div>
+                        <div class="summary-item">
+                            <h3>지난달 대비</h3>
+                            <div class="amount ${diffClass}">${diffText}</div>
+                        </div>
+                    </div>
+                </div>
 
-  if (!session.items || session.items.length === 0) {
-    listContainer.innerHTML = '<p style="text-align:center;color:#ccc;">해당 일자의 구매 상품이 없습니다.</p>';
-    return;
-  }
+                <div class="card">
+                    <div class="section-header"><h2>카테고리별 지출</h2></div>
+                    <div class="chart-container">
+                        <canvas id="category-chart"></canvas>
+                    </div>
+                </div>
 
-  session.items.forEach(item => {
-    const itemDiv = document.createElement('div');
-    itemDiv.className = 'consumption-item';
+                <div class="card">
+                    <div class="section-header"><h2>소비 분석</h2></div>
+                    <div class="consumption-analysis">
+                        <div class="consumption-analysis-item">
+                            <span class="label">🧐 현명한 소비</span>
+                            <span class="amount positive">${wiseSpending.toLocaleString()}원</span>
+                        </div>
+                        <div class="consumption-analysis-item">
+                            <span class="label">😥 아쉬운 소비</span>
+                            <span class="amount negative">${unwiseSpending.toLocaleString()}원</span>
+                        </div>
+                    </div>
+                </div>
 
-    const detailsDiv = document.createElement('div');
-    detailsDiv.className = 'item-details';
+                <div class="card">
+                    <div class="section-header"><h2>TOP 3 아쉬운 소비</h2></div>
+                    <div id="unwise-list">
+                        ${top3Unwise.length > 0 ? top3Unwise.map(item => `
+                            <div class="unwise-item">
+                                <img src="${item.imageUrl || 'https://via.placeholder.com/40'}" class="unwise-item-thumbnail">
+                                <div class="unwise-item-info">
+                                    <div class="name">${item.name}</div>
+                                    <div class="price-info">구매가: ${item.price.toLocaleString()}원 / 평균: ${Math.round(item.avgPrice).toLocaleString()}원</div>
+                                </div>
+                                <div class="unwise-item-savings">+${Math.round(item.diff).toLocaleString()}원</div>
+                            </div>
+                        `).join('') : '<p>아쉬운 소비 내역이 없습니다.</p>'}
+                    </div>
+                </div>
+            `;
 
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'item-name';
-    nameDiv.innerText = item.name;
-
-    const calculationDiv = document.createElement('div');
-    calculationDiv.className = 'item-calculation';
-    calculationDiv.innerText = `${item.price.toLocaleString()}원 x ${item.qty}`;
-    
-    detailsDiv.appendChild(nameDiv);
-    detailsDiv.appendChild(calculationDiv);
-
-    const totalPriceSpan = document.createElement('span');
-    totalPriceSpan.className = 'item-total-price';
-    totalPriceSpan.innerText = (item.price * item.qty).toLocaleString() + '원';
-
-    itemDiv.appendChild(detailsDiv);
-    itemDiv.appendChild(totalPriceSpan);
-    listContainer.appendChild(itemDiv);
-  });
-};
-
-window.closeSessionDetailsModal = function() {
-  document.getElementById("session-details-modal").classList.add("hidden");
-};
-
-</script>
-
-<!-- Chart Modal -->
-<div id="chart-modal" class="chart-modal hidden">
-  <div class="chart-box">
-    <button class="chart-close" onclick="closeChartModal()">✕</button>
-    <canvas id="chartCanvas"></canvas>
-  </div>
-</div>
-
-<!-- Monthly Sessions Modal -->
-<div id="monthly-sessions-modal" class="chart-modal hidden">
-  <div class="chart-box">
-    <button class="chart-close" onclick="closeMonthlySessionsModal()">✕</button>
-    <h3 class="modal-title">이번 달 구매 내역 (일자별)</h3>
-    <div id="monthly-sessions-list" class="consumption-list">
-      <!-- Daily session data will be injected here -->
-    </div>
-  </div>
-</div>
-
-<!-- Session Details Modal -->
-<div id="session-details-modal" class="chart-modal hidden">
-  <div class="chart-box">
-    <button class="chart-close" onclick="closeSessionDetailsModal()">✕</button>
-    <h3 class="modal-title" id="session-details-title"></h3>
-    <div id="session-details-list" class="consumption-list">
-      <!-- Item data for a session will be injected here -->
-    </div>
-  </div>
-</div>
+            // Render Chart
+            const ctx = document.getElementById('category-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(spendingByCategory),
+                    datasets: [{
+                        data: Object.values(spendingByCategory),
+                        backgroundColor: ['#e67e22', '#f39c12', '#f1c40f', '#d35400', '#e74c3c'],
+                        borderColor: '#1e1e1e',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#ffffff' }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>

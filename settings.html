@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>설정</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-sub: #a0a0a0;
+            --orange-main: #e67e22;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --danger-red: #e74c3c;
+        }
+        body {
+            margin: 0;
+            background-color: var(--bg-main);
+            font-family: 'Noto Sans KR', sans-serif;
+            color: var(--text-main);
+            padding-bottom: 80px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background-color: var(--card-bg);
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0 auto;
+        }
+        .main-container { padding: 24px; }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+        }
+        .section-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+        }
+        .profile-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .profile-pic {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--orange-main);
+            color: var(--card-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 900;
+        }
+        .profile-info .name { font-size: 1.3rem; font-weight: 700; }
+        .profile-info .email { font-size: 0.9rem; color: var(--text-sub); }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #333;
+        }
+        .setting-item:last-child { border-bottom: none; }
+        .setting-item .label { font-weight: 500; }
+        .setting-item .value {
+            color: var(--text-sub);
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .value.point { color: var(--orange-main); font-weight: 700; }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .toggle-switch input { display: none; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #3a3a3c;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--orange-main); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .subscribe-card {
+            background: linear-gradient(135deg, var(--orange-main), #d35400);
+            text-align: center;
+        }
+        .subscribe-card h2 { font-size: 1.2rem; margin: 0 0 10px; }
+        .subscribe-card p { font-size: 0.9rem; opacity: 0.9; margin: 0 0 16px; }
+        .subscribe-btn {
+            background-color: var(--text-main);
+            color: var(--bg-main);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-logout, .btn-danger {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-logout { background-color: #3a3a3c; color: var(--text-main); }
+        .btn-danger { background-color: var(--danger-red); color: var(--text-main); }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: space-around;
+            background-color: #1e1e1e;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.4);
+            padding: 10px 0;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            text-decoration: none;
+            flex: 1;
+        }
+        .nav-item.active { color: var(--orange-main); }
+        .nav-item .icon { font-size: 1.5rem; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-title">설정</div>
+    </header>
+
+    <div class="main-container">
+        <div class="profile-card">
+            <div id="profile-pic" class="profile-pic"></div>
+            <div class="profile-info">
+                <div id="user-name" class="name">사용자</div>
+                <div id="user-email" class="email">email@example.com</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="setting-item">
+                <span class="label">내 주소 관리</span>
+                <span class="value">등록하기 &gt;</span>
+            </div>
+            <div class="setting-item">
+                <span class="label">포인트</span>
+                <span id="user-points" class="value point">0 P &gt;</span>
+            </div>
+        </div>
+
+        <div class="card subscribe-card">
+            <h2>프리미엄 구독</h2>
+            <p>광고 제거, 고급 리포트 등 더 많은 혜택을 누려보세요!</p>
+            <button class="subscribe-btn">자세히 보기</button>
+        </div>
+
+        <div class="card">
+             <div class="setting-item">
+                <span class="label">새로운 할인 정보 알림</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="card">
+            <button id="logout-btn" class="btn-logout">로그아웃</button>
+            <button class="btn-danger">계정 탈퇴</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="nav-item"><div class="icon">&#127968;</div><div>홈</div></a>
+        <a href="scan.html" class="nav-item"><div class="icon">&#10133;</div><div>상품등록</div></a>
+        <a href="#" class="nav-item"><div class="icon">&#128220;</div><div>내역</div></a>
+        <a href="report.html" class="nav-item"><div class="icon">&#128202;</div><div>리포트</div></a>
+        <a href="settings.html" class="nav-item active"><div class="icon">&#9881;</div><div>설정</div></a>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
+            authDomain: "thick-fdd38.firebaseapp.com",
+            projectId: "thick-fdd38",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Display user info
+                const userName = user.displayName || "사용자";
+                document.getElementById('user-name').textContent = `${userName} 님`;
+                document.getElementById('user-email').textContent = user.email;
+                document.getElementById('profile-pic').textContent = userName.charAt(0);
+
+                // Fetch user points (mock for now)
+                document.getElementById('user-points').textContent = `1,250 P >`;
+
+                // Logout button
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    signOut(auth).then(() => {
+                        window.location.href = "index.html";
+                    });
+                });
+
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+    </script>
+
+</body>
+</html>
