@@ -102,6 +102,8 @@
             font-weight: 700; 
             cursor: pointer;
         }
+        .toast-notification { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.9); color: #fff; padding: 12px 24px; border-radius: 50px; font-weight: 700; z-index: 10000; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3); white-space: nowrap; transition: opacity 0.3s, transform 0.3s; opacity: 0; pointer-events: none; }
+        .toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
 
         .bottom-nav {
             position: fixed;
@@ -128,7 +130,7 @@
         /* Modal Styles */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.8); display: flex; 
+            background: rgba(0, 0, 0, 0.8); display: none; 
             align-items: center; justify-content: center; z-index: 200; 
         }
         .modal-card {
@@ -137,7 +139,7 @@
             padding: 24px;
         }
         .modal-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 16px;}
-        .modal-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background-color: #333; color: var(--text-main); margin-bottom: 12px; }
+        .modal-input { width: 100%; padding: 12px; box-sizing: border-box; border-radius: 8px; border: 1px solid #444; background-color: #333; color: var(--text-main); margin-bottom: 12px; }
         .modal-btn-group { display: flex; gap: 10px; }
         .modal-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; }
         .btn-save { background: var(--orange-main); color: var(--text-main); }
@@ -148,6 +150,8 @@
 </head>
 
 <body>
+    <div id="toast" class="toast-notification"></div>
+
     <div class="container" id="app-container">
         <section class="scanner-card">
             <div id="reader"></div>
@@ -168,7 +172,7 @@
         </section>
     </div>
 
-    <div id="manual-modal" class="modal-overlay hidden">
+    <div id="manual-modal" class="modal-overlay">
         <div class="modal-card">
             <h2 class="modal-title">신규 상품 등록</h2>
             <input type="text" id="manual-barcode" class="modal-input" readonly>
@@ -192,7 +196,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         const firebaseConfig = {
@@ -234,7 +238,8 @@
             const product = await findProductInSessions(decodedText);
             if (product) {
                 addToCart(decodedText, product);
-                setTimeout(() => html5QrCode.resume(), 500);
+                showToast(`'${product.name}' 추가!`);
+                setTimeout(() => html5QrCode.resume(), 1000);
             } else {
                 openManualModal(decodedText);
             }
@@ -242,7 +247,7 @@
 
         function openManualModal(barcode) {
             isModalOpen = true;
-            document.getElementById('manual-modal').classList.remove('hidden');
+            document.getElementById('manual-modal').style.display = 'flex';
             document.getElementById('manual-barcode').value = barcode;
             document.getElementById('manual-name').value = '';
             document.getElementById('manual-price').value = '';
@@ -252,17 +257,30 @@
 
         function closeManualModal() {
             isModalOpen = false;
-            document.getElementById('manual-modal').classList.add('hidden');
+            document.getElementById('manual-modal').style.display = 'none';
             html5QrCode.resume();
         }
 
-        function saveManualEntry() {
+        async function saveManualEntry() {
             const barcode = document.getElementById('manual-barcode').value;
             const name = document.getElementById('manual-name').value.trim();
             const price = parseInt(document.getElementById('manual-price').value);
             const imageUrl = document.getElementById('manual-image-url').value.trim();
             
             if (name && price > 0) {
+                if (currentUid) {
+                    const userDocRef = doc(db, "users", currentUid);
+                    try {
+                        await updateDoc(userDocRef, { points: increment(10) });
+                        showToast("✨ 신규 상품 등록! 10P가 적립되었습니다.");
+                    } catch (e) {
+                        console.error("포인트 적립 실패: ", e);
+                        showToast("상품이 추가되었습니다.");
+                    }
+                } else {
+                    showToast("상품이 추가되었습니다.");
+                }
+
                 addToCart(barcode, { name, price, imageUrl });
                 closeManualModal();
             } else {
@@ -330,8 +348,8 @@
                     totalPrice: total,
                     createdAt: serverTimestamp()
                 });
-                alert("구매 내역이 저장되었습니다.");
-                window.location.href = "dashboard.html";
+                showToast("구매 내역이 저장되었습니다.");
+                setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
             } catch (e) {
                 console.error("Error adding document: ", e);
                 alert("저장에 실패했습니다.");
@@ -352,6 +370,13 @@
                 }
             }
             return null;
+        }
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 2200);
         }
 
         // Make functions globally available

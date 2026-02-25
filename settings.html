@@ -45,11 +45,6 @@
             margin-bottom: 20px;
             box-shadow: var(--box-shadow);
         }
-        .section-header h2 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin: 0 0 16px 0;
-        }
         .profile-card {
             display: flex;
             align-items: center;
@@ -77,14 +72,11 @@
             align-items: center;
             padding: 14px 0;
             border-bottom: 1px solid #333;
+            cursor: pointer;
         }
         .setting-item:last-child { border-bottom: none; }
         .setting-item .label { font-weight: 500; }
-        .setting-item .value {
-            color: var(--text-sub);
-            font-weight: 500;
-            cursor: pointer;
-        }
+        .setting-item .value { color: var(--text-sub); font-weight: 500; }
         .value.point { color: var(--orange-main); font-weight: 700; }
 
         .toggle-switch {
@@ -116,22 +108,27 @@
         input:checked + .slider { background-color: var(--orange-main); }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        .subscribe-card {
-            background: linear-gradient(135deg, var(--orange-main), #d35400);
-            text-align: center;
-        }
-        .subscribe-card h2 { font-size: 1.2rem; margin: 0 0 10px; }
-        .subscribe-card p { font-size: 0.9rem; opacity: 0.9; margin: 0 0 16px; }
-        .subscribe-btn {
-            background-color: var(--text-main);
-            color: var(--bg-main);
-            border: none;
-            border-radius: 10px;
-            padding: 12px 24px;
-            font-size: 1rem;
-            font-weight: 700;
+        .card.subscribe-card {
+            background: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
             cursor: pointer;
         }
+        .card.subscribe-card p {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 1;
+        }
+        .card.subscribe-card .details-btn {
+            color: var(--text-sub);
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
         .btn-logout, .btn-danger {
             width: 100%;
             padding: 14px;
@@ -156,16 +153,58 @@
             z-index: 100;
         }
         .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            text-decoration: none;
-            flex: 1;
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 0.8rem; color: var(--text-sub); text-decoration: none; flex: 1;
         }
         .nav-item.active { color: var(--orange-main); }
         .nav-item .icon { font-size: 1.5rem; margin-bottom: 4px; }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none; align-items: center;
+            justify-content: center; z-index: 200;
+        }
+        .modal-card {
+            background: var(--card-bg); border-radius: 16px; padding: 24px;
+            width: 90%; max-width: 500px; border: 1px solid #333;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+        .modal-header h2 { margin: 0; font-size: 1.2rem; }
+        .close-button { font-size: 1.8rem; font-weight: 700; color: var(--text-sub); cursor: pointer; }
+        
+        .modal-body .modal-input {
+            width: 100%; padding: 12px; box-sizing: border-box;
+            border-radius: 8px; border: 1px solid #444; background-color: #333;
+            color: var(--text-main); margin-bottom: 12px;
+        }
+        .modal-body .modal-btn {
+            width: 100%; padding: 14px; border-radius: 12px; border: none;
+            font-size: 1rem; font-weight: 700; cursor: pointer;
+        }
+        .btn-save { background-color: var(--orange-main); color: var(--text-main); }
+        
+        .benefit-list {
+            list-style: none; padding-left: 0; margin-bottom: 24px;
+        }
+        .benefit-list li {
+            margin-bottom: 12px; line-height: 1.5;
+            padding-left: 20px; position: relative;
+        }
+        .benefit-list li::before {
+            content: '-';
+            position: absolute;
+            left: 0;
+            color: var(--orange-main);
+            font-weight: 700;
+        }
+        .subscribe-footer {
+            display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 24px;
+        }
+        .subscribe-footer .price { font-weight: 700; font-size: 1.1rem; }
+        
     </style>
 </head>
 <body>
@@ -184,20 +223,19 @@
         </div>
 
         <div class="card">
-            <div class="setting-item">
+            <div id="address-setting-item" class="setting-item">
                 <span class="label">내 주소 관리</span>
-                <span class="value">등록하기 &gt;</span>
+                <span id="user-address" class="value">등록하기 &gt;</span>
             </div>
             <div class="setting-item">
                 <span class="label">포인트</span>
-                <span id="user-points" class="value point">0 P &gt;</span>
+                <span id="user-points" class="value point">0 P</span>
             </div>
         </div>
 
-        <div class="card subscribe-card">
-            <h2>프리미엄 구독</h2>
-            <p>광고 제거, 고급 리포트 등 더 많은 혜택을 누려보세요!</p>
-            <button class="subscribe-btn">자세히 보기</button>
+        <div id="open-subscribe-modal-btn" class="card subscribe-card">
+            <p>구독하고 더 많은 리포트와 상품추천받기</p>
+            <span class="details-btn">자세히 보기 &gt;</span>
         </div>
 
         <div class="card">
@@ -216,6 +254,42 @@
         </div>
     </div>
 
+    <!-- Modals -->
+    <div id="address-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>내 주소 관리</h2>
+                <span id="close-address-modal" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="address-input" class="modal-input" placeholder="주소를 입력하세요">
+                <button id="save-address-btn" class="modal-btn btn-save">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="subscribe-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>구독시 제공되는 혜택들</h2>
+                <span id="close-subscribe-modal" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <ul class="benefit-list">
+                    <li>내 구매리포트 무한제공</li>
+                    <li>반복구매상품 구매알림</li>
+                    <li>커머스 제품 할인 등</li>
+                    <li>기타 프리미엄 혜택 우선 제공</li>
+                </ul>
+                <div class="subscribe-footer">
+                    <span class="price">월 4,900원</span>
+                    <button class="modal-btn btn-save">구독하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <nav class="bottom-nav">
         <a href="dashboard.html" class="nav-item"><div class="icon">&#127968;</div><div>홈</div></a>
         <a href="scan.html" class="nav-item"><div class="icon">&#10133;</div><div>상품등록</div></a>
@@ -227,7 +301,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
@@ -239,28 +313,78 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        let currentUser = null;
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Display user info
+                currentUser = user;
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+
                 const userName = user.displayName || "사용자";
                 document.getElementById('user-name').textContent = `${userName} 님`;
                 document.getElementById('user-email').textContent = user.email;
                 document.getElementById('profile-pic').textContent = userName.charAt(0);
 
-                // Fetch user points (mock for now)
-                document.getElementById('user-points').textContent = `1,250 P >`;
-
-                // Logout button
-                document.getElementById('logout-btn').addEventListener('click', () => {
-                    signOut(auth).then(() => {
-                        window.location.href = "index.html";
-                    });
-                });
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    document.getElementById('user-address').textContent = userData.address || '등록하기 >';
+                    document.getElementById('user-points').textContent = `${userData.points || 0} P`;
+                } else {
+                    document.getElementById('user-address').textContent = '등록하기 >';
+                    document.getElementById('user-points').textContent = '0 P';
+                }
 
             } else {
                 window.location.href = "index.html";
             }
         });
+
+        // Modal Elements
+        const addressModal = document.getElementById('address-modal');
+        const subscribeModal = document.getElementById('subscribe-modal');
+        const addressInput = document.getElementById('address-input');
+
+        // Open/Close Listeners
+        document.getElementById('address-setting-item').addEventListener('click', async () => {
+            if (currentUser) {
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                addressInput.value = userDoc.exists() ? (userDoc.data().address || '') : '';
+                addressModal.style.display = 'flex';
+            }
+        });
+
+        document.getElementById('open-subscribe-modal-btn').addEventListener('click', () => {
+            subscribeModal.style.display = 'flex';
+        });
+
+        document.getElementById('close-address-modal').addEventListener('click', () => addressModal.style.display = 'none');
+        document.getElementById('close-subscribe-modal').addEventListener('click', () => subscribeModal.style.display = 'none');
+
+        // Save Address Logic
+        document.getElementById('save-address-btn').addEventListener('click', async () => {
+            const newAddress = addressInput.value.trim();
+            if (newAddress && currentUser) {
+                const userDocRef = doc(db, "users", currentUser.uid);
+
+                try {
+                    await setDoc(userDocRef, { address: newAddress }, { merge: true });
+                    document.getElementById('user-address').textContent = newAddress;
+                    addressModal.style.display = 'none';
+                } catch (e) {
+                    console.error("주소 저장 실패: ", e);
+                    alert("주소 저장에 실패했습니다.");
+                }
+            }
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = "index.html";
+            });
+        });
+
     </script>
 
 </body>
