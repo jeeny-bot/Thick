@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>설정</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <style>
         :root {
             --bg-main: #121212;
@@ -76,7 +77,7 @@
         }
         .setting-item:last-child { border-bottom: none; }
         .setting-item .label { font-weight: 500; }
-        .setting-item .value { color: var(--text-sub); font-weight: 500; }
+        .setting-item .value { color: var(--text-sub); font-weight: 500; max-width: 60%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
         .value.point { color: var(--orange-main); font-weight: 700; }
 
         .toggle-switch {
@@ -262,8 +263,13 @@
                 <span id="close-address-modal" class="close-button">&times;</span>
             </div>
             <div class="modal-body">
-                <input type="text" id="address-input" class="modal-input" placeholder="주소를 입력하세요">
-                <button id="save-address-btn" class="modal-btn btn-save">저장</button>
+                <div style="display:flex; gap: 8px; margin-bottom: 8px;">
+                     <input type="text" id="postcode" class="modal-input" placeholder="우편번호" readonly>
+                     <button id="search-address-btn" class="modal-btn" style="width: auto; flex-shrink: 0; padding: 0 16px;">주소 검색</button>
+                </div>
+                <input type="text" id="address" class="modal-input" placeholder="주소" readonly>
+                <input type="text" id="detailAddress" class="modal-input" placeholder="상세주소를 입력하세요">
+                <button id="save-address-btn" class="modal-btn btn-save">저장하기</button>
             </div>
         </div>
     </div>
@@ -343,13 +349,13 @@
         // Modal Elements
         const addressModal = document.getElementById('address-modal');
         const subscribeModal = document.getElementById('subscribe-modal');
-        const addressInput = document.getElementById('address-input');
+        const postcode = document.getElementById('postcode');
+        const address = document.getElementById('address');
+        const detailAddress = document.getElementById('detailAddress');
 
         // Open/Close Listeners
-        document.getElementById('address-setting-item').addEventListener('click', async () => {
+        document.getElementById('address-setting-item').addEventListener('click', () => {
             if (currentUser) {
-                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-                addressInput.value = userDoc.exists() ? (userDoc.data().address || '') : '';
                 addressModal.style.display = 'flex';
             }
         });
@@ -360,21 +366,40 @@
 
         document.getElementById('close-address-modal').addEventListener('click', () => addressModal.style.display = 'none');
         document.getElementById('close-subscribe-modal').addEventListener('click', () => subscribeModal.style.display = 'none');
+        
+        // Address Search Logic
+        document.getElementById('search-address-btn').addEventListener('click', () => {
+            new daum.Postcode({
+                oncomplete: function(data) {
+                    let addr = ''; // 주소 변수
+                    if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                        addr = data.roadAddress;
+                    } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                        addr = data.jibunAddress;
+                    }
+                    postcode.value = data.zonecode;
+                    address.value = addr;
+                    detailAddress.focus();
+                }
+            }).open();
+        });
 
         // Save Address Logic
         document.getElementById('save-address-btn').addEventListener('click', async () => {
-            const newAddress = addressInput.value.trim();
-            if (newAddress && currentUser) {
+            const fullAddress = `(${postcode.value}) ${address.value} ${detailAddress.value.trim()}`;
+            
+            if (postcode.value && address.value && currentUser) {
                 const userDocRef = doc(db, "users", currentUser.uid);
-
                 try {
-                    await setDoc(userDocRef, { address: newAddress }, { merge: true });
-                    document.getElementById('user-address').textContent = newAddress;
+                    await setDoc(userDocRef, { address: fullAddress }, { merge: true });
+                    document.getElementById('user-address').textContent = fullAddress;
                     addressModal.style.display = 'none';
                 } catch (e) {
                     console.error("주소 저장 실패: ", e);
                     alert("주소 저장에 실패했습니다.");
                 }
+            } else {
+                alert("주소 검색을 먼저 완료해주세요.");
             }
         });
 
