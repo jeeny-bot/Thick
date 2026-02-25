@@ -10,6 +10,11 @@
         rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
 
+    <!-- Firebase SDK (compat version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --bg-main: #121212;
@@ -194,27 +199,23 @@
         <a href="settings.html" class="nav-item"><div class="icon">&#9881;</div><div>설정</div></a>
     </nav>
     
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
             authDomain: "thick-fdd38.firebaseapp.com",
             projectId: "thick-fdd38",
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
         let currentUid = null;
 
         let cart = [];
         let html5QrCode;
         let isModalOpen = false;
 
-        onAuthStateChanged(auth, (user) => {
+        auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUid = user.uid;
                 initScanner();
@@ -228,6 +229,7 @@
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
             html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess).catch(err => {
                 console.error("Scanner start failed: ", err);
+                alert("카메라를 시작할 수 없습니다. 페이지를 새로고침하거나 권한을 확인해주세요.");
             });
         }
 
@@ -269,9 +271,9 @@
             
             if (name && price > 0) {
                 if (currentUid) {
-                    const userDocRef = doc(db, "users", currentUid);
+                    const userDocRef = db.collection("users").doc(currentUid);
                     try {
-                        await updateDoc(userDocRef, { points: increment(10) });
+                        await userDocRef.update({ points: firebase.firestore.FieldValue.increment(10) });
                         showToast("✨ 신규 상품 등록! 10P가 적립되었습니다.");
                     } catch (e) {
                         console.error("포인트 적립 실패: ", e);
@@ -343,10 +345,10 @@
             const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
 
             try {
-                await addDoc(collection(db, "users", currentUid, "sessions"), {
+                await db.collection("users").doc(currentUid).collection("sessions").add({
                     items: cart,
                     totalPrice: total,
-                    createdAt: serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 showToast("구매 내역이 저장되었습니다.");
                 setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
@@ -358,10 +360,10 @@
 
         async function findProductInSessions(barcode) {
             if (!currentUid) return null;
-            const sessionsRef = collection(db, "users", currentUid, "sessions");
-            const q = query(sessionsRef, orderBy("createdAt", "desc"), limit(50));
+            const sessionsRef = db.collection("users").doc(currentUid).collection("sessions");
+            const q = sessionsRef.orderBy("createdAt", "desc").limit(50);
 
-            const querySnapshot = await getDocs(q);
+            const querySnapshot = await q.get();
             for (const doc of querySnapshot.docs) {
                 const items = doc.data().items || [];
                 const foundItem = items.find(item => item.barcode === barcode);
