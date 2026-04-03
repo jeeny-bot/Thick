@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thick - 상품 공유 지도</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-V3A/4zMWDk4zZvYypk2tJvNBs3Hga3SrZ3D0mDg6r3Y=" crossorigin=""/>
+    <style>
+        :root {
+            --bg-gray: #f2f2f7;
+            --white: #ffffff;
+            --card-radius: 20px;
+            --text: #000000;
+            --text-muted: rgba(0,0,0,0.55);
+        }
+        .dark-mode {
+            --bg-gray: #000000;
+            --text: #ffffff;
+            --text-muted: rgba(255,255,255,0.55);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        body {
+            background-color: var(--bg-gray);
+            color: var(--text);
+            padding: 20px;
+        }
+        .back-button {
+            padding: 10px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.9);
+            color: #111;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+            margin-bottom: 16px;
+        }
+        .back-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,1);
+        }
+        #map {
+            height: 70vh;
+            width: 100%;
+            border-radius: var(--card-radius);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+        }
+        .map-footer {
+            margin-top: 18px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='dashboard.html'">뒤로</button>
+    <div id="map"></div>
+    <div class="map-footer">지도 위 핀을 클릭하면 해당 사용자의 ID를 표시합니다.</div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1j8g+Q98rlvEQ0m9qP4KRT9aZ9jzqZF8u3vE2B2o=" crossorigin=""></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        // Firebase 설정을 firebase-config.js에서 불러옵니다.
+        const firebaseConfig = window.firebaseConfig;
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        function applySavedDarkMode() {
+            const enabled = localStorage.getItem('thick_dark_mode') === '1';
+            document.body.classList.toggle('dark-mode', enabled);
+        }
+        applySavedDarkMode();
+
+        function initMap() {
+            const map = L.map('map').setView([37.5665, 126.9780], 11);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // 전체 세션을 조회하여 위치가 있는 세션을 지도에 표시합니다.
+            db.collectionGroup('sessions').get().then(snapshot => {
+                if (snapshot.empty) {
+                    L.popup()
+                        .setLatLng([37.5665, 126.9780])
+                        .setContent('등록된 위치 정보가 없습니다.')
+                        .openOn(map);
+                    return;
+                }
+
+                let hasLocation = false;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const loc = data.location;
+                    if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return;
+
+                    hasLocation = true;
+                    const marker = L.marker([loc.lat, loc.lng]).addTo(map);
+                    const storeName = data.storeName || '편의점';
+                    const uid = doc.ref.path.split('/')[1] || 'unknown';
+                    marker.bindPopup(`<strong>${storeName}</strong><br>UID: ${uid}`);
+                });
+
+                if (!hasLocation) {
+                    L.popup()
+                        .setLatLng([37.5665, 126.9780])
+                        .setContent('저장된 위치 정보가 없습니다. 스캔 페이지에서 위치 저장을 시도해주세요.')
+                        .openOn(map);
+                }
+            }).catch(error => {
+                console.error('Firestore 읽기 오류:', error);
+                alert('위치 정보를 불러오는 중 오류가 발생했습니다. 콘솔을 확인해주세요.');
+            });
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            initMap();
+        });
+    </script>
+</body>
+</html>

@@ -2,364 +2,599 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>월간 소비 리포트</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thick - 내 리포트</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-main: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #ffffff;
-            --text-sub: #a0a0a0;
             --orange-main: #e67e22;
-            --green-main: #2ecc71;
-            --blue-main: #3498db;
-            --red-main: #e74c3c;
-            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --orange-dark: #c15817;
+            --white: #ffffff;
+            --bg-gray: #fff4ed;
+            --text-primary: #3d2511;
+            --text-secondary: #6d5d4b;
+            --card-radius: 18px;
+        }
+        .dark-mode {
+            --bg-gray: #1f1a15;
+            --text-primary: #fff9f3;
+            --text-secondary: rgba(255,255,255,0.7);
+            --orange-main: #ef8a2e;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
         }
         body {
-            margin: 0;
-            background-color: var(--bg-main);
-            font-family: 'Noto Sans KR', sans-serif;
-            color: var(--text-main);
-            padding-bottom: 80px; 
+            background-color: var(--bg-gray);
+            padding: 20px;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px;
-            background-color: var(--card-bg);
-            box-shadow: var(--box-shadow);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            margin-bottom: 20px;
+        }
+        .back-button {
+            padding: 10px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.9);
+            color: #111;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .back-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,1);
         }
         .header-title {
-            font-size: 1.2rem;
-            font-weight: 700;
+            font-size: 24px;
+            font-weight: 900;
         }
-        .main-container {
-            padding: 24px;
-        }
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--box-shadow);
-        }
-        .section-header {
-            margin-bottom: 16px;
-        }
-        .section-header h2 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin: 0;
-        }
-        .summary-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            text-align: center;
-        }
-        .summary-item h3 {
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            margin: 0 0 8px 0;
-        }
-        .summary-item .amount {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        .amount.positive { color: var(--green-main); }
-        .amount.negative { color: var(--red-main); }
-        .chart-container {
-            height: 200px;
+        .period-selector {
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
         }
-        .consumption-analysis-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #333;
-        }
-        .consumption-analysis-item:last-child { border-bottom: none; }
-        .consumption-analysis-item .label { font-weight: 500; }
-        .consumption-analysis-item .amount { font-weight: 700; }
-        .unwise-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #333;
-        }
-        .unwise-item:last-child { border-bottom: none; }
-        .unwise-item-thumbnail {
+        .period-selector button {
             width: 40px;
             height: 40px;
-            border-radius: 6px;
-            margin-right: 12px;
-            background-color: #333;
-        }
-        .unwise-item-info {
-            flex-grow: 1;
-        }
-        .unwise-item-info .name { font-weight: 500; }
-        .unwise-item-info .price-info { font-size: 0.8rem; color: var(--text-sub); }
-        .unwise-item-savings {
+            border-radius: 999px;
+            border: 1px solid rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.9);
+            cursor: pointer;
+            font-size: 18px;
             font-weight: 700;
-            color: var(--orange-main);
+            transition: transform 0.15s ease, background 0.15s ease;
         }
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+        .period-selector button:hover {
+            transform: translateY(-1px);
+            background: rgba(255,255,255,1);
+        }
+        .period-label {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .total-saving-card {
+            background: linear-gradient(135deg, var(--orange-main), var(--orange-dark));
+            color: var(--white);
+            padding: 24px;
+            border-radius: var(--card-radius);
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 36px rgba(230, 124, 45, 0.3);
+        }
+        .total-saving-card h2 {
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .total-saving-card p {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+        .monthly-chart {
+            margin-top: 18px;
             display: flex;
-            justify-content: space-around;
-            background-color: #1e1e1e;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.4);
-            padding: 10px 0;
-            z-index: 100;
+            justify-content: center;
+            gap: 14px;
+            align-items: flex-end;
+            height: 140px;
+            padding: 14px;
+            background: rgba(255,255,255,0.18);
+            border-radius: 18px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
         }
-        .nav-item {
+        .dark-mode .monthly-chart {
+            background: rgba(255,255,255,0.12);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+        }
+        .monthly-chart .bar {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            text-decoration: none;
-            flex: 1;
+            gap: 8px;
+            min-width: 58px;
+            transition: transform .3s ease;
         }
-        .nav-item.active {
-            color: var(--orange-main);
+        .monthly-chart .bar:hover {
+            transform: translateY(-3px);
         }
-        .nav-item .icon {
-            font-size: 1.5rem;
-            margin-bottom: 4px;
+        .monthly-chart .bar .fill {
+            width: 100%;
+            min-height: 18px;
+            border-radius: 14px 14px 0 0;
+            box-shadow: 0 8px 14px rgba(0, 0, 0, 0.12);
+            transition: height 0.3s ease, background 0.3s ease;
+        }
+        .monthly-chart .bar .fill {
+            background: linear-gradient(180deg, rgba(255,255,255,0.45), rgba(255,255,255,0.12));
+        }
+        .monthly-chart .bar.active .fill {
+            background: linear-gradient(180deg, #4f4502, #2c1c00);
+            box-shadow: 0 8px 18px rgba(80, 40, 0, 0.45);
+        }
+        .monthly-chart .bar.inactive .fill {
+            background: linear-gradient(180deg, #ffffff, #f9f1e8);
+            opacity: 0.95;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.08);
+        }
+        .monthly-chart .bar .label,
+        .monthly-chart .bar .value {
+            font-weight: 700;
+            color: #3f3020;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+        }
+        .monthly-chart .bar.active .label,
+        .monthly-chart .bar.active .value {
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+        }
+        .category-card {
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: var(--card-radius);
+            box-shadow: 0 10px 24px rgba(27, 43, 79, 0.08);
+        }
+        .period-selector button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+            color: #222;
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .period-selector button:hover {
+            background: rgba(255, 255, 255, 1);
+            color: #111;
+        }
+        .period-label {
+            color: var(--text-primary);
+            font-weight: 900;
+            letter-spacing: 0.2em;
+        }
+        .top-items {
+            padding: 12px 0;
+            border-top: 1px solid #E5E5EA;
+            border-bottom: 1px solid #E5E5EA;
+            margin: 12px 0;
+        }
+        .top-items-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        .top-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: rgba(0,0,0,0.03);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(233, 129, 45, 0.25);
+            color: #cf6200;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .category-item:hover {
+            background: rgba(255, 174, 96, 0.1);
+            transform: translateY(-1px);
+        }
+        .category-item:last-child {
+            border-bottom: none;
+        }
+        .category-info {
+            display: flex;
+            align-items: center;
+        }
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            margin-right: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+        }
+        .category-name {
+            font-size: 17px;
+            font-weight: 500;
+        }
+        .category-amount {
+            font-size: 17px;
+            font-weight: 700;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-secondary);
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-card {
+            width: min(86vw, 420px);
+            background: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 14px 38px rgba(0,0,0,0.24);
+        }
+        .modal-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f2f2f7;
+            font-size: 0.95rem;
+        }
+        .modal-date {
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #333;
         }
     </style>
 </head>
 <body>
-
-    <header class="header">
-        <div class="header-title">월간 소비 리포트</div>
-    </header>
-
-    <div class="main-container" id="report-container">
-        <p>리포트를 생성 중입니다...</p>
+    <div class="header">
+        <h1 class="header-title">나의 지출 리포트</h1>
+        <button class="back-button" onclick="window.location.href='dashboard.html'">뒤로</button>
     </div>
 
-    <nav class="bottom-nav">
-        <a href="dashboard.html" class="nav-item"><div class="icon">&#127968;</div><div>홈</div></a>
-        <a href="scan.html" class="nav-item"><div class="icon">&#10133;</div><div>상품등록</div></a>
-        <a href="#" class="nav-item"><div class="icon">&#128220;</div><div>내역</div></a>
-        <a href="report.html" class="nav-item active"><div class="icon">&#128202;</div><div>리포트</div></a>
-        <a href="settings.html" class="nav-item"><div class="icon">&#9881;</div><div>설정</div></a>
-    </nav>
+    <div class="period-selector">
+        <button id="prev-month" type="button">◀</button>
+        <div class="period-label" id="period-label">2026년 3월</div>
+        <button id="next-month" type="button">▶</button>
+    </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    <div class="total-saving-card">
+        <h2>내가 쓴 비용</h2>
+        <p id="total-saving">₩0</p>
+        <div class="monthly-chart" id="monthly-chart"></div>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
-            authDomain: "thick-fdd38.firebaseapp.com",
-            projectId: "thick-fdd38",
-            storageBucket: "thick-fdd38.appspot.com",
-            messagingSenderId: "109235677950",
-            appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
-            measurementId: "G-LH61G4J09W"
-        };
+    <div class="category-card" id="daily-section">
+        <h2 style="font-size:18px; margin-bottom:12px;">일자별 지출 내역</h2>
+        <div id="daily-expenses"></div>
+    </div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    <div id="detail-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="margin:0; font-size:1.1rem;">일별 구매 내역</h3>
+                <button onclick="closeDetailModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <div id="detail-content" style="max-height:320px; overflow:auto;"></div>
+            <button onclick="closeDetailModal()" style="margin-top:12px; width:100%; padding:10px; border:none; background: var(--orange-main); color:#fff; border-radius:10px; cursor:pointer; font-weight:700;">닫기</button>
+        </div>
+    </div>
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                generateReport(user);
-            } else {
-                window.location.href = "index.html";
+    <div class="footer">
+        <p id="total-scans">총 스캔 0개</p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        const app = firebase.initializeApp(window.firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let dailyDetailsByDate = {};
+
+        function applySavedDarkMode() {
+            const enabled = localStorage.getItem('thick_dark_mode') === '1';
+            document.body.classList.toggle('dark-mode', enabled);
+        }
+        applySavedDarkMode();
+
+        function formatKRW(num) {
+            return '₩' + Number(num || 0).toLocaleString();
+        }
+
+        function renderTopItems(topItems) {
+            const list = document.getElementById('top-items-list');
+            if (!list) return;
+            if (!topItems || topItems.length === 0) {
+                list.innerHTML = '<div class="top-item">데이터가 없습니다</div>';
+                return;
+            }
+            list.innerHTML = topItems.map(item => `
+                <div class="top-item">
+                    <span>${item.name} (x${item.count})</span>
+                    <span>${formatKRW(item.total)}</span>
+                </div>
+            `).join('');
+        }
+
+        function openDetailModal(dateKey) {
+            const detail = dailyDetailsByDate[dateKey] || [];
+            const content = document.getElementById('detail-content');
+            if (!content) return;
+
+            const total = detail.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            content.innerHTML = `
+                <div class="modal-date">${dateKey} • 총 ${formatKRW(total)}</div>
+                ${detail.length === 0 ? '<div style="color:#777;">구매 내역이 없습니다.</div>' : ''}
+                ${detail.map(item => `
+                    <div class="modal-item">
+                        <span>${item.name}</span>
+                        <span>${formatKRW(item.price * item.qty)}</span>
+                    </div>
+                `).join('')}
+            `;
+
+            const modal = document.getElementById('detail-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeDetailModal() {
+            const modal = document.getElementById('detail-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function renderDailyExpenses(dailyTotals) {
+            const container = document.getElementById('daily-expenses');
+            if (!container) return;
+            if (!dailyTotals || dailyTotals.length === 0) {
+                container.innerHTML = '<div style="padding: 12px; color: #555;">일자별 지출 내역이 없습니다.</div>';
+                return;
+            }
+
+            container.innerHTML = dailyTotals
+                .map(day => `
+                    <div class="category-item" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #E5E5EA; cursor:pointer;" onclick="openDetailModal('${day.date}')">
+                        <div>${day.date}</div>
+                        <div>${formatKRW(day.amount)}</div>
+                    </div>
+                `)
+                .join('');
+        }
+
+        function updateUI({ total, scans, topItems, dailyTotals }) {
+            document.getElementById('total-saving').innerText = formatKRW(total);
+            document.getElementById('total-scans').innerText = `총 스캔 ${scans}개`;
+            renderTopItems(topItems); // 기존 TOP3 유지
+            renderDailyExpenses(dailyTotals);
+        }
+
+        function getMonthRange(year, month) {
+            const start = new Date(year, month, 1);
+            const end = new Date(year, month + 1, 1);
+            return { start, end };
+        }
+
+        function setPeriodLabel(year, month) {
+            const label = document.getElementById('period-label');
+            if (!label) return;
+            label.innerText = `${year}년 ${month + 1}월`;
+        }
+
+        async function loadReport(uid, year, month) {
+            const { start, end } = getMonthRange(year, month);
+            const sessionsRef = db.collection('users').doc(uid).collection('sessions');
+            const query = sessionsRef
+                .where('createdAt', '>=', firebase.firestore.Timestamp.fromDate(start))
+                .where('createdAt', '<', firebase.firestore.Timestamp.fromDate(end));
+
+            const snapshot = await query.get();
+
+            let total = 0;
+            let scans = 0;
+            const itemStatsByName = {};
+            const dailyMap = {};
+            dailyDetailsByDate = {};
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const items = Array.isArray(data.items) ? data.items : [];
+                const sessionTotal = Number(data.totalPrice) || 0;
+
+                total += sessionTotal;
+                scans += items.reduce((acc, item) => acc + (item.qty || 0), 0);
+
+                // 일자별 집계
+                if (data.createdAt && data.createdAt.toDate) {
+                    const d = data.createdAt.toDate();
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const dayKey = `${y}-${m}-${dd}`;
+                    dailyMap[dayKey] = (dailyMap[dayKey] || 0) + sessionTotal;
+
+                    dailyDetailsByDate[dayKey] = dailyDetailsByDate[dayKey] || [];
+                    items.forEach(item => {
+                        dailyDetailsByDate[dayKey].push({
+                            name: item.name || '알 수 없음',
+                            price: Number(item.price) || 0,
+                            qty: Number(item.qty) || 1
+                        });
+                    });
+                }
+
+                items.forEach(item => {
+                    const name = (item.name || '').toString().trim();
+                    const lowerName = name.toLowerCase();
+                    const price = Number(item.price) || 0;
+                    const quantity = item.qty || 1;
+
+                    // 카테고리 라벨을 제외하고 TOP3 집계
+                    const isCategoryLabel = ['음료', '주스', '콜라', '사이다', '과자', '스낵', '칩', '라면'].some(keyword => lowerName === keyword);
+                    if (name && !isCategoryLabel) {
+                        const stat = itemStatsByName[name] || { count: 0, total: 0 };
+                        stat.count += quantity;
+                        stat.total += price * quantity;
+                        itemStatsByName[name] = stat;
+                    }
+                });
+            });
+
+            const topItems = Object.entries(itemStatsByName)
+                .map(([name, stat]) => ({ name, count: stat.count, total: stat.total }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 3);
+
+            const dailyTotals = Object.entries(dailyMap)
+                .sort((a, b) => a[0] < b[0] ? 1 : -1)
+                .map(([date, amount]) => ({ date, amount }));
+
+            updateUI({ total, scans, topItems, dailyTotals });
+        }
+
+        function renderMonthlyChart(uid, year, month) {
+            const chartEl = document.getElementById('monthly-chart');
+            if (!chartEl) return;
+
+            const months = [];
+            for (let offset = -1; offset <= 1; offset++) {
+                const date = new Date(year, month + offset, 1);
+                months.push({ year: date.getFullYear(), month: date.getMonth() });
+            }
+
+            const start = new Date(months[0].year, months[0].month, 1);
+            const end = new Date(months[2].year, months[2].month + 1, 1);
+
+            const sessionsRef = db.collection('users').doc(uid).collection('sessions');
+            const query = sessionsRef
+                .where('createdAt', '>=', firebase.firestore.Timestamp.fromDate(start))
+                .where('createdAt', '<', firebase.firestore.Timestamp.fromDate(end));
+
+            query.get().then(snapshot => {
+                const totals = months.map(() => 0);
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const createdAt = data.createdAt;
+                    if (!createdAt || !createdAt.toDate) return;
+
+                    const d = createdAt.toDate();
+                    const idx = months.findIndex(m => m.year === d.getFullYear() && m.month === d.getMonth());
+                    if (idx < 0) return;
+
+                    totals[idx] += Number(data.totalPrice) || 0;
+                });
+
+                const maxVal = Math.max(...totals, 1);
+                chartEl.innerHTML = months.map((m, i) => {
+                    const label = `${m.month + 1}월`;
+                    const height = Math.round((totals[i] / maxVal) * 80);
+                    const isActive = (i === 1); // 가운데가 현재조회 월
+                    const statusClass = isActive ? 'active' : 'inactive';
+                    return `
+                        <div class="bar ${statusClass}" data-index="${i}">
+                            <div class="fill" style="height:${height}px"></div>
+                            <div class="value">${formatKRW(totals[i])}</div>
+                            <div class="label">${label}</div>
+                        </div>
+                    `;
+                }).join('');
+            }).catch(err => {
+                console.error('월별 차트 로드 실패:', err);
+            });
+        }
+
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+
+        function updatePeriod(direction) {
+            currentMonth += direction;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear -= 1;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear += 1;
+            }
+            setPeriodLabel(currentYear, currentMonth);
+        }
+
+        document.getElementById('prev-month').addEventListener('click', () => {
+            updatePeriod(-1);
+            if (window.currentUid) {
+                loadReport(window.currentUid, currentYear, currentMonth);
+                renderMonthlyChart(window.currentUid, currentYear, currentMonth);
+            }
+        });
+        document.getElementById('next-month').addEventListener('click', () => {
+            updatePeriod(1);
+            if (window.currentUid) {
+                loadReport(window.currentUid, currentYear, currentMonth);
+                renderMonthlyChart(window.currentUid, currentYear, currentMonth);
             }
         });
 
-        async function generateReport(user) {
-            const now = new Date();
-            const currentMonthData = await fetchMonthData(user, now);
-            
-            const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const previousMonthData = await fetchMonthData(user, prevMonth);
-
-            if (currentMonthData.totalSpending === 0) {
-                document.getElementById('report-container').innerHTML = '<p>이번 달 소비 내역이 없어 리포트를 생성할 수 없습니다.</p>';
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = 'dashboard.html';
                 return;
             }
-            
-            renderReport(currentMonthData, previousMonthData.totalSpending);
-        }
-
-        async function fetchMonthData(user, date) {
-            const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-            const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-            const sessionsRef = collection(db, "users", user.uid, "sessions");
-            const q = query(sessionsRef, 
-                where("createdAt", ">=", Timestamp.fromDate(startOfMonth)),
-                where("createdAt", "<=", Timestamp.fromDate(endOfMonth))
-            );
-
-            const snapshot = await getDocs(q);
-            
-            let totalSpending = 0;
-            const spendingByCategory = { '마트': 0, '편의점': 0, '온라인': 0, '기타': 0 };
-            const allItems = [];
-
-            snapshot.forEach(doc => {
-                const session = doc.data();
-                totalSpending += session.totalPrice || 0;
-                const category = session.marketType || '기타';
-                if(spendingByCategory.hasOwnProperty(category)) {
-                    spendingByCategory[category] += session.totalPrice || 0;
-                } else {
-                    spendingByCategory['기타'] += session.totalPrice || 0;
-                }
-                if(session.items) {
-                    allItems.push(...session.items);
-                }
+            window.currentUid = user.uid;
+            setPeriodLabel(currentYear, currentMonth);
+            loadReport(user.uid, currentYear, currentMonth).catch(err => {
+                console.error('리포트 로드 실패:', err);
             });
-
-            return { totalSpending, spendingByCategory, allItems };
-        }
-
-        function renderReport(currentData, prevMonthTotal) {
-            const { totalSpending, spendingByCategory, allItems } = currentData;
-
-            const diff = totalSpending - prevMonthTotal;
-            const diffText = diff > 0 ? `+${diff.toLocaleString()}원` : `${diff.toLocaleString()}원`;
-            const diffClass = diff > 0 ? 'negative' : 'positive';
-
-            // --- Wise vs Unwise Spending --- //
-            const productStats = {};
-            allItems.forEach(item => {
-                if (!productStats[item.name]) {
-                    productStats[item.name] = { prices: [], total: 0, count: 0, imageUrl: item.imageUrl };
-                }
-                productStats[item.name].prices.push(item.price);
-                productStats[item.name].total += item.price;
-                productStats[item.name].count += 1;
-            });
-
-            Object.values(productStats).forEach(stats => {
-                stats.avg = stats.total / stats.count;
-            });
-
-            let wiseSpending = 0;
-            let unwiseSpending = 0;
-            const unwiseItems = [];
-
-            allItems.forEach(item => {
-                const avgPrice = productStats[item.name].avg;
-                if (item.price <= avgPrice) {
-                    wiseSpending += item.price;
-                } else {
-                    unwiseSpending += item.price;
-                    unwiseItems.push({ 
-                        ...item, 
-                        avgPrice,
-                        diff: item.price - avgPrice
-                    });
-                }
-            });
-
-            unwiseItems.sort((a, b) => b.diff - a.diff);
-            const top3Unwise = unwiseItems.slice(0, 3);
-
-            const container = document.getElementById('report-container');
-            container.innerHTML = `
-                <div class="card">
-                    <div class="section-header"><h2>월간 소비 요약</h2></div>
-                    <div class="summary-grid">
-                        <div class="summary-item">
-                            <h3>이번 달 총 지출</h3>
-                            <div class="amount">${totalSpending.toLocaleString()}원</div>
-                        </div>
-                        <div class="summary-item">
-                            <h3>지난달 대비</h3>
-                            <div class="amount ${diffClass}">${diffText}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="section-header"><h2>카테고리별 지출</h2></div>
-                    <div class="chart-container">
-                        <canvas id="category-chart"></canvas>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="section-header"><h2>소비 분석</h2></div>
-                    <div class="consumption-analysis">
-                        <div class="consumption-analysis-item">
-                            <span class="label">🧐 현명한 소비</span>
-                            <span class="amount positive">${wiseSpending.toLocaleString()}원</span>
-                        </div>
-                        <div class="consumption-analysis-item">
-                            <span class="label">😥 아쉬운 소비</span>
-                            <span class="amount negative">${unwiseSpending.toLocaleString()}원</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="section-header"><h2>TOP 3 아쉬운 소비</h2></div>
-                    <div id="unwise-list">
-                        ${top3Unwise.length > 0 ? top3Unwise.map(item => `
-                            <div class="unwise-item">
-                                <img src="${item.imageUrl || 'https://via.placeholder.com/40'}" class="unwise-item-thumbnail">
-                                <div class="unwise-item-info">
-                                    <div class="name">${item.name}</div>
-                                    <div class="price-info">구매가: ${item.price.toLocaleString()}원 / 평균: ${Math.round(item.avgPrice).toLocaleString()}원</div>
-                                </div>
-                                <div class="unwise-item-savings">+${Math.round(item.diff).toLocaleString()}원</div>
-                            </div>
-                        `).join('') : '<p>아쉬운 소비 내역이 없습니다.</p>'}
-                    </div>
-                </div>
-            `;
-
-            // Render Chart
-            const ctx = document.getElementById('category-chart').getContext('2d');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(spendingByCategory),
-                    datasets: [{
-                        data: Object.values(spendingByCategory),
-                        backgroundColor: ['#e67e22', '#f39c12', '#f1c40f', '#d35400', '#e74c3c'],
-                        borderColor: '#1e1e1e',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: { color: '#ffffff' }
-                        }
-                    }
-                }
-            });
-        }
+            renderMonthlyChart(user.uid, currentYear, currentMonth);
+        });
     </script>
-
 </body>
 </html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thick - 상품 정보</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <style>
+        :root {
+            --black: #0f0f10;
+            --panel: #1f1a17;
+            --accent: #e67e22;
+            --text-primary: #fffdf8;
+            --text-secondary: #f7cb9a;
+            --card-radius: 20px;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        body {
+            background-color: var(--black);
+            color: var(--text-primary);
+            padding: 18px;
+        }
+        .back-button {
+            padding: 10px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--text-primary);
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+            margin-bottom: 16px;
+        }
+        .back-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .product-card {
+            background-color: var(--panel);
+            padding: 20px;
+            border-radius: var(--card-radius);
+            text-align: center;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+            border: 1px solid rgba(255,255,255,0.09);
+        }
+        .product-image {
+            width: 100%;
+            max-width: 220px;
+            margin-bottom: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .product-name {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 14px;
+            color: #fff;
+        }
+        .store-list {
+            text-align: left;
+        }
+        .store-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #E5E5EA;
+            cursor: pointer; /* Add cursor pointer to indicate it's clickable */
+        }
+        .store-item:last-child {
+            border-bottom: none;
+        }
+        .store-name {
+            font-size: 17px;
+            font-weight: 500;
+        }
+        .store-price {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+    </style>
+</head>
+<body id="product-info-page">
+    <button class="back-button" onclick="window.location.href='dashboard.html'">뒤로</button>
+
+    <div class="product-card">
+        <img src="" alt="상품 이미지" class="product-image" id="product-image">
+        <h1 class="product-name" id="product-name">상품명 로딩 중...</h1>
+        <p id="product-status" style="color: var(--text-secondary); margin-bottom: 16px;">스캔된 상품을 등록해서 이곳에 저장하세요.</p>
+
+        <div class="button-group" style="display:flex; gap:10px; justify-content:center; margin-bottom:18px;">
+            <button class="register-btn" id="register-btn" style="padding:10px 14px; border:none; background: var(--accent); color:#fff; border-radius:12px; font-weight:700; cursor:pointer;">이 상품 등록</button>
+            <button class="scan-btn" onclick="window.location.href='scans.html'" style="padding:10px 14px; border:1px solid rgba(255,255,255,0.35); background: rgba(0,0,0,0.44); color:#fff; border-radius:12px; font-weight:700; cursor:pointer;">스캔페이지로</button>
+        </div>
+
+        <h2 style="font-size:18px; font-weight:700; color:#ffbd63; text-align:left; margin-bottom:10px;">등록된 상품 목록</h2>
+        <div id="registered-products" class="registered-products" style="display:grid; gap:12px;"></div>
+    </div>
+
+    <script>
+        // Firebase 설정을 firebase-config.js에서 불러옵니다.
+        const firebaseConfig = window.firebaseConfig;
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'landing.html';
+            }
+        });
+    </script>
+    <script src="main.js"></script>
+</body>
+</html>

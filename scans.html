@@ -11,6 +11,10 @@
         rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
 
     <style>
         .btn-google {
@@ -44,11 +48,19 @@
         /* [기존 스타일 유지] */
         :root {
             --orange-main: #e67e22;
-            --black-card: #000000;
+            --orange-dark: #c15817;
             --white: #ffffff;
-            --bg-gray: #f2f2f7;
+            --bg-gray: #fff4ed;
+            --text: #391f0d;
+            --surface: rgba(255,255,255,0.9);
             --card-radius: 44px;
             --item-radius: 12px;
+        }
+        .dark-mode {
+            --bg-gray: #000000;
+            --black-card: #111111;
+            --text: #ffffff;
+            --surface: rgba(17,17,17,0.9);
         }
 
         * {
@@ -61,6 +73,7 @@
 
         body {
               background-color: var(--bg-gray);
+              color: var(--text);
               margin: 0;
              }
 
@@ -85,6 +98,20 @@
             font-size: 1.2rem; font-weight: 900; cursor: pointer;
             box-shadow: 0 10px 30px rgba(230, 126, 34, 0.4);
         }
+        .back-button {
+            padding: 10px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.9);
+            color: #111;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .back-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,1);
+        }
 
         .container {
           width: 100%;
@@ -108,10 +135,20 @@
             flex-direction: column;
             height: 280px;   /* 👈 고정 높이로 변경 */
         }
+        .btn-google {
+            background: var(--surface);
+            color: var(--text);
+        }
+        .back-button {
+            background: var(--surface);
+            color: var(--text);
+            border-color: rgba(255,255,255,0.15);
+        }
 
         .scanner-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
             margin-bottom: 16px;
         }
@@ -259,7 +296,8 @@
         <section class="scanner-card">
             <header class="scanner-header">
                 <div class="logo-box">III</div>
-                <div class="logo-text">Thick 띡!</div>
+                <div class="logo-text">Thick</div>
+                <button class="back-button" onclick="window.location.href='dashboard.html'">뒤로</button>
             </header>
             <div class="scanner-viewport">
                 <div id="reader"></div>
@@ -282,6 +320,19 @@
                 <div class="empty-cart-msg">바코드를 스마트폰 렌즈에 비춰주세요.</div>
             </div>
 
+            <div class="store-info-group" style="margin-bottom:14px; display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
+                <div style="flex:1; min-width:180px; position:relative;">
+                    <input list="store-suggestions" id="store-name" type="text" placeholder="편의점 이름 입력 (선택)" style="width:100%; padding:10px 12px; border-radius:14px; border:1px solid rgba(0,0,0,0.15);" />
+                    <datalist id="store-suggestions">
+                        <option value="CU"></option>
+                        <option value="GS25"></option>
+                        <option value="7-Eleven"></option>
+                        <option value="Ministop"></option>
+                        <option value="emart24"></option>
+                    </datalist>
+                </div>
+                <button type="button" onclick="captureLocation()" style="padding:10px 14px; border-radius:14px; border:none; background:#fff; color:#000; font-weight:700; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.12);">내 위치 저장</button>
+            </div>
             <div class="summary-footer">
                 <span class="summary-title">금액 합계</span>
                 <span class="summary-value"><span id="total-val">0</span>원</span>
@@ -316,6 +367,17 @@
     <div id="toast" class="toast-notification hidden"></div>
 
     <script>
+        // Firebase 설정을 firebase-config.js에서 불러옵니다.
+        const firebaseConfig = window.firebaseConfig;
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'landing.html';
+            }
+        });
+
         let cart = [];
         let html5QrCode = null;
         let isModalOpen = false;
@@ -473,6 +535,7 @@
             render();
         });
     </script>
+    <script src="firebase-config.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { 
@@ -493,21 +556,19 @@
           GoogleAuthProvider
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-        // Firebase 설정
-        const firebaseConfig = {
-           apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
-           authDomain: "thick-fdd38.firebaseapp.com",
-           projectId: "thick-fdd38",
-           storageBucket: "thick-fdd38.firebasestorage.app",
-           messagingSenderId: "109235677950",
-           appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
-           measurementId: "G-LH61G4J09W"
-         };
+        // Firebase 설정을 firebase-config.js에서 불러옵니다.
+        const firebaseConfig = window.firebaseConfig;
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
+
+        function applySavedDarkMode() {
+            const enabled = localStorage.getItem('thick_dark_mode') === '1';
+            document.body.classList.toggle('dark-mode', enabled);
+        }
+        applySavedDarkMode();
 
         window.loginWithGoogle = async function () {
             try {
@@ -555,6 +616,30 @@
         }
 
         // 현재 장바구니를 세션으로 저장하는 함수
+        let savedLocation = null;
+
+        window.captureLocation = function() {
+            if (!navigator.geolocation) {
+                showToast('위치 정보가 지원되지 않는 브라우저입니다.');
+                return;
+            }
+
+            showToast('위치 정보를 가져오는 중...');
+            navigator.geolocation.getCurrentPosition((pos) => {
+                savedLocation = {
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude
+                };
+                showToast('위치가 저장되었습니다. (지도 공유용)');
+            }, (err) => {
+                console.error('위치 수집 실패:', err);
+                showToast('위치 정보 수집에 실패했습니다. 권한을 허용해주세요.');
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000
+            });
+        };
+
         window.finishSession = async function() {
             if (!window.currentUid || cart.length === 0) {
                 window.location.href = "dashboard.html";
@@ -562,6 +647,11 @@
             }
 
             const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            const storeName = document.getElementById('store-name')?.value || '';
+
+            if (!savedLocation) {
+                showToast('위치 정보가 없으면 공유 지도에 표시되지 않습니다.');
+            }
 
             try {
                 await addDoc(
@@ -569,6 +659,8 @@
                     {
                         items: cart,
                         totalPrice: total,
+                        storeName: storeName,
+                        location: savedLocation,
                         createdAt: serverTimestamp()
                     }
                 );

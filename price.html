@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thick - 가격 입력</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --white: #ffffff;
+            --bg-gray: #f2f2f7;
+            --text-primary: #000000;
+            --card-radius: 20px;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .back-button {
+            padding: 10px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.9);
+            color: #111;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+            margin-bottom: 16px;
+        }
+        .back-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,1);
+        }
+        body {
+            background-color: var(--bg-gray);
+            padding: 20px;
+        }
+        .price-input-card {
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: var(--card-radius);
+        }
+        .product-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .store-selector {
+            margin-bottom: 20px;
+        }
+        .store-selector button {
+            padding: 10px 20px;
+            border: 1px solid #E5E5EA;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            margin-right: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .store-selector button.selected {
+            background-color: #007AFF;
+            color: white;
+            border-color: #007AFF;
+        }
+        .price-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #E5E5EA;
+            border-radius: 10px;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .save-button {
+            width: 100%;
+            padding: 15px;
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body id="price-input-page">
+    <button class="back-button" onclick="window.location.href='dashboard.html'">뒤로</button>
+    <div class="price-input-card">
+        <h1 class="product-name">상품명 로딩 중...</h1>
+        <div class="store-selector">
+            <!-- Dummy buttons, will be managed by JS -->
+            <button>CU</button>
+            <button>GS25</button>
+            <button>동네마트</button>
+        </div>
+        <input type="number" class="price-input" placeholder="가격 입력">
+        <button class="save-button">저장하기</button>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>

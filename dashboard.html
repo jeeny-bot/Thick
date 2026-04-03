@@ -2,785 +2,270 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>1인가구 최저가 앱</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thick - 대시보드</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
     <style>
         :root {
-            --bg-main: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #ffffff;
-            --text-sub: #a0a0a0;
-            --orange-main: #e67e22;
-            --green-main: #2ecc71;
-            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --bg-gray: #fff3ec;
+            --white: #ffffff;
+            --surface: rgba(255,255,255,0.95);
+            --text: #37250a;
+            --text-muted: rgba(55,37,16,0.66);
+            --border: rgba(185,130,75,0.35);
+            --card-radius: 20px;
+            --accent: #e67e22;
+        }
+        .dark-mode {
+            --bg-gray: #000000;
+            --white: #111111;
+            --surface: rgba(17,17,17,0.95);
+            --text: #ffffff;
+            --text-muted: rgba(255,255,255,0.5);
+            --border: rgba(255,255,255,0.18);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
         }
         body {
-            margin: 0;
-            background-color: var(--bg-main);
-            font-family: 'Noto Sans KR', sans-serif;
-            color: var(--text-main);
-            padding-bottom: 80px; /* Space for bottom nav */
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background-color: var(--card-bg);
-            box-shadow: var(--box-shadow);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .header-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-        #logout-btn { cursor: pointer; }
-        .main-container {
+            min-height: 100vh;
+            background-color: var(--bg-gray);
+            color: var(--text);
             padding: 24px;
+            padding-bottom: 180px; /* 하단 메뉴 공간 확보 */
         }
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--box-shadow);
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
         }
-        .date-selector {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .date-selector button { 
-            background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main);
-        }
-        .date-selector .month {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin: 0 20px;
-        }
-        .monthly-spending {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .spending-info h2 {
-            font-size: 1rem;
-            color: var(--text-sub);
-            margin: 0 0 8px 0;
-        }
-        .spending-info .amount {
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--orange-main);
-        }
-        .spending-chart {
-            width: 150px;
-            height: 80px;
-        }
-        .savings-card {
-            background: var(--orange-main);
-            color: var(--text-main);
-            text-align: center;
-        }
-        .savings-card h2 {
-            font-size: 1.2rem;
-            margin: 0 0 10px 0;
-            opacity: 0.9;
-        }
-        .savings-card .amount {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .section-header h2 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin: 0;
-        }
-        .section-header .more-link {
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            text-decoration: none;
-        }
-        .product-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 16px;
-            cursor: pointer;
-            border-radius: 12px;
-            padding: 8px;
-            transition: background-color 0.2s ease;
-        }
-        .product-item:hover {
-            background-color: #2c2c2e;
-        }
-        .product-item.active {
-            background-color: #3a3a3c;
-        }
-        .product-item:last-child {
-            margin-bottom: 0;
-        }
-        .product-rank {
-            font-size: 1.2rem;
-            font-weight: 900;
-            width: 30px;
-        }
-        .product-thumbnail {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            margin-right: 12px;
-            object-fit: cover;
-            background-color: #333;
-        }
-        .product-info {
-            flex-grow: 1;
-        }
-        .product-info .name {
-            font-weight: 500;
-        }
-        .product-info .price {
-            color: var(--text-sub);
-            font-size: 0.9rem;
-        }
-        .price-comparison {
-            text-align: right;
-        }
-        .price-comparison .current-price {
-            font-weight: 700;
-        }
-        .price-comparison .price-diff {
-            font-size: 0.8rem;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 4px;
-        }
-        .price-diff.expensive { background-color: #e53935; }
-        .price-diff.cheap { background-color: #039be5; }
-
-        .question-mark {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            border: 1px solid var(--text-sub);
-            color: var(--text-sub);
-            font-size: 0.8rem;
-            cursor: pointer;
-            margin-left: 4px;
-        }
-        .store-price-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .lowest-price-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 4px 0;
-        }
-        .lowest-price-row .label {
-            font-size: 0.9rem;
-            color: var(--text-sub);
-        }
-        .lowest-price-row .price {
-            font-size: 1.1rem;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 8px;
-            background-color: #3a3a3c;
-        }
-        .lowest-price-row.best-store .label {
-            color: var(--orange-main);
-            font-weight: 700;
-        }
-        .lowest-price-row.best-store .price {
-            background-color: var(--orange-main);
-            color: var(--card-bg);
-        }
-        .total-savings {
-            text-align: right;
-            margin-top: 16px;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--green-main);
-        }
-
-        .bottom-nav {
+        .bottom-menu {
             position: fixed;
-            bottom: 0;
             left: 0;
             right: 0;
-            display: flex;
-            justify-content: space-around;
-            background-color: #1e1e1e;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.4);
-            padding: 10px 0;
-            z-index: 100;
+            bottom: 0;
+            padding: 18px 24px 28px;
+            background: var(--surface);
+            box-shadow: 0 -12px 24px rgba(0,0,0,0.1);
+            border-top: 1px solid rgba(0,0,0,0.08);
         }
-        .nav-item {
+        .bottom-menu .card {
+            margin: 0 auto;
+            max-width: 480px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .header {
+            margin-bottom: 28px;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
-            color: var(--text-sub);
+        }
+        .header h1 {
+            font-size: 2.4rem;
+            font-weight: 900;
+            margin-bottom: 0;
+        }
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+        .header-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .dark-mode-toggle {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.15);
+            border-radius: 14px;
+            padding: 8px 12px;
+            color: #111;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .dark-mode-toggle:hover {
+            transform: translateY(-1px);
+            background: rgba(255,255,255,1);
+        }
+        .dark-mode .dark-mode-toggle {
+            background: rgba(17,17,17,0.9);
+            color: #ffffff;
+            border-color: rgba(255,255,255,0.15);
+        }
+        .dark-mode .dark-mode-toggle:hover {
+            background: rgba(17,17,17,1);
+        }
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+        .link-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        .link-button {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px 22px;
+            color: var(--text);
+            font-size: 1.26rem;
+            font-weight: 600;
             text-decoration: none;
-            flex: 1;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
         }
-        .nav-item.active {
-            color: var(--orange-main);
+        .link-button:hover {
+            transform: translateY(-2px);
+            background: var(--white);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
         }
-        .nav-item .icon {
-            font-size: 1.5rem;
-            margin-bottom: 4px;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
+        .link-button::before {
+            content: '';
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(230,126,34,0.15);
+            margin-right: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 200;
+            font-size: 18px;
         }
-        .modal-card-detail {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid #333;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .modal-header h2 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: var(--orange-main);
-        }
-        .close-button {
-            font-size: 1.8rem;
+        .link-button[data-icon="report"]::before { content: "📊"; }
+        .link-button[data-icon="map"]::before { content: "🗺️"; }
+        .link-button[data-icon="product"]::before { content: "📦"; }
+        .link-button[data-icon="share"]::before { content: "🤝"; }
+        .link-button[data-icon="price"]::before { content: "💰"; }
+        .logout-btn {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.15);
+            border-radius: 14px;
+            padding: 8px 16px;
+            color: #111;
             font-weight: 700;
-            color: var(--text-sub);
             cursor: pointer;
+            transition: transform 0.15s ease, background 0.15s ease;
         }
-        .daily-item {
-            border-bottom: 1px solid #333;
-            padding: 10px 0;
+        .logout-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255,255,255,1);
         }
-        .daily-item:last-child {
-            border-bottom: none;
+        .dark-mode .logout-btn {
+            background: rgba(17,17,17,0.9);
+            color: #ffffff;
+            border-color: rgba(255,255,255,0.15);
         }
-        .daily-item-header {
-            display: flex;
-            justify-content: space-between;
-            font-weight: 700;
-            margin-bottom: 8px;
+        .dark-mode .logout-btn:hover {
+            background: rgba(17,17,17,1);
         }
-        .purchase-item {
-            display: flex;
-            justify-content: space-between;
-            padding-left: 10px;
-            margin-top: 5px;
-            font-size: 0.9rem;
-            color: var(--text-sub);
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
     </style>
 </head>
 <body>
-
-    <header class="header">
-        <div>&#9776;</div>
-        <div class="header-title">1인가구 최저가 앱</div>
-        <div id="logout-btn">&#128276;</div>
-    </header>
-
-    <div class="main-container">
-        <div class="date-selector">
-            <button id="prev-month">&lt;</button>
-            <div class="month" id="current-month"></div>
-            <button id="next-month">&gt;</button>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>THICK</h1>
+                <p>상품을 스캔해서 등록하세요</p>
+            </div>
+            <div class="header-buttons">
+                <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</button>
+                <button class="logout-btn" onclick="logout()">로그아웃</button>
+            </div>
         </div>
 
+        <div class="footer">
+            <p></p>
+            <p><a class="link-button" href="scans.html" data-icon="product" style="justify-content: center;">상품 스캔하기</a></p>
+        </div>
+    </div>
+
+    <div class="bottom-menu">
         <div class="card">
-            <div class="monthly-spending">
-                <div class="spending-info">
-                    <h2>이번 달 총 지출</h2>
-                    <div class="amount" id="total-spending">0원</div>
-                </div>
-                <div class="spending-chart">
-                    <canvas id="spending-chart-canvas"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="card savings-card">
-            <h2>나의 절약 현황</h2>
-            <div class="amount" id="savings-amount">계산중...</div>
-        </div>
-
-        <div class="card top-products">
-            <div class="section-header">
-                <h2>자주 사는 상품 TOP 3</h2>
-                <a href="#" class="more-link">더보기 &gt;</a>
-            </div>
-            <div id="top-products-list">
-                <p>데이터를 불러오는 중입니다...</p>
-            </div>
-        </div>
-
-        <div class="card" id="store-comparison-card" style="display: none;">
-            <div class="section-header">
-                <h2 id="store-comparison-title">매장별 최저가 비교</h2>
-            </div>
-            <div id="store-comparison-content">
-                <!-- JS will populate this -->
+            <h2>내 메뉴</h2>
+            <div class="link-grid">
+                <a class="link-button" href="report.html" data-icon="report">리포트 보기</a>
+                <a class="link-button" href="product_info.html?barcode=690348777139" data-icon="product">상품 정보</a>
+                <a class="link-button" href="map.html" data-icon="map">판매점 지도</a>
+                <a class="link-button" href="share.html" data-icon="share">상품 공유</a>
             </div>
         </div>
     </div>
 
-    <div id="daily-details-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-card-detail">
-            <div class="modal-header">
-                <h2 id="daily-details-title">월별 상세 내역</h2>
-                <span id="close-daily-details" class="close-button">&times;</span>
-            </div>
-            <div id="daily-details-list" class="modal-body">
-                <!-- Daily purchase details will be injected here -->
-            </div>
-        </div>
-    </div>
+    <script>
+        // Firebase 설정을 firebase-config.js에서 불러옵니다.
+        const firebaseConfig = window.firebaseConfig;
 
-    <nav class="bottom-nav">
-        <a href="#" class="nav-item active"><div class="icon">&#127968;</div><div>홈</div></a>
-        <a href="scan.html" class="nav-item"><div class="icon">&#10133;</div><div>상품등록</div></a>
-        <a href="#" class="nav-item"><div class="icon">&#128220;</div><div>내역</div></a>
-        <a href="report.html" class="nav-item"><div class="icon">&#128202;</div><div>리포트</div></a>
-        <a href="settings.html" class="nav-item"><div class="icon">&#9881;</div><div>설정</div></a>
-    </nav>
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'landing.html';
+            }
+        });
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyB6Ws2dXPrMqUQTwVbGDdcAhdKJzJK1Cmk",
-            authDomain: "thick-fdd38.firebaseapp.com",
-            projectId: "thick-fdd38",
-            storageBucket: "thick-fdd38.appspot.com",
-            messagingSenderId: "109235677950",
-            appId: "1:109235677950:web:f58eb3bcdfdaea9e3793af",
-            measurementId: "G-LH61G4J09W"
-        };
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = 'index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                alert('로그아웃 중 오류가 발생했습니다.');
+            });
+        }
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let currentUser;
-        let currentDisplayDate = new Date();
-        let spendingChart = null;
-        let monthlySpendingData = { labels: [], data: [], sessions: [] };
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                updateDashboard(user, currentDisplayDate);
+        function setDarkMode(enabled) {
+            document.body.classList.toggle('dark-mode', enabled);
+            const button = document.querySelector('.dark-mode-toggle');
+            if (enabled) {
+                button.textContent = '☀️';
+                localStorage.setItem('thick_dark_mode', '1');
             } else {
-                window.location.href = "index.html";
-            }
-        });
-
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            signOut(auth).then(() => {
-                window.location.href = "index.html";
-            });
-        });
-
-        document.getElementById('close-daily-details').addEventListener('click', () => {
-            document.getElementById('daily-details-modal').style.display = 'none';
-        });
-
-        function updateDashboard(user, date) {
-            updateMonthDisplay(date);
-            fetchDashboardData(user, date);
-            fetchTopProducts(user, date);
-        }
-
-        function updateMonthDisplay(date) {
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1;
-            document.getElementById('current-month').textContent = `${year}년 ${month}월`;
-        }
-        
-        async function fetchDashboardData(user, date) {
-            const spendingFor3Months = [];
-            const labelsFor3Months = [];
-            const sessionsFor3Months = [];
-
-            for (let i = 2; i >= 0; i--) {
-                const targetDate = new Date(date);
-                targetDate.setMonth(date.getMonth() - i);
-                
-                const year = targetDate.getFullYear();
-                const month = targetDate.getMonth();
-                labelsFor3Months.push(`${month + 1}월`);
-
-                const startOfMonth = new Date(year, month, 1);
-                const endOfMonth = new Date(year, month + 1, 0);
-
-                const sessionsRef = collection(db, "users", user.uid, "sessions");
-                const q = query(sessionsRef, 
-                    where("createdAt", ">=", Timestamp.fromDate(startOfMonth)),
-                    where("createdAt", "<=", Timestamp.fromDate(endOfMonth))
-                );
-
-                const snapshot = await getDocs(q);
-                let totalSpending = 0;
-                const monthSessions = [];
-                snapshot.forEach(doc => {
-                    const session = doc.data();
-                    session.id = doc.id; 
-                    totalSpending += session.totalPrice || 0;
-                    monthSessions.push(session);
-                });
-                spendingFor3Months.push(totalSpending);
-                sessionsFor3Months.push(monthSessions);
-            }
-            
-            monthlySpendingData = {
-                labels: labelsFor3Months,
-                data: spendingFor3Months,
-                sessions: sessionsFor3Months
-            };
-
-            document.getElementById('total-spending').textContent = `${spendingFor3Months[2].toLocaleString()}원`;
-            
-            createOrUpdateSpendingChart(labelsFor3Months, spendingFor3Months);
-        }
-
-        function createOrUpdateSpendingChart(labels, data) {
-            const ctx = document.getElementById('spending-chart-canvas').getContext('2d');
-            
-            if (spendingChart) {
-                spendingChart.destroy();
-            }
-
-            spendingChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '월별 지출',
-                        data: data,
-                        backgroundColor: ['#e67e22', '#f39c12', '#f1c40f'],
-                        borderRadius: 4,
-                    }]
-                },
-                options: {
-                    onClick: handleChartClick,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: { 
-                            enabled: true,
-                            backgroundColor: 'rgba(0,0,0,0.7)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.raw.toLocaleString()}원`;
-                                }
-                            }
-                         }
-                    },
-                    scales: {
-                        y: { display: false },
-                        x: { 
-                            grid: { display: false },
-                            ticks: { color: '#a0a0a0' }
-                        }
-                    }
-                }
-            });
-        }
-
-        function handleChartClick(event, elements) {
-            if (elements.length > 0) {
-                const clickedIndex = elements[0].index;
-                const clickedMonthSessions = monthlySpendingData.sessions[clickedIndex];
-                
-                const targetDate = new Date(currentDisplayDate);
-                targetDate.setMonth(currentDisplayDate.getMonth() - (2 - clickedIndex));
-                const monthForTitle = targetDate.getMonth() + 1;
-                const yearForTitle = targetDate.getFullYear();
-
-                displayDailyDetails(clickedMonthSessions, yearForTitle, monthForTitle);
+                button.textContent = '🌙';
+                localStorage.removeItem('thick_dark_mode');
             }
         }
 
-        function displayDailyDetails(sessions, year, month) {
-            const modal = document.getElementById('daily-details-modal');
-            const titleEl = document.getElementById('daily-details-title');
-            const listEl = document.getElementById('daily-details-list');
-
-            titleEl.textContent = `${year}년 ${month}월 상세 내역`;
-            listEl.innerHTML = '';
-
-            if (sessions.length === 0) {
-                listEl.innerHTML = '<p>해당 월의 구매 내역이 없습니다.</p>';
-                modal.style.display = 'flex';
-                return;
-            }
-
-            const purchasesByDay = {};
-            sessions.forEach(session => {
-                const date = session.createdAt.toDate().getDate();
-                if (!purchasesByDay[date]) {
-                    purchasesByDay[date] = [];
-                }
-                purchasesByDay[date].push(session);
-            });
-            
-            const sortedDays = Object.keys(purchasesByDay).sort((a, b) => a - b);
-
-            let contentHtml = '';
-            sortedDays.forEach(day => {
-                const daySessions = purchasesByDay[day];
-                const dayTotal = daySessions.reduce((sum, s) => sum + s.totalPrice, 0);
-
-                contentHtml += `
-                    <div class="daily-item">
-                        <div class="daily-item-header">
-                            <span>${month}월 ${day}일</span>
-                            <span>${dayTotal.toLocaleString()}원</span>
-                        </div>
-                `;
-                
-                daySessions.forEach(session => {
-                    if(session.items) {
-                        session.items.forEach(item => {
-                            contentHtml += `
-                                <div class="purchase-item">
-                                    <span>- ${item.name} (x${item.qty})</span>
-                                    <span>${item.price.toLocaleString()}원</span>
-                                </div>
-                            `;
-                        });
-                    }
-                });
-                
-                contentHtml += `</div>`;
-            });
-
-            listEl.innerHTML = contentHtml;
-            modal.style.display = 'flex';
+        function toggleDarkMode() {
+            const enabled = !document.body.classList.contains('dark-mode');
+            setDarkMode(enabled);
         }
 
-        async function fetchTopProducts(user, date) {
-            const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-            const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-            const sessionsRef = collection(db, "users", user.uid, "sessions");
-            const q = query(sessionsRef, 
-                where("createdAt", ">=", Timestamp.fromDate(startOfMonth)),
-                where("createdAt", "<=", Timestamp.fromDate(endOfMonth))
-            );
-
-            const snapshot = await getDocs(q);
-            
-            const productStats = {};
-            let totalSavingsThisMonth = 0;
-
-            snapshot.forEach(doc => {
-                const session = doc.data();
-                if (session.items) {
-                    session.items.forEach(item => {
-                        if (!productStats[item.name]) {
-                            productStats[item.name] = {
-                                purchases: [],
-                                totalSpent: 0,
-                                count: 0,
-                                imageUrl: item.imageUrl
-                            };
-                        }
-                        productStats[item.name].purchases.push({ 
-                            price: item.price, 
-                            date: session.createdAt.toDate(),
-                            marketType: session.marketType,
-                            marketName: session.marketName
-                        });
-                        productStats[item.name].totalSpent += item.price;
-                        productStats[item.name].count += 1;
-                    });
-                }
-            });
-
-            const frequentItems = Object.keys(productStats).map(name => {
-                const stats = productStats[name];
-                stats.purchases.sort((a, b) => b.date - a.date);
-                const avgPrice = Math.round(stats.totalSpent / stats.count);
-                const lastPrice = stats.purchases.length > 0 ? stats.purchases[0].price : 0;
-                
-                if (lastPrice < avgPrice) {
-                    totalSavingsThisMonth += (avgPrice - lastPrice) * stats.purchases.filter(p => p.date.getMonth() === date.getMonth()).length;
-                }
-
-                return {
-                    name: name,
-                    count: stats.count,
-                    avgPrice: avgPrice,
-                    lastPrice: lastPrice,
-                    imageUrl: stats.imageUrl,
-                    allPurchases: stats.purchases
-                };
-            });
-
-            frequentItems.sort((a, b) => b.count - a.count);
-
-            document.getElementById('savings-amount').textContent = `${totalSavingsThisMonth.toLocaleString()}원 절약`;
-
-            const top3Items = frequentItems.slice(0, 3);
-            const listContainer = document.getElementById('top-products-list');
-            listContainer.innerHTML = '';
-
-            if (top3Items.length === 0) {
-                listContainer.innerHTML = '<p>이번 달 구매 내역이 없습니다.</p>';
-                document.getElementById('store-comparison-card').style.display = 'none';
-                return;
-            }
-
-            top3Items.forEach((item, index) => {
-                const priceDiff = item.lastPrice - item.avgPrice;
-                const diffText = priceDiff > 0 ? `+${priceDiff.toLocaleString()}원` : `${Math.abs(priceDiff).toLocaleString()}원`;
-                const diffClass = priceDiff > 0 ? 'expensive' : 'cheap';
-                
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'product-item';
-                itemDiv.innerHTML = `
-                    <div class="product-rank">${index + 1}.</div>
-                    <img src="${item.imageUrl || 'https://via.placeholder.com/50'}" class="product-thumbnail" alt="${item.name}">
-                    <div class="product-info">
-                        <div class="name">${item.name}</div>
-                        <div class="price">내 평균가 ${item.avgPrice.toLocaleString()}원</div>
-                    </div>
-                    <div class="price-comparison">
-                        <div class="current-price" style="color: ${priceDiff <= 0 ? '#81d4fa' : '#ff8a80'}">${item.lastPrice.toLocaleString()}원</div>
-                        <div class="price-diff ${diffClass}">${diffText}</div>
-                    </div>
-                `;
-                itemDiv.addEventListener('click', () => {
-                    document.querySelectorAll('#top-products-list .product-item').forEach(el => el.classList.remove('active'));
-                    itemDiv.classList.add('active');
-                    displayStorePriceComparison(item);
-                });
-                listContainer.appendChild(itemDiv);
-            });
-
-            if (top3Items.length > 0) {
-                document.querySelector('#top-products-list .product-item').classList.add('active');
-                await displayStorePriceComparison(top3Items[0]);
-            } else {
-                document.getElementById('store-comparison-card').style.display = 'none';
-            }
+        function applySavedDarkMode() {
+            const enabled = localStorage.getItem('thick_dark_mode') === '1';
+            setDarkMode(enabled);
         }
 
-        function displayStorePriceComparison(item) {
-            const card = document.getElementById('store-comparison-card');
-            const content = document.getElementById('store-comparison-content');
-            card.style.display = 'block';
-            document.getElementById('store-comparison-title').textContent = `${item.name} - 매장별 최저가`;
-
-            const purchasesByStore = {};
-            item.allPurchases.forEach(p => {
-                const storeName = p.marketName || p.marketType || '기타';
-                if (!purchasesByStore[storeName]) {
-                    purchasesByStore[storeName] = { bestPrice: p.price };
-                }
-                if (p.price < purchasesByStore[storeName].bestPrice) {
-                    purchasesByStore[storeName].bestPrice = p.price;
-                }
-            });
-
-            const storeEntries = Object.entries(purchasesByStore);
-            if (storeEntries.length === 0) {
-                content.innerHTML = '<p>이 상품에 대한 매장별 구매 기록이 부족합니다.</p>';
-                return;
-            }
-
-            let overallBestPrice = Infinity;
-            let bestStore = '';
-            storeEntries.forEach(([store, data]) => {
-                if (data.bestPrice < overallBestPrice) {
-                    overallBestPrice = data.bestPrice;
-                    bestStore = store;
-                }
-            });
-
-            let contentHtml = '<div class="store-price-list">';
-            storeEntries.forEach(([store, data]) => {
-                const isBest = store === bestStore;
-                contentHtml += `
-                    <div class="lowest-price-row ${isBest ? 'best-store' : ''}">
-                        <span class="label">${store}</span>
-                        <span class="price">${data.bestPrice.toLocaleString()}원</span>
-                    </div>
-                `;
-            });
-            contentHtml += '</div>';
-
-            if (bestStore) {
-                const savings = item.lastPrice - overallBestPrice;
-                if (savings > 0) {
-                    contentHtml += `
-                        <div class="total-savings">
-                            ${bestStore}에서 구매 시 ${savings.toLocaleString()}원 더 저렴해요!
-                        </div>
-                    `;
-                }
-            }
-            
-            content.innerHTML = contentHtml;
-        }
-
-        // Month navigation
-        document.getElementById('prev-month').addEventListener('click', () => {
-            currentDisplayDate.setMonth(currentDisplayDate.getMonth() - 1);
-            updateDashboard(currentUser, currentDisplayDate);
-        });
-
-        document.getElementById('next-month').addEventListener('click', () => {
-            currentDisplayDate.setMonth(currentDisplayDate.getMonth() + 1);
-            updateDashboard(currentUser, currentDisplayDate);
-        });
-
+        applySavedDarkMode();
     </script>
-
 </body>
 </html>
